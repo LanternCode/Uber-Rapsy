@@ -1,0 +1,141 @@
+*{
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+    background-color: #ededed;
+}
+
+.videoContainer {
+    display: grid;
+    grid-template-columns: 14vw 69vw 14vw;
+    grid-template-rows: 100%;
+}
+
+    .songThumbnailLeft {
+        grid-column-start: 1;
+        grid-column-end: 2;
+    }
+
+    .dataContainer {
+        text-align: center;
+        grid-column-start: 2;
+        grid-column-end: 3;
+    }
+
+    .songThumbnailRight {
+        grid-column-start: 3;
+        grid-column-end: 4;
+    }
+
+.btnGrade {
+    width: 17px;
+    height: 17px;
+}
+
+.gradeInput {
+    width: 100px;
+}
+
+.gradeInputNew {
+    width: 50px;
+}
+
+.newScore {
+    display: none;
+}
+
+.dataContainer--gradeContainer {
+    margin: 5px;
+}
+
+.optionsHeader {
+    color: white;
+    background-color: black;
+    position: fixed;
+    width: 100vw;
+    height: 50px;
+}
+
+.optionsURL {
+    display: inline;
+    text-decoration: none;
+    background-color: black;
+    color: white;
+    margin: 15px;
+    border: 1px solid aqua;
+    border-radius: 15px;
+}
+
+.playlists {
+    display: grid;
+    grid-template-columns: 10vw 39vw 39vw 10vw;
+    text-align: center;
+}
+
+        .playlist {
+            grid-column: 2/4;
+            display: grid;
+            grid-template-columns: 50% 50%;
+            grid-template-rows: 35vh;
+            text-align: center;
+        }
+
+                .playlist--odd {
+                    grid-column-start: 1;
+                    grid-column-end: 3;
+                    display: grid;
+                    grid-template-columns: 50% 50%;
+                    text-align: center;
+                }
+
+                        .playlist--odd__left {
+                            grid-column-start: 1;
+                            grid-column-end: 2;
+                        }
+
+                        .playlist--odd__right {
+                            grid-column-start: 2;
+                            grid-column-end: 3;
+                        }
+
+                .playlist--even {
+                    grid-column-start: 1;
+                    grid-column-end: 3;
+                    display: grid;
+                    grid-template-columns: 50% 50%;
+                    text-align: center;
+                }
+
+                        .playlist--even__left {
+                            grid-column-start: 1;
+                            grid-column-end: 2;
+                        }
+
+                        .playlist--even__right {
+                            grid-column-start: 2;
+                            grid-column-end: 3;
+                        }
+
+.playlist__url {
+    text-decoration: none;
+    font-size: 24px;
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+}
+
+.songsForm {
+    display: block;
+}
+
+.optionsHeaderSpace {
+    height: 50px;
+}
+
+.gradeCategory {
+    font-size: 25px;
+    margin: 35px;
+    margin-left: 13vw;
+}
