@@ -11,17 +11,20 @@
 		<link rel="icon" href="<?=base_url( 'favicon.ico' )?>" type="image/x-icon">
 	</head>
 	<body>
+		<nav>
+			<a href="<?=base_url("loginYoutube")?>">Zaloguj się do YT</a>
+		</nav>
 	    <main>
 	        <?php isset( $body ) ? $this->load->view( $body ) : redirect( base_url() ); ?>
 	    </main>
 		<footer>
 			<br />
 		    <p class="footer">
-				iLeanbox 2019-<?=date( 'Y' )?>
-				&copy;
-				All rights reserved.
+				UberRapsy 2019-<?=date( 'Y' )?> &copy; All rights reserved.
 				<br />
-				Page rendered in <strong>{elapsed_time}</strong> seconds. <?php echo  (ENVIRONMENT === 'development') ?  'CodeIgniter Version <strong>' . CI_VERSION . '</strong>' : '' ?>
+				Czas ładowania strony: <strong>{elapsed_time}</strong> sekund.
+				<br />
+				Stworzone przez LanternCode.
 			</p>
 		</footer>
 	</body>
