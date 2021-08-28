@@ -9,6 +9,7 @@ application/logs/*
 !application/*/.htaccess
 
 application/api/client_secret.json
+application/api/refresh_token.txt
 
 composer.lock
 

@@ -12,7 +12,7 @@
 	</head>
 	<body>
 		<nav>
-			<a href="<?=base_url("loginYoutube")?>">Zaloguj się do YT</a>
+			<a href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
 		</nav>
 	    <main>
 	        <?php isset( $body ) ? $this->load->view( $body ) : redirect( base_url() ); ?>

@@ -224,50 +224,6 @@ class Playlist extends CI_Controller {
 			'body' => 'addPlaylist'
 		);
 
-		$myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/UberRapsy/';
-		require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
-		$token_expired = false;
-		$refresh_token = "1//036Daf2gYN0QoCgYIARAAGAMSNwF-L9Irx_IhfV8JE_f0N00MRtrMVJBOkLZBIDH5YDzVfFJUtFcujzMjaMRDigf14pchDYzjZ2o";
-		do {
-			try {
-				//get the currently saved token
-				$accessToken = get_cookie("UberRapsyToken");
-
-				//check if the cookie was set or empty
-				if (is_null($accessToken)) {
-					throw new Exception("Cookie not found");
-				}
-
-				//authenticate the token obtained from the cookie
-				$client = new Google\Client();
-				$client->setAuthConfig($myPath . 'application/api/client_secret.json');
-				$client->setAccessToken($accessToken);
-
-				//Set the control variable, will only happen if no error happened on the way
-				$token_expired = false;
-			} catch (Exception $e) {
-				//error happened, either cookie is missing or token has expired
-				$token_expired = true;
-			}
-			//refresh token
-			if ($token_expired) {
-				//$google_token= json_decode($_SESSION['access_token']);
-				//Load the settings
-				$client = new Google\Client();
-				$client->setAuthConfig($myPath . 'application/api/client_secret.json');
-				$client->refreshToken($refresh_token);
-
-				//Fetch new token
-				$accessToken = $client->getAccessToken();
-
-				//delete the old cookie with the expired token
-				delete_cookie("UberRapsyToken");
-
-				//set a new cookie with a new token
-				set_cookie("UberRapsyToken", $accessToken, 86400);
-			}
-		} while ($token_expired == true);
-
 		$this->load->view( 'templates/main', $data );
 	}
 
@@ -281,7 +237,7 @@ class Playlist extends CI_Controller {
 			'resultMessage' => ''
 		);
 
-		$myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/UberRapsy/';
+		$myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/Uber-Rapsy/';
 		require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
 
 		//validate the form
@@ -291,47 +247,7 @@ class Playlist extends CI_Controller {
 		) {
 
 			$token_expired = false;
-			$refresh_token = "1//036Daf2gYN0QoCgYIARAAGAMSNwF-L9Irx_IhfV8JE_f0N00MRtrMVJBOkLZBIDH5YDzVfFJUtFcujzMjaMRDigf14pchDYzjZ2o";
 			//validate yt authentication
-			do {
-				try {
-					//get the currently saved token
-					$accessToken = get_cookie("UberRapsyToken");
-
-					//check if the cookie was set or empty
-					if (is_null($accessToken)) {
-						throw Exception("Cookie not found");
-					}
-
-					//authenticate the token obtained from the cookie
-					$client = new Google\Client();
-					$client->setAuthConfig($myPath . 'application/api/client_secret.json');
-					$client->setAccessToken($accessToken);
-
-					//Set the control variable, will only happen if no error happened on the way
-					$token_expired = false;
-				} catch (Exception $e) {
-					//error happened, either cookie is missing or token has expired
-					$token_expired = true;
-				}
-				//refresh token
-				if ($token_expired) {
-					//$google_token= json_decode($_SESSION['access_token']);
-					//Load the settings
-					$client = new Google\Client();
-					$client->setAuthConfig($myPath . 'application/api/client_secret.json');
-					$client->refreshToken($refresh_token);
-
-					//Fetch new token
-					$accessToken = $client->getAccessToken();
-
-					//delete the old cookie with the expired token
-					delete_cookie("UberRapsyToken");
-
-					//set a new cookie with a new token
-					set_cookie("UberRapsyToken", $accessToken, 86400);
-				}
-			} while ($token_expired == true);
 
 			if (true) {
 				$myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/UberRapsy/';
