@@ -229,75 +229,141 @@ class Playlist extends CI_Controller {
 
 	public function addPlaylist()
 	{
-		$data = array(
-			'body' => 'addPlaylist',
-			'title' => isset( $_POST['playlistName'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['playlistName'] ) ) : null,
-			'description' => isset( $_POST['playlistDesc'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['playlistDesc'] ) ) : null,
-			'link' => '',
-			'resultMessage' => ''
-		);
-
-		$myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/Uber-Rapsy/';
-		require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
-
-		//validate the form
-		if (
-			$data['title'] != null &&
-			$data['description'] != null
-		) {
-
-			$token_expired = false;
-			//validate yt authentication
-
-			if (true) {
-				$myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/UberRapsy/';
-				require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
-
-				$client = new Google\Client();
-
-				$client->setAuthConfig($myPath . 'application/api/client_secret.json');
-
-				// Exchange authorization code for an access token.
-				$accessToken = $_SESSION['token'];
-				$client->setAccessToken($accessToken);
-
-				// Define service object for making API requests.
-				$service = new Google_Service_YouTube($client);
-
-				// Define the $playlist object, which will be uploaded as the request body.
-				$playlist = new Google_Service_YouTube_Playlist();
-
-				// Add 'snippet' object to the $playlist object.
-				$playlistSnippet = new Google_Service_YouTube_PlaylistSnippet();
-				$playlistSnippet->setDefaultLanguage('en');
-				$playlistSnippet->setDescription($data['description']);
-				$playlistSnippet->setTags(['Uber Rapsy', 'API call']);
-				$playlistSnippet->setTitle($data['title']);
-				$playlist->setSnippet($playlistSnippet);
-
-				// Add 'status' object to the $playlist object.
-				$playlistStatus = new Google_Service_YouTube_PlaylistStatus();
-				$playlistStatus->setPrivacyStatus('public');
-				$playlist->setStatus($playlistStatus);
-
-				//save the api call response
-				$response = $service->playlists->insert('snippet,status', $playlist);
-
-				//get the unique id of a playlist from the response
-				$data['link'] = $response->id;
-
-				//save the playlist into database
-				$this->ListsModel->insertPlaylist($data);
-
-				$data['resultMessage'] = "Playlista zapisana!";
-			} else {
-				$data['resultMessage'] = "Nie udało się połączyć z YT, zaloguj się do YT ponownie.";
-			}
-		} else {
-			$data['resultMessage'] = "Proszę wyślij formularz ponownie, wysłane dane są niepoprawne.";
+		//include google library
+		$library_included = true;
+		try {
+			$myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/Uber-Rapsy/';
+			require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
+			$client = new Google\Client();
+			$client->setAuthConfig($myPath . 'application/api/client_secret.json');
+		} catch(Exception $e) {
+			//The library or the client could not be initiated
+			$library_included = false;
 		}
 
-		$this->load->view( 'templates/main', $data );
+		//only proceed when the library was successfully included
+		if($library_included)
+		{
+			//get the currently saved token from the cookie
+			$accessToken = get_cookie("UberRapsyToken");
+			//Check if the cookie contained the token
+			$token_expired = false;
+			if (!is_null($accessToken)) {
+				try {
+					//If yes, check if it is valid and not expired
+					$client->setAccessToken($accessToken);
+					$token_expired = $client->isAccessTokenExpired();
+				} catch (Exception $e) {
+					//exception raised means the format is invalid
+					$token_expired = true;
+				}
+			} else {
+				//cookie did not exist or returned null
+				$token_expired = true;
+			}
+
+			//if the token expired, fetch the refresh token and attempt a refresh
+			if($token_expired)
+			{
+				//first fetch the refresh token from api/refresh_token.txt
+				if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
+					//get a new token
+					$client->refreshToken($refresh_token);
+					//save the new token
+					$accessToken = $client->getAccessToken();
+					//save the token to the google client library
+					$client->setAccessToken($accessToken);
+					//run JSON encode to store the token in a cookie
+					$accessToken = json_encode($accessToken);
+					//delete the old cookie with the expired token
+					delete_cookie("UberRapsyToken");
+					//set a new cookie with the new token
+					set_cookie("UberRapsyToken", $accessToken, 86400);
+					//set token_expired to false and proceed
+					$token_expired = false;
+				} else {
+					//refresh token not found - contact an administrator!
+					$data = array(
+						'body' => 'addPlaylist',
+						'title' => "Uber Rapsy"
+					);
+					$this->load->view( 'templates/main', $data );
+
+					//$client->setAuthConfig($myPath . 'application/api/client_secret.json');
+					//$client->addScope(Google_Service_Youtube::YOUTUBE);
+					//$client->setRedirectUri('http://localhost/Dev/Uber-Rapsy/apitestPlaylist');
+					// offline access will give you both an access and refresh token so that
+					// your app can refresh the access token without user interaction.
+					//$client->setAccessType('offline');
+					// Using "consent" ensures that your application always receives a refresh token.
+					// If you are not using offline access, you can omit this.
+					//$client->setPrompt("consent");
+					//$client->setIncludeGrantedScopes(true);   // incremental auth
+
+					//$auth_url = $client->createAuthUrl();
+					//header('Location: ' . filter_var($auth_url, FILTER_SANITIZE_URL));
+				}
+			}
+
+			//main functionality of this method
+			if(!$token_expired)
+			{
+				$data = array(
+					'body' => 'addPlaylist',
+					'title' => isset( $_POST['playlistName'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['playlistName'] ) ) : "",
+					'description' => isset( $_POST['playlistDesc'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['playlistDesc'] ) ) : "",
+					'link' => '',
+					'resultMessage' => ''
+				);
+
+				//validate the form
+				if($data['title'] != "" && $data['description'] != "")
+				{
+					// Define service object for making API requests.
+					$service = new Google_Service_YouTube($client);
+
+					// Define the $playlist object, which will be uploaded as the request body.
+					$playlist = new Google_Service_YouTube_Playlist();
+
+					// Add 'snippet' object to the $playlist object.
+					$playlistSnippet = new Google_Service_YouTube_PlaylistSnippet();
+					$playlistSnippet->setDefaultLanguage('en');
+					$playlistSnippet->setDescription($data['description']);
+					$playlistSnippet->setTags(['Uber Rapsy', 'API call']);
+					$playlistSnippet->setTitle($data['title']);
+					$playlist->setSnippet($playlistSnippet);
+
+					// Add 'status' object to the $playlist object.
+					$playlistStatus = new Google_Service_YouTube_PlaylistStatus();
+					$playlistStatus->setPrivacyStatus('public');
+					$playlist->setStatus($playlistStatus);
+
+					//save the api call response
+					$response = $service->playlists->insert('snippet,status', $playlist);
+
+					//get the unique id of a playlist from the response
+					$data['link'] = $response->id;
+
+					//save the playlist into the database
+					$this->ListsModel->insertPlaylist($data);
+
+					$data['resultMessage'] = "Playlista zapisana!";
+				} else {
+					$data['resultMessage'] = "Proszę wyślij formularz ponownie, wprowadzone dane są niepoprawne.";
+				}
+
+				$this->load->view( 'templates/main', $data );
+			}
+		}
+		else
+		{
+			//could not load the library
+			$data = array(
+				'body' => 'addPlaylist',
+				'title' => "Uber Rapsy"
+			);
+			$this->load->view( 'templates/main', $data );
+		}
 	}
 
 }
