@@ -89,6 +89,8 @@ class Playlist extends CI_Controller {
 
 		foreach($ratings as $rating)
 		{
+
+
 			if($i == 1) $oldAdamRating = $rating;
 			else if($i == 2) $songId = $rating;
 			else if($i == 3) $adamRating = $rating;
@@ -101,9 +103,18 @@ class Playlist extends CI_Controller {
 				if($oldAdamRating != $adamRating || $oldKoscielnyRating != $koscielnyRating)
 					$this->SongsModel->UpdateSongWithScores($songId, $adamRating, $koscielnyRating);
 			}
+			else if($i == 9)
+            {
+                //0 means we do not update the playlist
+                if($rating > 0)
+                {
+                    $newPlaylistId = $rating;
+                    $this->SongsModel->UpdateSongPlaylist($songId, $newPlaylistId);
+                }
+            }
 
 			$i++;
-			if($i > 7) $i = 0;
+			if($i > 9) $i = 0;
 		}
 
 		$data['body']  = 'update';

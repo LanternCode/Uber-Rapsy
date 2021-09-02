@@ -62,17 +62,21 @@
 						<?php  //only 1 list means there is nowhere to move the song to
 						if(count($lists) > 1): ?>
 							<h5 class="dataContainer--gradeContainer">Przenieś do:
-								<select id="" class="">
-									<option value="0">Nie przenoś</option>
+								<select id="" class="" name="<?="playlistId-".$song->SongId?>">
+									<option value="0" default>Nie przenoś</option>
 									<?php foreach($lists as $list):
 										//Do not show the same list in the options
-										if($list->ListId !== $ListId): ?>
+										if($list->ListId !== $ListId):?>
 											<option value="<?=$list->ListId?>"><?=$list->ListName?></option>
 										<?php endif;
 									endforeach; ?>
 								</select>
 							</h5>
-						<?php endif; ?>
+						<?php else: ?>
+                            <select style="display:none;" name="<?="playlistId-".$song->SongId?>">
+                                <option value="0">Nie przenoś</option>
+                            </select>
+                        <?php endif; ?>
 				</div>
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailRight" />
 			</div>

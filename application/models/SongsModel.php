@@ -39,6 +39,14 @@
 			else return false;
 		}
 
+		function UpdateSongPlaylist($songId, $newPlaylistId)
+        {
+            $sql = "UPDATE song SET ListId = $newPlaylistId WHERE SongId = $songId";
+
+            if($this->db->simple_query( $sql )) return true;
+            else return false;
+        }
+
 		function GetTopSongsFromList($ListId, $operation)
 		{
 			$orderBy = $operation == "Adam" ? "SongGradeAdam" : ($operation == "Churchie" ? "SongGradeChurchie" : "((SongGradeAdam+SongGradeChurchie)/2)");
