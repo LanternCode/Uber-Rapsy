@@ -11,6 +11,8 @@ application/logs/*
 application/api/client_secret.json
 application/api/refresh_token.txt
 
+.editorconfig
+
 composer.lock
 
 user_guide_src/build/*

@@ -12,6 +12,7 @@
 	</head>
 	<body>
 		<nav>
+			<a href="<?=base_url()?>">UberRapsy</a><br />
 			<a href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
 		</nav>
 	    <main>

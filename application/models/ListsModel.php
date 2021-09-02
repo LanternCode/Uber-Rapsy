@@ -13,6 +13,13 @@
 			return $query;
         }
 
+        function GetListsIdsAndNames()
+		{
+			$sql = "SELECT ListId, ListName FROM list";
+			$query = $this->db->query( $sql )->result();
+			return $query;
+		}
+
 		function getListUrlById($listId)
 		{
 			$sql = "SELECT ListUrl FROM list WHERE ListId = $listId";

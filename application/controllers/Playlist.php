@@ -31,6 +31,7 @@ class Playlist extends CI_Controller {
 		$data['body'] = 'playlist';
 		$data['title'] = "Playlist selected!";
 
+		//There are 3 available choices: filter by grade (tierlist), search by title, display all
 		if($data['Operation'])
 		{
 			$data['songs'] = $this->SongsModel->GetTopSongsFromList($data['ListId'], $data['Operation']);
@@ -56,7 +57,11 @@ class Playlist extends CI_Controller {
 		{
 			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId'], $data['Search']);
 		}
-		else $data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId']);
+		else
+		{
+			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId']);
+			$data['lists'] = $this->ListsModel->GetListsIdsAndNames();
+		}
 
 		$this->load->view( 'templates/main', $data );
 	}
