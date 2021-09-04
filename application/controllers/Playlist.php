@@ -108,8 +108,109 @@ class Playlist extends CI_Controller {
                 //0 means we do not update the playlist
                 if($rating > 0)
                 {
-                    $newPlaylistId = $rating;
-                    $this->SongsModel->UpdateSongPlaylist($songId, $newPlaylistId);
+                    //include google library
+                    $library_included = true;
+                    try {
+                        $myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/Uber-Rapsy/';
+                        require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
+                        $client = new Google\Client();
+                        $client->setAuthConfig($myPath . 'application/api/client_secret.json');
+                    } catch(Exception $e) {
+                        //The library or the client could not be initiated
+                        $library_included = false;
+                    }
+
+                    //only proceed when the library was successfully included
+                    if($library_included)
+                    {
+                        //get the currently saved token from the cookie
+                        $accessToken = get_cookie("UberRapsyToken");
+                        //Check if the cookie contained the token
+                        $token_expired = false;
+                        if (!is_null($accessToken)) {
+                            try {
+                                //If yes, check if it is valid and not expired
+                                $client->setAccessToken($accessToken);
+                                $token_expired = $client->isAccessTokenExpired();
+                            } catch (Exception $e) {
+                                //exception raised means the format is invalid
+                                $token_expired = true;
+                            }
+                        } else {
+                            //cookie did not exist or returned null
+                            $token_expired = true;
+                        }
+
+                        //if the token expired, fetch the refresh token and attempt a refresh
+                        if($token_expired)
+                        {
+                            //first fetch the refresh token from api/refresh_token.txt
+                            if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
+                                //get a new token
+                                $client->refreshToken($refresh_token);
+                                //save the new token
+                                $accessToken = $client->getAccessToken();
+                                //save the token to the google client library
+                                $client->setAccessToken($accessToken);
+                                //run JSON encode to store the token in a cookie
+                                $accessToken = json_encode($accessToken);
+                                //delete the old cookie with the expired token
+                                delete_cookie("UberRapsyToken");
+                                //set a new cookie with the new token
+                                set_cookie("UberRapsyToken", $accessToken, 86400);
+                                //set token_expired to false and proceed
+                                $token_expired = false;
+                            } else {
+                                //refresh token not found - contact an administrator!
+                                //TODO: Handle invalid token
+                            }
+                        }
+
+                        //main functionality of this method
+                        if(!$token_expired)
+                        {
+                            $newPlaylistId = $rating;
+
+                            //fetch the playlist URL from the database using the id
+                            $playlistURL = $this->ListsModel->getListUrlById($newPlaylistId);
+
+                            //fetch the song URL and PlaylistItemId from the database using the local id
+                            $songDetails = $this->SongsModel->GetSongDetailsForMoving($songId);
+
+                            // Define service object for making API requests.
+                            $service = new Google_Service_YouTube($client);
+
+                            // Define the $playlistItem object, which will be uploaded as the request body.
+                            $playlistItem = new Google_Service_YouTube_PlaylistItem();
+
+                            // Add 'snippet' object to the $playlistItem object.
+                            $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
+                            $playlistItemSnippet->setPlaylistId($playlistURL);
+                            //with a large enough number, last position available will be taken
+                            $playlistItemSnippet->setPosition(1000);
+                            $resourceId = new Google_Service_YouTube_ResourceId();
+                            $resourceId->setKind('youtube#video');
+                            $resourceId->setVideoId($songDetails[0]->SongURL);
+                            $playlistItemSnippet->setResourceId($resourceId);
+                            $playlistItem->setSnippet($playlistItemSnippet);
+
+                            //add the song to the playlist
+                            $response = $service->playlistItems->insert('snippet', $playlistItem);
+                            //New PlaylistItemsId is generated, so we need to update it in the db
+                            $newSongPlaylistItemsId = $response->id;
+
+                            //delete the song from the earlier playlist
+                            $response = $service->playlistItems->delete($songDetails[0]->SongPlaylistItemsId);
+
+                            //move the song in the database
+                            $this->SongsModel->UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
+                        }
+                    }
+                    else
+                    {
+                        //could not load the library
+                        //TODO: Handle no library
+                    }
                 }
             }
 
@@ -119,7 +220,8 @@ class Playlist extends CI_Controller {
 
 		$data['body']  = 'update';
 		$data['title'] = "Oceny Zapisane!";
-		$data['playlistId'] = $_POST['playlistId'];
+		$data['playlistId'] = $_POST['playlistId'] ?? 1;
+        //TODO: Url entered without playlist id;
 
 		$this->load->view( 'templates/main', $data );
 	}
@@ -195,23 +297,24 @@ class Playlist extends CI_Controller {
 						//each song is an array itself
 						foreach($songlist as $song)
 						{
-							//data that is not a song arrat can be dropped
+							//data that is not a song array can be dropped
 							if(is_array($song))
 							{
 								//get all required data to save a song in the database
-								$songURL = "youtu.be/" . $song['snippet']['resourceId']['videoId'];
+								$songURL = $song['snippet']['resourceId']['videoId'];
 								$songThumbnailURL = $song['snippet']['thumbnails']['medium']['url'];
 								$songTitle = mysqli_real_escape_string( $this->db->conn_id, $song['snippet']['title'] );
+								$songPlaylistItemsId = $song['id'];
 
 								//if something goes wrong any incorrect entries will be discarded
-								if(isset($songURL) && isset($songThumbnailURL) && isset($songTitle))
+								if(isset($songURL) && isset($songThumbnailURL) && isset($songTitle) && isset($songPlaylistItemsId))
 								{
 									//check if the song already exists in the database
 									if(in_array($songURL, $songURLsArray))
 									{
 										echo $songTitle . " - ⏸<br />";
 									} //attempt to insert the song to the database
-									else if($this->SongsModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle))
+									else if($this->SongsModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId))
 									{
 										echo $songTitle . " - ✔<br />";
 									} //if insertion failed

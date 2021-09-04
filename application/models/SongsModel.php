@@ -23,9 +23,9 @@
 			return $query;
 		}
 
-		function InsertSong($listId, $songURL, $songThumbnailURL, $songTitle)
+		function InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId)
 		{
-			$sql = "INSERT INTO song (ListId, SongURL, SongThumbnailURL, SongTitle)VALUES('$listId', '$songURL', '$songThumbnailURL', '$songTitle')";
+			$sql = "INSERT INTO song (ListId, SongURL, SongThumbnailURL, SongTitle, SongPlaylistItemsId)VALUES('$listId', '$songURL', '$songThumbnailURL', '$songTitle', '$songPlaylistItemsId')";
 
 			if($this->db->simple_query( $sql )) return true;
 			else return false;
@@ -39,9 +39,9 @@
 			else return false;
 		}
 
-		function UpdateSongPlaylist($songId, $newPlaylistId)
+		function UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId)
         {
-            $sql = "UPDATE song SET ListId = $newPlaylistId WHERE SongId = $songId";
+            $sql = "UPDATE song SET ListId = $newPlaylistId, SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE SongId = $songId";
 
             if($this->db->simple_query( $sql )) return true;
             else return false;
@@ -55,4 +55,11 @@
             $query = $this->db->query( $sql )->result();
 			return $query;
 		}
+
+		function GetSongDetailsForMoving($songId)
+        {
+            $sql = "SELECT SongPlaylistItemsId, SongURL FROM song WHERE SongId = $songId";
+            $query = $this->db->query( $sql )->result();
+            return $query;
+        }
 }
