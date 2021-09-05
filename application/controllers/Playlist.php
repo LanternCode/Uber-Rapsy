@@ -68,160 +68,169 @@ class Playlist extends CI_Controller {
 
 	public function update()
 	{
-		$data = [];
-		$ratings = [];
-		$i = 0;
+        $data = [];
+        $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
 
-		//separate results into key and value respectively
-		foreach ($_POST as $key => $value) {
-			$ratings[$i] = $key;
-			$ratings[$i+1] = $value;
-			$i += 2;
-		}
+        //Check if this request comes from a valid playlist
+        if($data['playlistId'] === "invalid")
+        {
+            $data['body']  = 'invalidAction';
+            $data['title'] = "Błąd akcji!";
+            $data['errorMessage'] = "Nie podano numery playlisty podczas aktualizacji!";
+        }
+        else
+        {
+            $data['body']  = 'update';
+            $data['title'] = "Oceny Zapisane!";
+            $i = 0;
 
-		//pair keys and values to update the score
-		$i = 0;
-		$songId = "";
-		$oldAdamRating = 0;
-		$oldKoscielnyRating = 0;
-		$adamRating = 0;
-		$koscielnyRating = 0;
-
-		foreach($ratings as $rating)
-		{
-
-
-			if($i == 1) $oldAdamRating = $rating;
-			else if($i == 2) $songId = $rating;
-			else if($i == 3) $adamRating = $rating;
-			else if($i == 5) $oldKoscielnyRating = $rating;
-			else if($i == 7)
-			{
-				$koscielnyRating = $rating;
-				$songId = substr($songId, 2);
-
-				if($oldAdamRating != $adamRating || $oldKoscielnyRating != $koscielnyRating)
-					$this->SongsModel->UpdateSongWithScores($songId, $adamRating, $koscielnyRating);
-			}
-			else if($i == 9)
-            {
-                //0 means we do not update the playlist
-                if($rating > 0)
-                {
-                    //include google library
-                    $library_included = true;
-                    try {
-                        $myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/Uber-Rapsy/';
-                        require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
-                        $client = new Google\Client();
-                        $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-                    } catch(Exception $e) {
-                        //The library or the client could not be initiated
-                        $library_included = false;
-                    }
-
-                    //only proceed when the library was successfully included
-                    if($library_included)
-                    {
-                        //get the currently saved token from the cookie
-                        $accessToken = get_cookie("UberRapsyToken");
-                        //Check if the cookie contained the token
-                        $token_expired = false;
-                        if (!is_null($accessToken)) {
-                            try {
-                                //If yes, check if it is valid and not expired
-                                $client->setAccessToken($accessToken);
-                                $token_expired = $client->isAccessTokenExpired();
-                            } catch (Exception $e) {
-                                //exception raised means the format is invalid
-                                $token_expired = true;
-                            }
-                        } else {
-                            //cookie did not exist or returned null
-                            $token_expired = true;
-                        }
-
-                        //if the token expired, fetch the refresh token and attempt a refresh
-                        if($token_expired)
-                        {
-                            //first fetch the refresh token from api/refresh_token.txt
-                            if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
-                                //get a new token
-                                $client->refreshToken($refresh_token);
-                                //save the new token
-                                $accessToken = $client->getAccessToken();
-                                //save the token to the google client library
-                                $client->setAccessToken($accessToken);
-                                //run JSON encode to store the token in a cookie
-                                $accessToken = json_encode($accessToken);
-                                //delete the old cookie with the expired token
-                                delete_cookie("UberRapsyToken");
-                                //set a new cookie with the new token
-                                set_cookie("UberRapsyToken", $accessToken, 86400);
-                                //set token_expired to false and proceed
-                                $token_expired = false;
-                            } else {
-                                //refresh token not found - contact an administrator!
-                                //TODO: Handle invalid token
-                            }
-                        }
-
-                        //main functionality of this method
-                        if(!$token_expired)
-                        {
-                            $newPlaylistId = $rating;
-
-                            //fetch the playlist URL from the database using the id
-                            $playlistURL = $this->ListsModel->getListUrlById($newPlaylistId);
-
-                            //fetch the song URL and PlaylistItemId from the database using the local id
-                            $songDetails = $this->SongsModel->GetSongDetailsForMoving($songId);
-
-                            // Define service object for making API requests.
-                            $service = new Google_Service_YouTube($client);
-
-                            // Define the $playlistItem object, which will be uploaded as the request body.
-                            $playlistItem = new Google_Service_YouTube_PlaylistItem();
-
-                            // Add 'snippet' object to the $playlistItem object.
-                            $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
-                            $playlistItemSnippet->setPlaylistId($playlistURL);
-                            //with a large enough number, last position available will be taken
-                            $playlistItemSnippet->setPosition(1000);
-                            $resourceId = new Google_Service_YouTube_ResourceId();
-                            $resourceId->setKind('youtube#video');
-                            $resourceId->setVideoId($songDetails[0]->SongURL);
-                            $playlistItemSnippet->setResourceId($resourceId);
-                            $playlistItem->setSnippet($playlistItemSnippet);
-
-                            //add the song to the playlist
-                            $response = $service->playlistItems->insert('snippet', $playlistItem);
-                            //New PlaylistItemsId is generated, so we need to update it in the db
-                            $newSongPlaylistItemsId = $response->id;
-
-                            //delete the song from the earlier playlist
-                            $response = $service->playlistItems->delete($songDetails[0]->SongPlaylistItemsId);
-
-                            //move the song in the database
-                            $this->SongsModel->UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
-                        }
-                    }
-                    else
-                    {
-                        //could not load the library
-                        //TODO: Handle no library
-                    }
-                }
+            //separate results into key and value respectively
+            foreach ($_POST as $key => $value) {
+                $ratings[$i] = $key;
+                $ratings[$i+1] = $value;
+                $i += 2;
             }
 
-			$i++;
-			if($i > 9) $i = 0;
-		}
+            //pair keys and values to update the score
+            $i = 0;
+            $songId = "";
+            $oldAdamRating = 0;
+            $oldKoscielnyRating = 0;
+            $adamRating = 0;
+            $koscielnyRating = 0;
 
-		$data['body']  = 'update';
-		$data['title'] = "Oceny Zapisane!";
-		$data['playlistId'] = $_POST['playlistId'] ?? 1;
-        //TODO: Url entered without playlist id;
+            foreach($ratings as $rating)
+            {
+                if($i == 1) $oldAdamRating = $rating;
+                else if($i == 2) $songId = $rating;
+                else if($i == 3) $adamRating = $rating;
+                else if($i == 5) $oldKoscielnyRating = $rating;
+                else if($i == 7)
+                {
+                    $koscielnyRating = $rating;
+                    $songId = substr($songId, 2);
+
+                    if($oldAdamRating != $adamRating || $oldKoscielnyRating != $koscielnyRating)
+                        $this->SongsModel->UpdateSongWithScores($songId, $adamRating, $koscielnyRating);
+                }
+                else if($i == 9)
+                {
+                    //0 means we do not update the playlist
+                    if($rating > 0)
+                    {
+                        //include google library
+                        $library_included = true;
+                        try {
+                            $myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/Uber-Rapsy/';
+                            require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
+                            $client = new Google\Client();
+                            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
+                        } catch(Exception $e) {
+                            //The library or the client could not be initiated
+                            $library_included = false;
+                        }
+
+                        //only proceed when the library was successfully included
+                        if($library_included)
+                        {
+                            //get the currently saved token from the cookie
+                            $accessToken = get_cookie("UberRapsyToken");
+                            //Check if the cookie contained the token
+                            $token_expired = false;
+                            if (!is_null($accessToken)) {
+                                try {
+                                    //If yes, check if it is valid and not expired
+                                    $client->setAccessToken($accessToken);
+                                    $token_expired = $client->isAccessTokenExpired();
+                                } catch (Exception $e) {
+                                    //exception raised means the format is invalid
+                                    $token_expired = true;
+                                }
+                            } else {
+                                //cookie did not exist or returned null
+                                $token_expired = true;
+                            }
+
+                            //if the token expired, fetch the refresh token and attempt a refresh
+                            if($token_expired)
+                            {
+                                //first fetch the refresh token from api/refresh_token.txt
+                                if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
+                                    //get a new token
+                                    $client->refreshToken($refresh_token);
+                                    //save the new token
+                                    $accessToken = $client->getAccessToken();
+                                    //save the token to the google client library
+                                    $client->setAccessToken($accessToken);
+                                    //run JSON encode to store the token in a cookie
+                                    $accessToken = json_encode($accessToken);
+                                    //delete the old cookie with the expired token
+                                    delete_cookie("UberRapsyToken");
+                                    //set a new cookie with the new token
+                                    set_cookie("UberRapsyToken", $accessToken, 86400);
+                                    //set token_expired to false and proceed
+                                    $token_expired = false;
+                                } else {
+                                    //refresh token not found - display refresh instructions
+                                    $data['body']  = 'refreshToken';
+                                    $data['title'] = "Błąd autoryzacji tokenu!";
+                                }
+                            }
+
+                            //Direct API interaction
+                            if(!$token_expired)
+                            {
+                                $newPlaylistId = $rating;
+
+                                //fetch the playlist URL from the database using the id
+                                $playlistURL = $this->ListsModel->getListUrlById($newPlaylistId);
+
+                                //fetch the song URL and PlaylistItemId from the database using the local id
+                                $songDetails = $this->SongsModel->GetSongDetailsForMoving($songId);
+
+                                // Define service object for making API requests.
+                                $service = new Google_Service_YouTube($client);
+
+                                // Define the $playlistItem object, which will be uploaded as the request body.
+                                $playlistItem = new Google_Service_YouTube_PlaylistItem();
+
+                                // Add 'snippet' object to the $playlistItem object.
+                                $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
+                                $playlistItemSnippet->setPlaylistId($playlistURL);
+                                //with a large enough number, last position available will be taken
+                                $playlistItemSnippet->setPosition(1000);
+                                $resourceId = new Google_Service_YouTube_ResourceId();
+                                $resourceId->setKind('youtube#video');
+                                $resourceId->setVideoId($songDetails[0]->SongURL);
+                                $playlistItemSnippet->setResourceId($resourceId);
+                                $playlistItem->setSnippet($playlistItemSnippet);
+
+                                //add the song to the playlist
+                                $response = $service->playlistItems->insert('snippet', $playlistItem);
+                                //New PlaylistItemsId is generated, so we need to update it in the db
+                                $newSongPlaylistItemsId = $response->id;
+
+                                //delete the song from the earlier playlist
+                                $response = $service->playlistItems->delete($songDetails[0]->SongPlaylistItemsId);
+
+                                //move the song in the database
+                                $this->SongsModel->UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
+                            }
+                        }
+                        else
+                        {
+                            //could not load the library
+                            $data['body']  = 'invalidAction';
+                            $data['title'] = "Wystąpił Błąd!";
+                            $data['errorMessage'] = "Nie znaleziono biblioteki google!";
+                        }
+                    }
+                }
+
+                $i++;
+                if($i > 9) $i = 0;
+            }
+        }
 
 		$this->load->view( 'templates/main', $data );
 	}
@@ -407,20 +416,6 @@ class Playlist extends CI_Controller {
 						'title' => "Uber Rapsy"
 					);
 					$this->load->view( 'templates/main', $data );
-
-					//$client->setAuthConfig($myPath . 'application/api/client_secret.json');
-					//$client->addScope(Google_Service_Youtube::YOUTUBE);
-					//$client->setRedirectUri('http://localhost/Dev/Uber-Rapsy/apitestPlaylist');
-					// offline access will give you both an access and refresh token so that
-					// your app can refresh the access token without user interaction.
-					//$client->setAccessType('offline');
-					// Using "consent" ensures that your application always receives a refresh token.
-					// If you are not using offline access, you can omit this.
-					//$client->setPrompt("consent");
-					//$client->setIncludeGrantedScopes(true);   // incremental auth
-
-					//$auth_url = $client->createAuthUrl();
-					//header('Location: ' . filter_var($auth_url, FILTER_SANITIZE_URL));
 				}
 			}
 

@@ -7,6 +7,7 @@ $route['downloadSongs'] = 'Playlist/downloadSongs';
 
 $route['loginYoutube'] = 'YoutubeIntegration';
 $route['apitestPlaylist'] = 'YoutubeIntegration/result';
+$route['newToken'] = 'YoutubeIntegration/generate';
 
 $route['newPlaylist'] = 'Playlist/newPlaylist';
 $route['addPlaylist'] = 'Playlist/addPlaylist';
