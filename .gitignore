@@ -10,6 +10,7 @@ application/logs/*
 
 application/api/client_secret.json
 application/api/refresh_token.txt
+application/api/api_key.txt
 
 .editorconfig
 

@@ -76,7 +76,7 @@ class Playlist extends CI_Controller {
         {
             $data['body']  = 'invalidAction';
             $data['title'] = "Błąd akcji!";
-            $data['errorMessage'] = "Nie podano numery playlisty podczas aktualizacji!";
+            $data['errorMessage'] = "Nie podano numeru playlisty podczas aktualizacji!";
         }
         else
         {
@@ -252,96 +252,103 @@ class Playlist extends CI_Controller {
 		//parameters for the api call
 		$host = "https://youtube.googleapis.com/youtube/v3/playlistItems";
 		$part = "snippet";
-		$maxResults = 50;
+		$maxResults = 50; //50 is the most you can get on one page
 		$playlistId = $this->ListsModel->getListUrlById($listId);
-		//TODO: Validate this url belongs to Uber Rapsy otherwise deny connection, for now will deny on empty
-		$apiKey = "AIzaSyDEd8FFVtvzEa83qE6tzKoinP3B-Ef96Og";
 
-		//load songs for the first time
-		if($playlistId != "")
-		{
-			$firstCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.$playlistId.'&key='.$apiKey);
-			$downloadedSongs = json_decode($firstCall, true);
-			array_push($data['songsJsonArray'], $downloadedSongs);
-		}
+		//fetch the api key from the api_key file
+        if($apiKey = file_get_contents("application/api/api_key.txt"))
+        {
+            //load songs for the first time
+            if($playlistId != "")
+            {
+                $firstCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.$playlistId.'&key='.$apiKey);
+                $downloadedSongs = json_decode($firstCall, true);
+                array_push($data['songsJsonArray'], $downloadedSongs);
+            }
 
-		//how many songs total - returns 0 if null
-		$allResults = $downloadedSongs['pageInfo']['totalResults'] ?? 0;
+            //how many songs total - returns 0 if null
+            $allResults = $downloadedSongs['pageInfo']['totalResults'] ?? 0;
 
-		if($allResults > 0)
-		{
-			//keep loading songs until all are loaded
-			for($scannedResults = $downloadedSongs['pageInfo']['resultsPerPage']; $scannedResults < $allResults; $scannedResults += $downloadedSongs['pageInfo']['resultsPerPage'])
-			{
-				//get the token of the next page
-				$pageToken = $downloadedSongs['nextPageToken'];
-				//perform the api call
-				$nextCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&pageToken='.$pageToken.'&playlistId='.$playlistId.'&key='.$apiKey);
-				//decode the result from json to array
-				$downloadedSongs = json_decode($nextCall, true);
-				//save the songs into the array
-				array_push($data['songsJsonArray'], $downloadedSongs);
-			}
+            if($allResults > 0)
+            {
+                //keep loading songs until all are loaded
+                for($scannedResults = $downloadedSongs['pageInfo']['resultsPerPage']; $scannedResults < $allResults; $scannedResults += $downloadedSongs['pageInfo']['resultsPerPage'])
+                {
+                    //get the token of the next page
+                    $pageToken = $downloadedSongs['nextPageToken'];
+                    //perform the api call
+                    $nextCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&pageToken='.$pageToken.'&playlistId='.$playlistId.'&key='.$apiKey);
+                    //decode the result from json to array
+                    $downloadedSongs = json_decode($nextCall, true);
+                    //save the songs into the array
+                    array_push($data['songsJsonArray'], $downloadedSongs);
+                }
 
-			//now that we have all songs from the playlist we can start reloading
+                //get all songs that are already in the list, only urls
+                $songURLs = $this->SongsModel->GetURLsOfAllSongsInList($listId);
+                $songURLsArray = [];
+                foreach($songURLs as $songURL)
+                {
+                    array_push($songURLsArray, $songURL->SongURL);
+                }
 
-			//get all songs that are already in the list, only urls
-			$songURLs = $this->SongsModel->GetURLsOfAllSongsInList($listId);
-			$songURLsArray = [];
-			foreach($songURLs as $songURL)
-			{
-				array_push($songURLsArray, $songURL->SongURL);
-			}
+                //perform the reloading process
+                //the main array is composed of parsed data arrays
+                foreach($data['songsJsonArray'] as $songarrays)
+                {
+                    //each of these arrays contains a list of songs
+                    foreach($songarrays as $songlist)
+                    {
+                        //some data is not in an array and is unnecessary for this process
+                        if(is_array($songlist))
+                        {
+                            //each song is an array itself
+                            foreach($songlist as $song)
+                            {
+                                //data that is not a song array can be dropped
+                                if(is_array($song))
+                                {
+                                    //get all required data to save a song in the database
+                                    $songURL = $song['snippet']['resourceId']['videoId'];
+                                    $songThumbnailURL = $song['snippet']['thumbnails']['medium']['url'];
+                                    $songTitle = mysqli_real_escape_string( $this->db->conn_id, $song['snippet']['title'] );
+                                    $songPlaylistItemsId = $song['id'];
 
-			//perform the reloading process
-			//the main array is composed of parsed data arrays
-			foreach($data['songsJsonArray'] as $songarrays)
-			{
-				//each of these arrays contains a list of songs
-				foreach($songarrays as $songlist)
-				{
-					//some data is not in an array and is unnecessary for this process
-					if(is_array($songlist))
-					{
-						//each song is an array itself
-						foreach($songlist as $song)
-						{
-							//data that is not a song array can be dropped
-							if(is_array($song))
-							{
-								//get all required data to save a song in the database
-								$songURL = $song['snippet']['resourceId']['videoId'];
-								$songThumbnailURL = $song['snippet']['thumbnails']['medium']['url'];
-								$songTitle = mysqli_real_escape_string( $this->db->conn_id, $song['snippet']['title'] );
-								$songPlaylistItemsId = $song['id'];
-
-								//if something goes wrong any incorrect entries will be discarded
-								if(isset($songURL) && isset($songThumbnailURL) && isset($songTitle) && isset($songPlaylistItemsId))
-								{
-									//check if the song already exists in the database
-									if(in_array($songURL, $songURLsArray))
-									{
-										echo $songTitle . " - ⏸<br />";
-									} //attempt to insert the song to the database
-									else if($this->SongsModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId))
-									{
-										echo $songTitle . " - ✔<br />";
-									} //if insertion failed
-									else
-									{
-										echo $songTitle . " - ❌<br />";
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		else
-		{
-			$data['success'] = false;
-		}
+                                    //if something goes wrong any incorrect entries will be discarded
+                                    if(isset($songURL) && isset($songThumbnailURL) && isset($songTitle) && isset($songPlaylistItemsId))
+                                    {
+                                        //check if the song already exists in the database
+                                        if(in_array($songURL, $songURLsArray))
+                                        {
+                                            echo $songTitle . " - ⏸<br />";
+                                        } //attempt to insert the song to the database
+                                        else if($this->SongsModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId))
+                                        {
+                                            echo $songTitle . " - ✔<br />";
+                                        } //if insertion failed
+                                        else
+                                        {
+                                            echo $songTitle . " - ❌<br />";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                $data['success'] = false;
+            }
+        }
+        else
+        {
+            //API key not found
+            $data['body']  = 'invalidAction';
+            $data['title'] = "Nie znaleziono klucza API!";
+            $data['errorMessage'] = "Nie znaleziono klucza API.";
+        }
 
 		$this->load->view( 'templates/main', $data );
 	}
@@ -349,7 +356,8 @@ class Playlist extends CI_Controller {
 	public function newPlaylist()
 	{
 		$data = array(
-			'body' => 'addPlaylist'
+			'body' => 'addPlaylist',
+            'title' => 'Dodaj nową playlistę!'
 		);
 
 		$this->load->view( 'templates/main', $data );
@@ -410,12 +418,9 @@ class Playlist extends CI_Controller {
 					//set token_expired to false and proceed
 					$token_expired = false;
 				} else {
-					//refresh token not found - contact an administrator!
-					$data = array(
-						'body' => 'addPlaylist',
-						'title' => "Uber Rapsy"
-					);
-					$this->load->view( 'templates/main', $data );
+                    //refresh token not found - display refresh instructions
+                    $data['body']  = 'refreshToken';
+                    $data['title'] = "Błąd autoryzacji tokenu!";
 				}
 			}
 
@@ -465,19 +470,17 @@ class Playlist extends CI_Controller {
 				} else {
 					$data['resultMessage'] = "Proszę wyślij formularz ponownie, wprowadzone dane są niepoprawne.";
 				}
-
-				$this->load->view( 'templates/main', $data );
 			}
 		}
 		else
 		{
-			//could not load the library
-			$data = array(
-				'body' => 'addPlaylist',
-				'title' => "Uber Rapsy"
-			);
-			$this->load->view( 'templates/main', $data );
+            //could not load the library
+            $data['body']  = 'invalidAction';
+            $data['title'] = "Wystąpił Błąd!";
+            $data['errorMessage'] = "Nie znaleziono biblioteki google!";
 		}
+
+        $this->load->view( 'templates/main', $data );
 	}
 
 }
