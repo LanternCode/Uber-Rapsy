@@ -1,6 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+if(!isset($_SESSION)){
+    session_start();
+}
+
 class Welcome extends CI_Controller {
 
 	public function __construct()

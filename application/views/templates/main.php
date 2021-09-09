@@ -11,15 +11,15 @@
 		<link rel="icon" href="<?=base_url( 'favicon.ico' )?>" type="image/x-icon">
 	</head>
 	<body>
-		<nav class="optionsHeader">
-			<a class="optionsURL" href="<?=base_url()?>">UberRapsy</a><br />
-            <p>Status: <?=(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']
-                    && isset($_SESSION['userRole']) && $_SESSION['userRole']) ? $_SESSION['userRole'] : "Gość"?></p>
+		<nav class="omniNav">
+			<a class="omniNav--Option" href="<?=base_url()?>">UberRapsy</a>
+            <p class="omniNav--Option">Status: <?=(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']
+                    && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer") ? "Recenzent" : "Gość"?></p>
             <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-                <a class="optionsURL" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
-                <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+                <a class="omniNav--Option" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
+                <a class="omniNav--Option" href="<?=base_url("logout")?>">Wyloguj się</a>
             <?php else: ?>
-                <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>
+                <a class="omniNav--Option" href="<?=base_url("login")?>">Zaloguj się</a>
             <?php endif; ?>
 		</nav>
 	    <main>

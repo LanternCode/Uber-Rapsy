@@ -12,6 +12,7 @@ class Account extends CI_Controller
     {
         parent::__construct();
         $this->load->model('AccountModel');
+        $this->load->model('ListsModel');
         $this->load->helper('cookie');
     }
 
@@ -42,6 +43,7 @@ class Account extends CI_Controller
                 {
                     $_SESSION['userLoggedIn'] = 1;
                     $_SESSION['userRole'] = $userData->role;
+                    $data['lists'] = $this->ListsModel->GetAllLists();
                 }
                 else
                 {
@@ -63,7 +65,7 @@ class Account extends CI_Controller
     public function logout()
     {
         $data = [];
-        $data['body'] = 'home';
+        $data['body'] = 'logout';
 
         session_unset();
         session_destroy();

@@ -52,6 +52,7 @@
     color: white;
     background-color: black;
     position: fixed;
+    top: 0;
     width: 100vw;
     height: 50px;
 }
@@ -61,9 +62,14 @@
     text-decoration: none;
     background-color: black;
     color: white;
-    margin: 15px;
+    margin: 10px;
+    padding: 5px;
     border: 1px solid aqua;
     border-radius: 15px;
+}
+
+.optionsSearchLabel {
+    background-color: black;
 }
 
 .playlists {
@@ -130,12 +136,27 @@
     display: block;
 }
 
-.optionsHeaderSpace {
-    height: 50px;
-}
-
 .gradeCategory {
     font-size: 25px;
     margin: 35px;
     margin-left: 13vw;
+}
+
+.omniNav {
+    color: white;
+    background-color: black;
+    position: block;
+    width: 100vw;
+    height: 50px;
+}
+
+.omniNav--Option {
+    display: inline-block;
+    text-decoration: none;
+    background-color: black;
+    color: white;
+    margin: 10px;
+    padding: 5px;
+    border: 1px solid aqua;
+    border-radius: 15px;
 }

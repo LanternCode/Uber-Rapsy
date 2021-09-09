@@ -10,7 +10,7 @@ class AccountModel extends CI_Model
 
     function getUserData($email)
     {
-        $sql = "SELECT id, password, role FROM users WHERE email = '$email'";
+        $sql = "SELECT id, password, role FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
         if (isset($query->row()->password) && $query->row()->password)
@@ -20,7 +20,7 @@ class AccountModel extends CI_Model
 
     function registerNewUser($email, $password)
     {
-        $sql = "INSERT INTO users
+        $sql = "INSERT INTO user
         ( email, password, role )
         VALUES
         ( '$email', '$password', 'user')";
@@ -30,7 +30,7 @@ class AccountModel extends CI_Model
 
     function isEmailUnique($email)
     {
-        $sql = "SELECT email FROM users WHERE email = '$email'";
+        $sql = "SELECT email FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
         if (isset($query->row()->email) && $query->row()->email) return 0;
@@ -56,7 +56,7 @@ class AccountModel extends CI_Model
     function insertPasswordUpdateLink($email)
     {
         $keyToInsert = $this->getToken();
-        $sql = "UPDATE users SET passwordResetKey = '$keyToInsert' WHERE email = '$email'";
+        $sql = "UPDATE user SET passwordResetKey = '$keyToInsert' WHERE email = '$email'";
         $this->db->simple_query($sql);
 
         return $keyToInsert;
@@ -84,7 +84,7 @@ class AccountModel extends CI_Model
 
     function validatePasswordResetString($key)
     {
-        $sql = "SELECT id FROM users WHERE passwordResetKey = '$key'";
+        $sql = "SELECT id FROM user WHERE passwordResetKey = '$key'";
         $query = $this->db->query($sql);
 
         if (isset($query->row()->id) && $query->row()->id) return $query->row()->id;
@@ -94,7 +94,7 @@ class AccountModel extends CI_Model
     function updateUserPassword($password, $userId)
     {
         $newPass = password_hash($password, PASSWORD_BCRYPT);
-        $sql = "UPDATE users SET passwordResetKey = NULL, password = '$newPass' WHERE id = $userId";
+        $sql = "UPDATE user SET passwordResetKey = NULL, password = '$newPass' WHERE id = $userId";
         $this->db->simple_query($sql);
     }
 }

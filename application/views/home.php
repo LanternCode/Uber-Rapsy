@@ -2,7 +2,7 @@
 <h1>Uber Rapsy!</h1>
 <h2>Polski portal do oceniania utworów rapowanych, których można słuchać w domu, w aucie, albo w jakimś innym miejscu.</h2>
 <br /><br />
-<?php if(count($lists) > 0): ?>
+<?php if(isset($lists) && count($lists) > 0): ?>
 	<h3>Nasze playlisty:</h3>
 	<table>
 		<tr>

@@ -10,7 +10,7 @@
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Average")?>">Najlepsze: Średnia</option>
     </select>
     <form class="optionsURL" method="get" action="<?=base_url("playlist")?>">
-        <label>Szukaj nuty</label>
+        <label class="optionsSearchLabel">Szukaj nuty</label>
         <input type="hidden" name="ListId" value="<?=$ListId?>" />
         <input type="text" placeholder="Rajaner" name="Search" />
         <input type="submit" value="Szukaj" />
@@ -20,7 +20,6 @@
         <a class="optionsURL" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a>
     <?php endif; ?>
 </header>
-<div class="optionsHeaderSpace"></div>
 <form id="songsForm" method="post" action="<?=base_url('updateGrades')?>">
 	<?php if(count($songs) > 0): ?>
 		<?php foreach($songs as $song):?>
