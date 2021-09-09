@@ -1,6 +1,5 @@
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
-    <a class="optionsURL" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#songsForm">Góra Listy</a>
     <select id="selectbox" class="optionsURL" onchange="javascript:location.href = this.value;">
@@ -10,13 +9,16 @@
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Churchie")?>">Najlepsze: Kościelny</option>
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Average")?>">Najlepsze: Średnia</option>
     </select>
-    <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
     <form class="optionsURL" method="get" action="<?=base_url("playlist")?>">
         <label>Szukaj nuty</label>
         <input type="hidden" name="ListId" value="<?=$ListId?>" />
         <input type="text" placeholder="Rajaner" name="Search" />
         <input type="submit" value="Szukaj" />
     </form>
+    <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
+        <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
+        <a class="optionsURL" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a>
+    <?php endif; ?>
 </header>
 <div class="optionsHeaderSpace"></div>
 <form id="songsForm" method="post" action="<?=base_url('updateGrades')?>">
@@ -26,6 +28,8 @@
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailLeft" />
 				<div class="dataContainer">
 					<h3 class="songTitle"><a href="https://<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
+                    <?php //For reviewers show scores, buttons to edit them and the select list to move the song
+                    if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
 						<h4 class="dataContainer--gradeContainer">
 							Adam:
 							<button type="button" class="btnGrade" onclick="lowerGrade('A', <?=$song->SongId?>)">-</button>
@@ -76,13 +80,27 @@
                             <select style="display:none;" name="<?="playlistId-".$song->SongId?>">
                                 <option value="0">Nie przenoś</option>
                             </select>
-                        <?php endif; ?>
+                        <?php endif;
+                    //For guest users only show the scores of the song
+                    else: ?>
+                        <h4 class="dataContainer--gradeContainer">
+                            Adam:
+                            <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
+                        </h4>
+                        <h4 class="dataContainer--gradeContainer">
+                            Kościelny:
+                            <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
+                        </h4>
+                        <h5 class="dataContainer--gradeContainer">Średnia:
+                            <input type="text" value="<?=$song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0 ? ($song->SongGradeAdam + $song->SongGradeChurchie) / 2 : 'Nieoceniona'?>" disabled />
+                        </h5>
+                    <?php endif; ?>
 				</div>
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailRight" />
 			</div>
 		<?php endforeach;?>
 	<?php else: ?>
-		<h3>Ta playlista jest pusta mordo, nowy sezon wkrótce!</h3>
+		<h3>Ta playlista jest pusta mordo, nowy sezon już wkrótce!</h3>
 	<?php endif; ?>
     <input type="hidden" name="playlistId" value="<?=$ListId?>"/>
 </form>

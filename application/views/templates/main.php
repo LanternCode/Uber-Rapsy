@@ -11,9 +11,16 @@
 		<link rel="icon" href="<?=base_url( 'favicon.ico' )?>" type="image/x-icon">
 	</head>
 	<body>
-		<nav>
-			<a href="<?=base_url()?>">UberRapsy</a><br />
-			<a href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
+		<nav class="optionsHeader">
+			<a class="optionsURL" href="<?=base_url()?>">UberRapsy</a><br />
+            <p>Status: <?=(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']
+                    && isset($_SESSION['userRole']) && $_SESSION['userRole']) ? $_SESSION['userRole'] : "Gość"?></p>
+            <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+                <a class="optionsURL" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
+                <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+            <?php else: ?>
+                <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>
+            <?php endif; ?>
 		</nav>
 	    <main>
 	        <?php isset( $body ) ? $this->load->view( $body ) : redirect( base_url() ); ?>

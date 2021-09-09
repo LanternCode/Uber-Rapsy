@@ -7,7 +7,6 @@ class Welcome extends CI_Controller {
 	{
         parent::__construct();
         $this->load->model( 'ListsModel' );
-		$this->load->model( 'SongsModel' );
     }
 
 	public function index()
