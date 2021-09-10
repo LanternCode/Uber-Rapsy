@@ -18,10 +18,10 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `uberrapsy`
+-- Database: `lanternc_uberrapsy`
 --
-CREATE DATABASE IF NOT EXISTS `uberrapsy` DEFAULT CHARACTER SET utf8 COLLATE utf8_polish_ci;
-USE `uberrapsy`;
+CREATE DATABASE IF NOT EXISTS `lanternc_uberrapsy` DEFAULT CHARACTER SET utf8 COLLATE utf8_polish_ci;
+USE `lanternc_uberrapsy`;
 
 -- --------------------------------------------------------
 

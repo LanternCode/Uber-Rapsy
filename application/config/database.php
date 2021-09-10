@@ -74,23 +74,65 @@ $active_group = 'default';
 $query_builder = TRUE;
 
 $db['default'] = array(
-	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'root',
-	'password' => '',
-	'database' => 'uberrapsy',
-	'dbdriver' => 'mysqli',
-	'dbprefix' => '',
-	'pconnect' => FALSE,
-	'db_debug' => (ENVIRONMENT !== 'production'),
-	'cache_on' => FALSE,
-	'cachedir' => '',
-	'char_set' => 'utf8',
-	'dbcollat' => 'utf8_general_ci',
-	'swap_pre' => '',
-	'encrypt' => FALSE,
-	'compress' => FALSE,
-	'stricton' => FALSE,
-	'failover' => array(),
-	'save_queries' => TRUE
+    'dsn'	=> '',
+    'database' => 'lanternc_uberrapsy',
+    'dbdriver' => 'mysqli',
+    'dbprefix' => '',
+    'pconnect' => FALSE,
+    'db_debug' => (ENVIRONMENT !== 'production'),
+    'cache_on' => FALSE,
+    'cachedir' => '',
+    'char_set' => 'utf8',
+    'dbcollat' => 'utf8_general_ci',
+    'swap_pre' => '',
+    'encrypt' => FALSE,
+    'compress' => FALSE,
+    'stricton' => FALSE,
+    'failover' => array(),
+    'save_queries' => TRUE
 );
+
+if(ENVIRONMENT !== 'production')
+{
+    $db['default']['username'] = 'root';
+    $db['default']['password'] = '';
+    $db['default']['hostname'] = 'localhost';
+}
+else
+{
+    //load the db credentials from a file
+    $i = 0;
+    $myPath = $_SERVER['DOCUMENT_ROOT'] . '/Uber-Rapsy/application/api/database_credentials.txt';
+    $handle = fopen($myPath, "r");
+    if ($handle) {
+        while (($line = fgets($handle)) !== false) {
+            $line = trim($line);
+            switch($i)
+            {
+                case 0:
+                {
+                    $db['default']['hostname'] = $line;
+                    $i++;
+                    break;
+                }
+                case 1:
+                {
+                    $db['default']['username'] = $line;
+                    $i++;
+                    break;
+                }
+                case 2:
+                {
+                    $db['default']['password'] = $line;
+                    $i++;
+                    break;
+                }
+            }
+        }
+        fclose($handle);
+    } else {
+        // error opening the file.
+    }
+}
+
+

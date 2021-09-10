@@ -53,7 +53,14 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+
+if ($_SERVER["HTTP_HOST"] === "localhost") {
+    define("ENVIRONMENT", "development");
+    define("BASEURL", "http://localhost/Dev/Uber-Rapsy/");
+} else {
+    define("ENVIRONMENT", "production");
+    define("BASEURL", "https://lanterncode.com/Uber-Rapsy/");
+}
 
 /*
  *---------------------------------------------------------------
@@ -72,7 +79,7 @@ switch (ENVIRONMENT)
 
 	case 'testing':
 	case 'production':
-		ini_set('display_errors', 0);
+		ini_set('display_errors', -1);
 		if (version_compare(PHP_VERSION, '5.3', '>='))
 		{
 			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT & ~E_USER_NOTICE & ~E_USER_DEPRECATED);

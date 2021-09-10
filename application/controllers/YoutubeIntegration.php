@@ -47,7 +47,7 @@ class YoutubeIntegration extends CI_Controller {
             //include google library
             $library_included = true;
             try {
-                $myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/Uber-Rapsy/';
+                $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
                 require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
                 $client = new Google\Client();
                 $client->setAuthConfig($myPath . 'application/api/client_secret.json');
@@ -98,7 +98,7 @@ class YoutubeIntegration extends CI_Controller {
             //include google library
             $library_included = true;
             try {
-                $myPath = $_SERVER['DOCUMENT_ROOT'] . '/Dev/Uber-Rapsy/';
+                $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
                 require_once $myPath . 'application/libraries/Google/vendor/autoload.php';
                 $client = new Google\Client();
                 $client->setAuthConfig($myPath . 'application/api/client_secret.json');

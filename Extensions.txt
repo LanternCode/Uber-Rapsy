@@ -1,3 +1,5 @@
 List of possible system extensions:
 
 Playlist: Set visibility status when creating
+Grades Saved: Move the link to a new line
+Empty list: Do not show the saves grades button
