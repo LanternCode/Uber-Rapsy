@@ -13,10 +13,7 @@ application/api/client_secret.json
 application/api/refresh_token.txt
 application/api/database_credentials.txt
 
-
 .editorconfig
-
-composer.lock
 
 user_guide_src/build/*
 user_guide_src/cilexer/build/*
