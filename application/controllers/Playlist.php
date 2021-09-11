@@ -15,11 +15,6 @@ class Playlist extends CI_Controller {
 		$this->load->helper('cookie');
     }
 
-	public function index()
-	{
-
-	}
-
 	public function playlist()
 	{
 		$data = [];
@@ -133,53 +128,20 @@ class Playlist extends CI_Controller {
                         //only proceed when the library was successfully included
                         if($library_included)
                         {
-                            //get the currently saved token from the cookie
-                            $accessToken = get_cookie("UberRapsyToken");
-                            //Check if the cookie contained the token
-                            $token_expired = false;
-                            if (!is_null($accessToken)) {
-                                try {
-                                    //If yes, check if it is valid and not expired
-                                    $client->setAccessToken($accessToken);
-                                    $token_expired = $client->isAccessTokenExpired();
-                                } catch (Exception $e) {
-                                    //exception raised means the format is invalid
-                                    $token_expired = true;
-                                }
-                            } else {
-                                //cookie did not exist or returned null
-                                $token_expired = true;
-                            }
+                            //validate the access token required for an api call
+                            $tokenExpired = $this->validateAuthToken($client);
 
-                            //if the token expired, fetch the refresh token and attempt a refresh
-                            if($token_expired)
+                            if($tokenExpired)
                             {
-                                //first fetch the refresh token from api/refresh_token.txt
-                                if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
-                                    //get a new token
-                                    $client->refreshToken($refresh_token);
-                                    //save the new token
-                                    $accessToken = $client->getAccessToken();
-                                    //save the token to the google client library
-                                    $client->setAccessToken($accessToken);
-                                    //run JSON encode to store the token in a cookie
-                                    $accessToken = json_encode($accessToken);
-                                    //delete the old cookie with the expired token
-                                    delete_cookie("UberRapsyToken");
-                                    //set a new cookie with the new token
-                                    set_cookie("UberRapsyToken", $accessToken, 86400);
-                                    //set token_expired to false and proceed
-                                    $token_expired = false;
-                                } else {
-                                    //refresh token not found - display refresh instructions
-                                    $data['body']  = 'refreshToken';
-                                    $data['title'] = "Błąd autoryzacji tokenu!";
-                                }
+                                //refresh token not found
+                                $data['body']  = 'invalidAction';
+                                $data['title'] = "Błąd autoryzacji tokenu!";
+                                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
+                                    Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
                             }
-
-                            //Direct API interaction
-                            if(!$token_expired)
+                            else
                             {
+                                //api call
                                 $newPlaylistId = $rating;
 
                                 //fetch the playlist URL from the database using the id
@@ -396,6 +358,7 @@ class Playlist extends CI_Controller {
         //Check if the user is allowed to do this action
         if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
         {
+            $client = '';
             //include google library
             $library_included = true;
             try {
@@ -408,56 +371,22 @@ class Playlist extends CI_Controller {
                 $library_included = false;
             }
 
-            //only proceed when the library was successfully included
             if($library_included)
             {
-                //get the currently saved token from the cookie
-                $accessToken = get_cookie("UberRapsyToken");
-                //Check if the cookie contained the token
-                $token_expired = false;
-                if (!is_null($accessToken)) {
-                    try {
-                        //If yes, check if it is valid and not expired
-                        $client->setAccessToken($accessToken);
-                        $token_expired = $client->isAccessTokenExpired();
-                    } catch (Exception $e) {
-                        //exception raised means the format is invalid
-                        $token_expired = true;
-                    }
-                } else {
-                    //cookie did not exist or returned null
-                    $token_expired = true;
-                }
+                //validate the access token required for an api call
+                $tokenExpired = $this->validateAuthToken($client);
 
-                //if the token expired, fetch the refresh token and attempt a refresh
-                if($token_expired)
+                if($tokenExpired)
                 {
-                    //first fetch the refresh token from api/refresh_token.txt
-                    if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
-                        //get a new token
-                        $client->refreshToken($refresh_token);
-                        //save the new token
-                        $accessToken = $client->getAccessToken();
-                        //save the token to the google client library
-                        $client->setAccessToken($accessToken);
-                        //run JSON encode to store the token in a cookie
-                        $accessToken = json_encode($accessToken);
-                        //delete the old cookie with the expired token
-                        delete_cookie("UberRapsyToken");
-                        //set a new cookie with the new token
-                        set_cookie("UberRapsyToken", $accessToken, 86400);
-                        //set token_expired to false and proceed
-                        $token_expired = false;
-                    } else {
-                        //refresh token not found - display refresh instructions
-                        $data['body']  = 'refreshToken';
-                        $data['title'] = "Błąd autoryzacji tokenu!";
-                    }
+                    //refresh token not found
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd autoryzacji tokenu!";
+                    $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
+                                    Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
                 }
-
-                //main functionality of this method
-                if(!$token_expired)
+                else
                 {
+                    //api call
                     $data = array(
                         'body' => 'addPlaylist',
                         'title' => isset( $_POST['playlistName'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['playlistName'] ) ) : "",
@@ -521,5 +450,50 @@ class Playlist extends CI_Controller {
 
         $this->load->view( 'templates/main', $data );
 	}
+
+    function validateAuthToken($client): bool
+    {
+        //get the currently saved token from the cookie
+        $accessToken = get_cookie("UberRapsyToken");
+        //Check if the cookie contained the token
+        $token_expired = false;
+        if (!is_null($accessToken)) {
+            try {
+                //If yes, check if it is valid and not expired
+                $client->setAccessToken($accessToken);
+                $token_expired = $client->isAccessTokenExpired();
+            } catch (Exception $e) {
+                //exception raised means the format is invalid
+                $token_expired = true;
+            }
+        } else {
+            //cookie did not exist or returned null
+            $token_expired = true;
+        }
+
+        //if the token expired, fetch the refresh token and attempt a refresh
+        if($token_expired)
+        {
+            //first fetch the refresh token from api/refresh_token.txt
+            if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
+                //get a new token
+                $client->refreshToken($refresh_token);
+                //save the new token
+                $accessToken = $client->getAccessToken();
+                //save the token to the google client library
+                $client->setAccessToken($accessToken);
+                //run JSON encode to store the token in a cookie
+                $accessToken = json_encode($accessToken);
+                //delete the old cookie with the expired token
+                delete_cookie("UberRapsyToken");
+                //set a new cookie with the new token
+                set_cookie("UberRapsyToken", $accessToken, 86400);
+                //set token_expired to false and proceed
+                $token_expired = false;
+            }
+        }
+
+        return $token_expired;
+    }
 
 }
