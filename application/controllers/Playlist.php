@@ -15,6 +15,11 @@ class Playlist extends CI_Controller {
 		$this->load->helper('cookie');
     }
 
+    function TrimTrailingZeroes($nbr) : float
+    {
+        return strpos($nbr,'.')!==false ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
+    }
+
 	public function playlist()
 	{
 		$data = [];
@@ -55,6 +60,14 @@ class Playlist extends CI_Controller {
 		else
 		{
 			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId']);
+
+            foreach($data['songs'] as $song)
+            {
+                //Displays values without decimals at the end id they are 0
+                $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
+                $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
+            }
+
 			$data['lists'] = $this->ListsModel->GetListsIdsAndNames();
 		}
 
@@ -212,7 +225,7 @@ class Playlist extends CI_Controller {
 		//declare default variables
 		$data = array(
 			'body' => 'downloadSongs',
-			'title' => 'Reloading songs!',
+			'title' => 'Aktualizacja listy!',
 			'songsJsonArray' => array(),
 			'ListId' => $listId,
 			'success' => true
@@ -480,8 +493,6 @@ class Playlist extends CI_Controller {
                 $client->refreshToken($refresh_token);
                 //save the new token
                 $accessToken = $client->getAccessToken();
-                //save the token to the google client library
-                $client->setAccessToken($accessToken);
                 //run JSON encode to store the token in a cookie
                 $accessToken = json_encode($accessToken);
                 //delete the old cookie with the expired token

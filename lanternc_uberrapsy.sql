@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Sep 09, 2021 at 10:57 AM
+-- Generation Time: Sep 16, 2021 at 04:05 PM
 -- Server version: 8.0.21
 -- PHP Version: 7.4.9
 
@@ -20,8 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `lanternc_uberrapsy`
 --
-CREATE DATABASE IF NOT EXISTS `lanternc_uberrapsy` DEFAULT CHARACTER SET utf8 COLLATE utf8_polish_ci;
-USE `lanternc_uberrapsy`;
 
 -- --------------------------------------------------------
 
@@ -32,21 +30,21 @@ USE `lanternc_uberrapsy`;
 DROP TABLE IF EXISTS `list`;
 CREATE TABLE IF NOT EXISTS `list` (
   `ListId` int NOT NULL AUTO_INCREMENT,
-  `ListUrl` varchar(255) COLLATE utf8_polish_ci NOT NULL,
+  `ListUrl` varchar(255) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
   `ListName` varchar(50) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
   `ListDesc` text CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
   `ListCreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `ListActive` bit(1) NOT NULL DEFAULT b'1',
   PRIMARY KEY (`ListId`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 --
 -- Dumping data for table `list`
 --
 
 INSERT INTO `list` (`ListId`, `ListUrl`, `ListName`, `ListDesc`, `ListCreatedAt`, `ListActive`) VALUES
-(1, 'PLrm7iQHIDRKJQafWuKMJkPDfFiJcVvIkK', 'Uber Rapsy - Akademia S1', 'Tarcza szmato!!!', '2019-12-09 14:21:43', b'1'),
-(3, 'PLrm7iQHIDRKLEHkXuFmCttf_D7ltzUAso', 'Akademia S5', 'Dupą kręć tak jak nikki nikki', '2021-09-02 11:44:10', b'1');
+(4, 'PLkIbfiOcITXpSEuD0Gwr6Fz_WYZs781lE', 'Uber Rapsy - Akademia S4', 'Akademia 4', '2021-09-16 15:13:01', b'1'),
+(5, 'PLkIbfiOcITXrwOxl2z1w6GmDBaTomytiM', 'Uber Rapsy - Główna Lista', 'Uber', '2021-09-16 15:13:50', b'1');
 
 -- --------------------------------------------------------
 
@@ -57,15 +55,15 @@ INSERT INTO `list` (`ListId`, `ListUrl`, `ListName`, `ListDesc`, `ListCreatedAt`
 DROP TABLE IF EXISTS `song`;
 CREATE TABLE IF NOT EXISTS `song` (
   `SongId` int NOT NULL AUTO_INCREMENT,
-  `SongURL` varchar(100) COLLATE utf8_polish_ci NOT NULL,
-  `SongThumbnailURL` varchar(255) COLLATE utf8_polish_ci NOT NULL,
+  `SongURL` varchar(100) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
+  `SongThumbnailURL` varchar(255) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
   `SongTitle` text CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
-  `SongPlaylistItemsId` varchar(255) COLLATE utf8_polish_ci NOT NULL,
-  `SongGradeAdam` decimal(10,0) NOT NULL,
-  `SongGradeChurchie` decimal(10,0) NOT NULL,
+  `SongPlaylistItemsId` varchar(255) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
+  `SongGradeAdam` decimal(10,2) NOT NULL,
+  `SongGradeChurchie` decimal(10,2) NOT NULL,
   `ListId` int NOT NULL,
   PRIMARY KEY (`SongId`)
-) ENGINE=MyISAM AUTO_INCREMENT=348 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=786 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 -- --------------------------------------------------------
 
@@ -76,10 +74,10 @@ CREATE TABLE IF NOT EXISTS `song` (
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int NOT NULL,
-  `email` varchar(50) COLLATE utf8_polish_ci NOT NULL,
-  `password` varchar(128) COLLATE utf8_polish_ci NOT NULL,
-  `role` varchar(10) COLLATE utf8_polish_ci NOT NULL,
-  `passwordResetKey` varchar(255) COLLATE utf8_polish_ci DEFAULT NULL
+  `email` varchar(50) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
+  `password` varchar(128) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
+  `role` varchar(10) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
+  `passwordResetKey` varchar(255) CHARACTER SET utf8 COLLATE utf8_polish_ci DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 --

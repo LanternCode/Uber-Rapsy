@@ -7,8 +7,8 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title><?= isset( $title ) ? $title : 'Uber Rapsy!'; ?></title>
 		<link rel="stylesheet" href="<?=base_url( 'styles/grid.css' )?>">
-		<link rel="shortcut icon" href="<?=base_url( 'favicon.ico' )?>" type="image/x-icon">
-		<link rel="icon" href="<?=base_url( 'favicon.ico' )?>" type="image/x-icon">
+		<link rel="shortcut icon" href="<?=base_url( 'styles/icons/favicon.ico' )?>" type="image/x-icon">
+		<link rel="icon" href="<?=base_url( 'styles/icons/favicon.ico' )?>" type="image/x-icon">
 	</head>
 	<body>
 		<nav class="omniNav">

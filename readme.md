@@ -8,7 +8,7 @@ Source: https://console.cloud.google.com/apis/credentials
 
 3. Include refresh_token.txt into the "application/api" directory
 
-Source: Generate New Refresh Token within the app
+Source: Generate New Refresh Token within the app 
 
 4. Include database_credentials.txt into the "application/api" directory
 
@@ -22,7 +22,7 @@ _password_
 
 Source: Default localhost credentials or hosting provider
 
-5. Import the uberrapsy.sql export into your phpMyAdmin
+5. Import the lanternc_uberrapsy.sql export into phpMyAdmin
 
 6. For admin privileges, set your account's role to 'reviewer' in the database
 
