@@ -25,4 +25,14 @@ class Welcome extends CI_Controller {
 		$this->load->view( 'templates/main', $data );
 
 	}
+
+    public function testfunc()
+    {
+        $data = [];
+
+        $data['body']  = 'test';
+        $data['title'] = "Testing!";
+
+        $this->load->view( 'templates/main', $data );
+    }
 }

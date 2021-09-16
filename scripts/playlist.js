@@ -1,27 +1,34 @@
-function lowerGrade(user, id)
-{
-    let value = document.getElementById(user + '-' + id).value;
-    if(isNaN(value)) value = 5;
-    value--;
-    if(value >= 1) document.getElementById(user + '-' + id).value = value;
-    else document.getElementById(user + '-' + id).value = 1;
+let grade = 5;
+let jump = 1;
 
-    document.getElementById("NGB" + user + "-" + id).style.display = "inline";
+function changeGrade(event) {
+    //prevents mouse wheel from scrolling the page
+    event.preventDefault();
+
+    const gradeBox = document.getElementById(event.target.name.substr(1));
+
+    let value = gradeBox.value;
+    if(value === "Nieoceniona") value = 5;
+    else value = parseFloat(value);
+
+    let change = -jump * event.deltaY / 100;
+    value += change;
+
+    let id = event.target.name.substr(3);
+    if(value >= 1 && value <= 15)
+    {
+        let user = event.target.name.substr(1, 1);
+        gradeBox.value = value;
+        document.getElementById("NGB" + user + "-" + id).style.display = "inline";
+    }
 
     calculateAverage(id);
 }
 
-function raiseGrade(user, id)
-{
-    let value = document.getElementById(user + '-' + id).value;
-    if(isNaN(value)) value = 5;
-    value++;
-    if(value <= 15) document.getElementById(user + '-' + id).value = value;
-    else document.getElementById(user + '-' + id).value = 15;
+const gradeBoxes = document.querySelectorAll(".gradeInput");
 
-    document.getElementById("NGB" + user + "-" + id).style.display = "inline";
-
-    calculateAverage(id);
+for (let i = 0; i < gradeBoxes.length; ++i) {
+    gradeBoxes[i].addEventListener('wheel', changeGrade);
 }
 
 function calculateAverage(id)
@@ -52,15 +59,7 @@ function getPlaylistName(average)
     else return "Akademia";
 }
 
-// var scrollCount = 1;
-// window.addEventListener('mousewheel', function(e){
-//
-//   if(e.wheelDelta<0 && scrollCount<15){
-//     scrollCount++;
-//   }
-//
-//   else if(e.wheelDelta>0 && scrollCount>1){
-//     scrollCount--;
-//   }
-//   document.querySelector('.number').innerHTML = scrollCount;
-// });
+function updateJump(value)
+{
+    jump = value;
+}

@@ -16,8 +16,18 @@
         <input type="submit" value="Szukaj" />
     </form>
     <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
-        <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
+        <?php if(count($songs) > 0): ?>
+            <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
+        <?php endif; ?>
         <a class="optionsURL" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a>
+        <span class="optionsURL">
+            <label class="optionsSearchLabel">Skok: </label>
+            <select id="selectbox" onchange="updateJump(this.value);">
+                <option value="1">1</option>
+                <option value="0.5">0.5</option>
+                <option value="0.25">0.25</option>
+            </select>
+        </span>
     <?php endif; ?>
 </header>
 <form id="songsForm" method="post" action="<?=base_url('updateGrades')?>">
@@ -30,45 +40,37 @@
                     <?php //For reviewers show scores, buttons to edit them and the select list to move the song
                     if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
 						<h4 class="dataContainer--gradeContainer">
-							Adam:
-							<button type="button" class="btnGrade" onclick="lowerGrade('A', <?=$song->SongId?>)">-</button>
-								<input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
-							<button type="button" class="btnGrade" onclick="raiseGrade('A', <?=$song->SongId?>)">+</button>
+							<label>Adam:</label>
+                            <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
 							<span class="newScore" id="<?='NGBA-'.$song->SongId?>">
-								->
-								<input class="gradeInputNew" type="text"
-									id="<?='A-'.$song->SongId?>" name="<?='A-'.$song->SongId?>"
-									value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
+                                <label for="<?='A-'.$song->SongId?>">→</label>
+								<input class="gradeInputNew" type="text" id="<?='A-'.$song->SongId?>" name="<?='A-'.$song->SongId?>" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
 							</span>
 						</h4>
 						<h4 class="dataContainer--gradeContainer">
-							Kościelny:
-							<button type="button" class="btnGrade" onclick="lowerGrade('K', <?=$song->SongId?>)">-</button>
-								<input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
-							<button type="button" class="btnGrade" onclick="raiseGrade('K', <?=$song->SongId?>)">+</button>
+							<label>Kościelny:</label>
+                            <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
 							<span class="newScore" id="<?='NGBK-'.$song->SongId?>">
-								->
-								<input class="gradeInputNew" type="text"
-									id="<?='K-'.$song->SongId?>" name="<?='K-'.$song->SongId?>"
-									value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
+								<label for="<?='K-'.$song->SongId?>">→</label>
+								<input class="gradeInputNew" type="text" id="<?='K-'.$song->SongId?>" name="<?='K-'.$song->SongId?>" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
 							</span>
 						</h4>
-						<h5 class="dataContainer--gradeContainer">Średnia:
+						<h5 class="dataContainer--gradeContainer">
+                            <label>Średnia:</label>
 							<input type="text" value="<?=$song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0 ? ($song->SongGradeAdam + $song->SongGradeChurchie) / 2 : 'Nieoceniona'?>" disabled />
 							<span class="newScore" id="<?='NGBAv-'.$song->SongId?>">
-								->
-								<input class="averageNew" type="text"
-									id="<?=$song->SongId?>"
-									value="<?=($song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : 'Nieoceniona'?>" />
+                                <label for="<?=$song->SongId?>">→</label>
+								<input class="averageNew" type="text" id="<?=$song->SongId?>" value="<?=($song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : 'Nieoceniona'?>" />
 							</span>
 						</h5>
 						<?php  //only 1 list means there is nowhere to move the song to
 						if(count($lists) > 1): ?>
-							<h5 class="dataContainer--gradeContainer">Przenieś do:
-								<select id="" class="" name="<?="playlistId-".$song->SongId?>">
-									<option value="0" default>Nie przenoś</option>
+							<h5 class="dataContainer--gradeContainer">
+                                <label>Przenieś do:</label>
+								<select name="<?="playlistId-".$song->SongId?>">
+									<option value="0">Nie przenoś</option>
 									<?php foreach($lists as $list):
-										//Do not show the same list in the options
+										//Do not show the current list in the options
 										if($list->ListId !== $ListId):?>
 											<option value="<?=$list->ListId?>"><?=$list->ListName?></option>
 										<?php endif;
@@ -83,14 +85,15 @@
                     //For guest users only show the scores of the song
                     else: ?>
                         <h4 class="dataContainer--gradeContainer">
-                            Adam:
+                            <label>Adam:</label>
                             <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
                         </h4>
                         <h4 class="dataContainer--gradeContainer">
-                            Kościelny:
+                            <label>Kościelny:</label>
                             <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
                         </h4>
-                        <h5 class="dataContainer--gradeContainer">Średnia:
+                        <h5 class="dataContainer--gradeContainer">
+                            <label>Średnia:</label>
                             <input type="text" value="<?=$song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0 ? ($song->SongGradeAdam + $song->SongGradeChurchie) / 2 : 'Nieoceniona'?>" disabled />
                         </h5>
                     <?php endif; ?>

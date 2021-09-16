@@ -15,6 +15,8 @@ $route['addPlaylist'] = 'Playlist/addPlaylist';
 $route['login'] = 'Account';
 $route['logout'] = 'Account/logout';
 
+$route['testfunc'] = 'Welcome/testfunc';
+
 $route['default_controller'] = 'Welcome';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
