@@ -2,3 +2,6 @@ List of possible system extensions:
 
 Playlist: Set visibility status when creating
 Playlist: Manage Playlist Dashboard
+Tierlist: Optimize generation
+Tierlist: Songs must be rated by both reviewers before sorting by average
+DocBlocks

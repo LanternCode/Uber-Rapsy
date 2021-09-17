@@ -36,7 +36,7 @@
 			<div class="videoContainer">
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailLeft" />
 				<div class="dataContainer">
-					<h3 class="songTitle"><a href="https://<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
+					<h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
                     <?php //For reviewers show scores, buttons to edit them and the select list to move the song
                     if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
 						<h4 class="dataContainer--gradeContainer">

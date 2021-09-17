@@ -1,65 +1,123 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
+    /**
+     * Class responsible for managing the Song table in the database.
+     *
+     * @author LanternCode <Adam.Machowczyk@gmail.com>
+     * @copyright LanternCode (c) 2019
+     * @version Pre-release
+     * @link https://lanterncode.com/Uber-Rapsy/
+     */
 	class SongsModel extends CI_Model
 	{
 		function __construct(){
 	     	parent::__construct();
 	    }
 
-        function GetSongsFromList( $ListId, $Search = "" )
-		{
+        /**
+         * Fetch songs from a list filtering by title.
+         *
+         * @param int $ListId  Id of the list to get songs from
+         * @param string $Search  Title filter
+         * @return object      returns an object containing the songs found
+         */
+        function GetSongsFromList(int $ListId, string $Search = "" ): object
+        {
 			$searchQuery = " AND SongTitle LIKE '%$Search%'";
             $sql = "SELECT * FROM song WHERE ListId = $ListId";
 			if($Search != "") $sql = $sql . $searchQuery;
-			
-            $query = $this->db->query( $sql )->result();
-			return $query;
+
+			return $this->db->query($sql)->result();
         }
 
-		function GetURLsOfAllSongsInList( $ListId )
-		{
+        /**
+         * Fetch URL of every song in a playlist.
+         *
+         * @param int $ListId  Id of the list to fetch URLs from
+         * @return object      returns an object containing the URLs found
+         */
+		function GetURLsOfAllSongsInList(int $ListId): object
+        {
 			$sql = "SELECT SongURL FROM song WHERE ListId = $ListId";
-			$query = $this->db->query( $sql )->result();
-			return $query;
+			return $this->db->query( $sql )->result();
 		}
 
+        /**
+         * Insert a song into our database.
+         *
+         * Every song fetched from our YT playlist is next fetched using YT API
+         * and saved into out database, so it is never lost
+         *
+         * @param int $listId  Id of the list the song is inserted into
+         * @param string $songURL  YT url of the song (without youtu.be/)
+         * @param string $songThumbnailURL  YT URL of the song's thumbnail
+         * @param string $songTitle Title of the song on YT
+         * @param string $songPlaylistItemsId Unique YT PlaylistItemsId (For API calls)
+         * @return boolean           true if query worked, false if it failed
+         */
 		function InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId)
 		{
 			$sql = "INSERT INTO song (ListId, SongURL, SongThumbnailURL, SongTitle, SongPlaylistItemsId)VALUES('$listId', '$songURL', '$songThumbnailURL', '$songTitle', '$songPlaylistItemsId')";
 
-			if($this->db->simple_query( $sql )) return true;
+			if($this->db->simple_query($sql)) return true;
 			else return false;
 		}
 
-		function UpdateSongWithScores($songId, $gradeAdam, $gradeKoscielny)
-		{
+        /**
+         * Update a song with scores added by the reviewers.
+         *
+         * @param int $songId  Id of the song to update
+         * @param float $gradeAdam  Grade added by Adam
+         * @param float $gradeKoscielny  Grade added by Koscielny
+         * @return boolean           true if query worked, false if it failed
+         */
+		function UpdateSongWithScores(int $songId, float $gradeAdam, float $gradeKoscielny): bool
+        {
 			$sql = "UPDATE song SET SongGradeAdam = '$gradeAdam', SongGradeChurchie = '$gradeKoscielny' WHERE SongId = $songId";
 
-			if($this->db->simple_query( $sql )) return true;
+			if($this->db->simple_query($sql)) return true;
 			else return false;
 		}
 
-		function UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId)
+        /**
+         * Update a moved song with the new PlaylistItemsId and PlaylistId.
+         *
+         * @param int $songId  Id of the song to update
+         * @param int $newPlaylistId  Id of the playlist the song was moved to
+         * @param string $newSongPlaylistItemsId  Unique YT PlaylistItemsId (API item)
+         * @return boolean           true if query worked, false if it failed
+         */
+		function UpdateSongPlaylist(int $songId, int $newPlaylistId, string $newSongPlaylistItemsId): bool
         {
             $sql = "UPDATE song SET ListId = $newPlaylistId, SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE SongId = $songId";
 
-            if($this->db->simple_query( $sql )) return true;
+            if($this->db->simple_query($sql)) return true;
             else return false;
         }
 
-		function GetTopSongsFromList($ListId, $operation)
-		{
+        /**
+         * Fetch songs of one reviewer, sorted by grade descending.
+         *
+         * @param int $ListId  Id of the list to fetch from
+         * @param string $operation  Name of the reviewer
+         * @return array           returns the songs found
+         */
+		function GetTopSongsFromList(int $ListId, string $operation): array
+        {
 			$orderBy = $operation == "Adam" ? "SongGradeAdam" : ($operation == "Churchie" ? "SongGradeChurchie" : "((SongGradeAdam+SongGradeChurchie)/2)");
-
 			$sql = "SELECT * FROM song WHERE ListId = $ListId ORDER BY $orderBy DESC";
-            $query = $this->db->query( $sql )->result();
-			return $query;
+			return $this->db->query( $sql )->result();
 		}
 
-		function GetSongDetailsForMoving($songId)
+        /**
+         * Fetch details of a song to move it between playlists.
+         *
+         * @param int $songId  Id of the song to fetch
+         * @return object      returns an object containing the details found
+         */
+		function GetSongDetailsForMoving(int $songId): object
         {
             $sql = "SELECT SongPlaylistItemsId, SongURL FROM song WHERE SongId = $songId";
-            $query = $this->db->query( $sql )->result();
-            return $query;
+            return $this->db->query( $sql )->row();
         }
 }

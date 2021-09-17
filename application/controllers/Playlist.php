@@ -60,16 +60,15 @@ class Playlist extends CI_Controller {
 		else
 		{
 			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId']);
-
-            foreach($data['songs'] as $song)
-            {
-                //Displays values without decimals at the end id they are 0
-                $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
-                $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
-            }
-
 			$data['lists'] = $this->ListsModel->GetListsIdsAndNames();
 		}
+
+        foreach($data['songs'] as $song)
+        {
+            //Display values without decimals at the end if the decimals are only 0
+            $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
+            $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
+        }
 
 		$this->load->view( 'templates/main', $data );
 	}
@@ -176,7 +175,7 @@ class Playlist extends CI_Controller {
                                 $playlistItemSnippet->setPosition(1000);
                                 $resourceId = new Google_Service_YouTube_ResourceId();
                                 $resourceId->setKind('youtube#video');
-                                $resourceId->setVideoId($songDetails[0]->SongURL);
+                                $resourceId->setVideoId($songDetails->SongURL);
                                 $playlistItemSnippet->setResourceId($resourceId);
                                 $playlistItem->setSnippet($playlistItemSnippet);
 
@@ -186,7 +185,7 @@ class Playlist extends CI_Controller {
                                 $newSongPlaylistItemsId = $response->id;
 
                                 //delete the song from the earlier playlist
-                                $response = $service->playlistItems->delete($songDetails[0]->SongPlaylistItemsId);
+                                $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
 
                                 //move the song in the database
                                 $this->SongsModel->UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
