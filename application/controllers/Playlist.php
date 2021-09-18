@@ -56,6 +56,7 @@ class Playlist extends CI_Controller {
 		else if ($data['Search'])
 		{
 			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId'], $data['Search']);
+            $data['lists'] = $this->ListsModel->GetListsIdsAndNames();
 		}
 		else
 		{
@@ -108,13 +109,13 @@ class Playlist extends CI_Controller {
 
             foreach($ratings as $rating)
             {
-                if($i == 1) $oldAdamRating = $rating;
+                if($i == 1) $oldAdamRating = floatval($rating);
                 else if($i == 2) $songId = $rating;
-                else if($i == 3) $adamRating = $rating;
-                else if($i == 5) $oldKoscielnyRating = $rating;
+                else if($i == 3) $adamRating = floatval($rating);
+                else if($i == 5) $oldKoscielnyRating = floatval($rating);
                 else if($i == 7)
                 {
-                    $koscielnyRating = $rating;
+                    $koscielnyRating = floatval($rating);
                     $songId = substr($songId, 2);
 
                     if($oldAdamRating != $adamRating || $oldKoscielnyRating != $koscielnyRating)
@@ -157,7 +158,7 @@ class Playlist extends CI_Controller {
                                 $newPlaylistId = $rating;
 
                                 //fetch the playlist URL from the database using the id
-                                $playlistURL = $this->ListsModel->getListUrlById($newPlaylistId);
+                                $playlistURL = $this->ListsModel->GetListUrlById($newPlaylistId);
 
                                 //fetch the song URL and PlaylistItemId from the database using the local id
                                 $songDetails = $this->SongsModel->GetSongDetailsForMoving($songId);
@@ -237,7 +238,7 @@ class Playlist extends CI_Controller {
             $host = "https://youtube.googleapis.com/youtube/v3/playlistItems";
             $part = "snippet";
             $maxResults = 50; //50 is the most you can get on one page
-            $playlistId = $this->ListsModel->getListUrlById($listId);
+            $playlistId = $this->ListsModel->GetListUrlById($listId);
 
             //fetch the api key from the api_key file
             if($apiKey = file_get_contents("application/api/api_key.txt"))
@@ -436,7 +437,7 @@ class Playlist extends CI_Controller {
                         $data['link'] = $response->id;
 
                         //save the playlist into the database
-                        $this->ListsModel->insertPlaylist($data);
+                        $this->ListsModel->InsertPlaylist($data);
 
                         $data['resultMessage'] = "Playlista zapisana!";
                     } else {

@@ -8,7 +8,7 @@ class AccountModel extends CI_Model
         parent::__construct();
     }
 
-    function getUserData($email)
+    function GetUserData($email)
     {
         $sql = "SELECT id, password, role FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
@@ -18,7 +18,7 @@ class AccountModel extends CI_Model
         else return 0;
     }
 
-    function registerNewUser($email, $password)
+    function RegisterNewUser($email, $password)
     {
         $sql = "INSERT INTO user
         ( email, password, role )
@@ -28,7 +28,7 @@ class AccountModel extends CI_Model
         $this->db->simple_query($sql);
     }
 
-    function isEmailUnique($email)
+    function IsEmailUnique($email)
     {
         $sql = "SELECT email FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
@@ -53,7 +53,7 @@ class AccountModel extends CI_Model
         return $token;
     }
 
-    function insertPasswordUpdateLink($email)
+    function InsertPasswordUpdateLink($email)
     {
         $keyToInsert = $this->getToken();
         $sql = "UPDATE user SET passwordResetKey = '$keyToInsert' WHERE email = '$email'";
@@ -62,7 +62,7 @@ class AccountModel extends CI_Model
         return $keyToInsert;
     }
 
-    function sendPasswordChangeEmail($email, $resetKey)
+    function SendPasswordChangeEmail($email, $resetKey)
     {
 
         $resetLink = base_url('forgottenPassword/reset?qs=' . $resetKey);
@@ -82,7 +82,7 @@ class AccountModel extends CI_Model
 
     }
 
-    function validatePasswordResetString($key)
+    function ValidatePasswordResetString($key)
     {
         $sql = "SELECT id FROM user WHERE passwordResetKey = '$key'";
         $query = $this->db->query($sql);
@@ -91,7 +91,7 @@ class AccountModel extends CI_Model
         else return 0;
     }
 
-    function updateUserPassword($password, $userId)
+    function UpdateUserPassword($password, $userId)
     {
         $newPass = password_hash($password, PASSWORD_BCRYPT);
         $sql = "UPDATE user SET passwordResetKey = NULL, password = '$newPass' WHERE id = $userId";

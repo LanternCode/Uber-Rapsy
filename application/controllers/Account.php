@@ -35,7 +35,7 @@ class Account extends CI_Controller
 
             if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL))
             {
-                $userData = $this->AccountModel->getUserData($data['email']);
+                $userData = $this->AccountModel->GetUserData($data['email']);
                 $passwordToCompare = $userData->password ?? 0;
                 //TODO: Try cracking with just a password of 0
 

@@ -1,6 +1,5 @@
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
-    <a class="optionsURL" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#songsForm">Góra Listy</a>
     <select id="selectbox" class="optionsURL" onchange="javascript:location.href = this.value;">
@@ -10,7 +9,6 @@
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Churchie")?>">Najlepsze: Kościelny</option>
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Average")?>">Najlepsze: Średnia</option>
     </select>
-    <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
 </header>
 <div id="songsForm" class="optionsHeaderSpace"></div>
 <?php if(count($gradesToDisplay) == 1): ?>
@@ -27,9 +25,7 @@
                             <h3 class="songTitle"><a href="<?=$song->SongURL?>"><?=$song->SongTitle?></a></h3>
                             <h4 class="dataContainer--gradeContainer">
                                 Adam:
-                                <button type="button" class="btnGrade" onclick="lowerGrade('A', <?=$song->SongId?>)">-</button>
-                                    <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
-                                <button type="button" class="btnGrade" onclick="raiseGrade('A', <?=$song->SongId?>)">+</button>
+                                <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
                                 <span class="newScore" id="<?='NGBA-'.$song->SongId?>">
                                     ->
                                     <input class="gradeInputNew" type="text"
@@ -39,9 +35,7 @@
                             </h4>
                             <h4 class="dataContainer--gradeContainer">
                                 Kościelny:
-                                <button type="button" class="btnGrade" onclick="lowerGrade('K', <?=$song->SongId?>)">-</button>
-                                    <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
-                                <button type="button" class="btnGrade" onclick="raiseGrade('K', <?=$song->SongId?>)">+</button>
+                                <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
                                 <span class="newScore" id="<?='NGBK-'.$song->SongId?>">
                                     ->
                                     <input class="gradeInputNew" type="text"
@@ -68,9 +62,7 @@
                             <h3 class="songTitle"><a href="<?=$song->SongURL?>"><?=$song->SongTitle?></a></h3>
                             <h4 class="dataContainer--gradeContainer">
                                 Kościelny:
-                                <button type="button" class="btnGrade" onclick="lowerGrade('K', <?=$song->SongId?>)">-</button>
-                                    <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
-                                <button type="button" class="btnGrade" onclick="raiseGrade('K', <?=$song->SongId?>)">+</button>
+                                <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
                                 <span class="newScore" id="<?='NGBK-'.$song->SongId?>">
                                     ->
                                     <input class="gradeInputNew" type="text"
@@ -80,9 +72,7 @@
                             </h4>
                             <h4 class="dataContainer--gradeContainer">
                                 Adam:
-                                <button type="button" class="btnGrade" onclick="lowerGrade('A', <?=$song->SongId?>)">-</button>
-                                    <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
-                                <button type="button" class="btnGrade" onclick="raiseGrade('A', <?=$song->SongId?>)">+</button>
+                                <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
                                 <span class="newScore" id="<?='NGBA-'.$song->SongId?>">
                                     ->
                                     <input class="gradeInputNew" type="text"
@@ -118,9 +108,7 @@
                             </h5>
                             <h4 class="dataContainer--gradeContainer">
                                 Adam:
-                                <button type="button" class="btnGrade" onclick="lowerGrade('A', <?=$song->SongId?>)">-</button>
-                                    <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
-                                <button type="button" class="btnGrade" onclick="raiseGrade('A', <?=$song->SongId?>)">+</button>
+                                <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
                                 <span class="newScore" id="<?='NGBA-'.$song->SongId?>">
                                     ->
                                     <input class="gradeInputNew" type="text"
@@ -130,9 +118,7 @@
                             </h4>
                             <h4 class="dataContainer--gradeContainer">
                                 Kościelny:
-                                <button type="button" class="btnGrade" onclick="lowerGrade('K', <?=$song->SongId?>)">-</button>
-                                    <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
-                                <button type="button" class="btnGrade" onclick="raiseGrade('K', <?=$song->SongId?>)">+</button>
+                                <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
                                 <span class="newScore" id="<?='NGBK-'.$song->SongId?>">
                                     ->
                                     <input class="gradeInputNew" type="text"
@@ -149,4 +135,3 @@
     endfor;
 endif; ?>
 <div id="bottom"></div>
-<script type="text/javascript" src="<?=base_url( 'scripts/playlist.js' )?>"></script>
