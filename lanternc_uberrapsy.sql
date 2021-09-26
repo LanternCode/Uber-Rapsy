@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Sep 16, 2021 at 04:05 PM
+-- Generation Time: Sep 26, 2021 at 11:17 PM
 -- Server version: 8.0.21
 -- PHP Version: 7.4.9
 
@@ -34,17 +34,18 @@ CREATE TABLE IF NOT EXISTS `list` (
   `ListName` varchar(50) CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
   `ListDesc` text CHARACTER SET utf8 COLLATE utf8_polish_ci NOT NULL,
   `ListCreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `ListActive` bit(1) NOT NULL DEFAULT b'1',
+  `ListActive` tinyint(1) NOT NULL,
   PRIMARY KEY (`ListId`)
-) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 --
 -- Dumping data for table `list`
 --
 
 INSERT INTO `list` (`ListId`, `ListUrl`, `ListName`, `ListDesc`, `ListCreatedAt`, `ListActive`) VALUES
-(4, 'PLkIbfiOcITXpSEuD0Gwr6Fz_WYZs781lE', 'Uber Rapsy - Akademia S4', 'Akademia 4', '2021-09-16 15:13:01', b'1'),
-(5, 'PLkIbfiOcITXrwOxl2z1w6GmDBaTomytiM', 'Uber Rapsy - Główna Lista', 'Uber', '2021-09-16 15:13:50', b'1');
+(4, 'PLkIbfiOcITXpSEuD0Gwr6Fz_WYZs781lE', 'Uber Rapsy - Akademia S4', 'Akademia 4', '2021-09-16 15:13:01', 1),
+(5, 'PLkIbfiOcITXrwOxl2z1w6GmDBaTomytiM', 'Uber Rapsy - Główna Lista', 'Uber', '2021-09-16 15:13:50', 1),
+(16, 'PLkIbfiOcITXoeEjCiGOlOYUUp7-FwbqPy', 'Uber Rapsy - Akademia S5', '100 nut', '2021-08-01 11:50:10', 1);
 
 -- --------------------------------------------------------
 
@@ -63,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `song` (
   `SongGradeChurchie` decimal(10,2) NOT NULL,
   `ListId` int NOT NULL,
   PRIMARY KEY (`SongId`)
-) ENGINE=MyISAM AUTO_INCREMENT=786 DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci;
 
 -- --------------------------------------------------------
 

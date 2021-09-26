@@ -365,6 +365,67 @@ class Playlist extends CI_Controller {
 		$this->load->view( 'templates/main', $data );
 	}
 
+    /**
+     * Shows and validates the form to add a local playlist.
+     *
+     * @return void
+     */
+    public function addLocal()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'addLocalPlaylist';
+            $data['title'] = "Uber Rapsy | Dodaj lokalnie playlistę!";
+
+            if(isset($_POST['playlistFormSubmitted']))
+            {
+                $queryData = [];
+                $queryData['ListUrl'] = isset($_POST['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistId'])) : "";
+                $queryData['ListName'] = isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "";
+                $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
+                $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
+                $queryData['ListActive'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
+
+                if($queryData['ListUrl'] && $queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
+                {
+                    $this->ListsModel->InsertLocalPlaylist($queryData);
+                    $data['resultMessage'] = "Pomyślnie dodano playlistę!";
+                }
+                else
+                {
+                    $data['resultMessage'] = $queryData['ListUrl'] == "" ? "ID Playlisty jest wymagane!</br>" : '';
+                    $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
+                    $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
+                    $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
+                    $data['resultMessage'] .= $queryData['ListActive'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
+                }
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Checks whether the user is logged in and has the appropriate role.
+     *
+     * @return boolean     true if authenticated, false if not
+     */
+    function authenticateUser(): bool
+    {
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
+        $userRole = $_SESSION['userRole'] ?? 0;
+
+        if($userLoggedIn === 1 && $userRole === 'reviewer')
+        {
+            return true;
+        }
+        else return false;
+    }
+
 	public function addPlaylist()
 	{
 	    $data = [];

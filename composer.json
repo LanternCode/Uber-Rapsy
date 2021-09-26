@@ -1,6 +1,7 @@
 {
     "require": {
-        "google/apiclient": "^2.10"
+        "google/apiclient": "^2.10",
+        "ext-mysqli": "*"
     },
     "scripts": {
         "pre-autoload-dump": "Google\\Task\\Composer::cleanup"

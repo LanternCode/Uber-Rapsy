@@ -11,6 +11,7 @@ $route['newToken'] = 'YoutubeIntegration/generate';
 
 $route['newPlaylist'] = 'Playlist/newPlaylist';
 $route['addPlaylist'] = 'Playlist/addPlaylist';
+$route['playlist/addLocal'] = 'Playlist/addLocal';
 
 $route['login'] = 'Account';
 $route['logout'] = 'Account/logout';

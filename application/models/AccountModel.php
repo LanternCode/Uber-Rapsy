@@ -1,5 +1,13 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Class responsible for managing the user table in the database.
+ *
+ * @author LanternCode <leanbox@lanterncode.com>
+ * @copyright LanternCode (c) 2019
+ * @version Pre-release
+ * @link https://lanterncode.com/Uber-Rapsy/
+ */
 class AccountModel extends CI_Model
 {
 
@@ -8,7 +16,13 @@ class AccountModel extends CI_Model
         parent::__construct();
     }
 
-    function GetUserData($email)
+    /**
+     * Returns the URL of a playlist.
+     *
+     * @param string $email  email of the user
+     * @return int|object      returns 0 if user not found or their data if found
+     */
+    function GetUserData(string $email)
     {
         $sql = "SELECT id, password, role FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
@@ -18,7 +32,14 @@ class AccountModel extends CI_Model
         else return 0;
     }
 
-    function RegisterNewUser($email, $password)
+    /**
+     * Inserts a new user
+     *
+     * @param string $email  email of the user
+     * @param string $password  hashed password of the user
+     * @return void
+     */
+    function RegisterNewUser(string $email, string $password)
     {
         $sql = "INSERT INTO user
         ( email, password, role )
@@ -28,17 +49,28 @@ class AccountModel extends CI_Model
         $this->db->simple_query($sql);
     }
 
-    function IsEmailUnique($email)
+    /**
+     * Checks whether an account with this email address exists.
+     *
+     * @param string $email  email to check
+     * @return boolean      returns 0 if email is not unique and 1 otherwise
+     */
+    function IsEmailUnique(string $email): bool
     {
         $sql = "SELECT email FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->email) && $query->row()->email) return 0;
-        else return 1;
+        if (isset($query->row()->email) && $query->row()->email) return false;
+        else return true;
     }
 
-    //SOURCE: STACK OVERFLOW
-    function getToken()
+    /**
+     * Generates a password reset key.
+     *
+     * @return string      returns the password reset key
+     * @author stack overflow (original author unknown)
+     */
+    function getToken(): string
     {
         $token = "";
         $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -53,7 +85,13 @@ class AccountModel extends CI_Model
         return $token;
     }
 
-    function InsertPasswordUpdateLink($email)
+    /**
+     * Inserts a password reset key into the database.
+     *
+     * @param string $email  email of the user who resets their password
+     * @return string      returns the password reset key
+     */
+    function InsertPasswordUpdateLink(string $email): string
     {
         $keyToInsert = $this->getToken();
         $sql = "UPDATE user SET passwordResetKey = '$keyToInsert' WHERE email = '$email'";
@@ -62,9 +100,15 @@ class AccountModel extends CI_Model
         return $keyToInsert;
     }
 
-    function SendPasswordChangeEmail($email, $resetKey)
+    /**
+     * Mails the password reset link to the user.
+     *
+     * @param string $email  email of the user
+     * @param string $resetKey  password reset key
+     * @return void
+     */
+    function SendPasswordChangeEmail(string $email, string $resetKey)
     {
-
         $resetLink = base_url('forgottenPassword/reset?qs=' . $resetKey);
         $subject = "Zresetuj Hasło: Uber-Rapsy";
         $headers = array(
@@ -79,10 +123,15 @@ class AccountModel extends CI_Model
         $resetLink</a><br /><br /> If you did not ask for a password reset, simply ignore this email.";
 
         mail($email, $subject, $txt, implode("\r\n", $headers));
-
     }
 
-    function ValidatePasswordResetString($key)
+    /**
+     * Checks whether the entered password reset key is valid.
+     *
+     * @param string $key  password reset key used
+     * @return int|object      returns 0 if invalid or the user id when valid
+     */
+    function ValidatePasswordResetString(string $key)
     {
         $sql = "SELECT id FROM user WHERE passwordResetKey = '$key'";
         $query = $this->db->query($sql);
@@ -91,7 +140,14 @@ class AccountModel extends CI_Model
         else return 0;
     }
 
-    function UpdateUserPassword($password, $userId)
+    /**
+     * Updates user's password in the database
+     *
+     * @param string $password  new password entered by the user
+     * @param string $userId  id of the user to update
+     * @return void
+     */
+    function UpdateUserPassword(string $password, string $userId)
     {
         $newPass = password_hash($password, PASSWORD_BCRYPT);
         $sql = "UPDATE user SET passwordResetKey = NULL, password = '$newPass' WHERE id = $userId";
