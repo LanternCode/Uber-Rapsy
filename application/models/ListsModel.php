@@ -75,4 +75,31 @@ class ListsModel extends CI_Model
     {
         $this->db->insert('list', $queryData);
     }
+
+    /**
+     * Inserts a new playlist into the database.
+     *
+     * @param array $queryData  playlist to be updated
+     * @return void
+     */
+    function UpdatePlaylist(array $queryData = []): void
+    {
+        $this->db->replace('list', $queryData);
+    }
+
+    /**
+     * Fetches a playlist from the database.
+     *
+     * @param int $playlistId  id of the playlist to fetch
+     * @return object|bool playlist object or false if not found
+     */
+    function FetchPlaylistById(int $playlistId)
+    {
+        $sql = "SELECT * FROM list WHERE ListId = $playlistId";
+        if(isset($this->db->query( $sql )->row()->ListName))
+        {
+            return $this->db->query( $sql )->row();
+        }
+        else return false;
+    }
 }

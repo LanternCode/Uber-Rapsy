@@ -15,6 +15,134 @@ class Playlist extends CI_Controller {
 		$this->load->helper('cookie');
     }
 
+    /**
+     * Opens the playlist dashboard.
+     *
+     * @return void
+     */
+    public function dashboard()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'playlist/playlistDashboard';
+            $data['title'] = "Uber Rapsy | Zarządzaj playlistami!";
+            $data['playlists'] = $this->ListsModel->GetListsIdsAndNames();
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Opens the playlist details page.
+     *
+     * @return void
+     */
+    public function details()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'playlist/details';
+            $data['title'] = "Uber Rapsy | Zarządzaj playlistą!";
+            $data['ListId'] = isset( $_GET['id'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['id'] ) ) : 0;
+
+            if($data['ListId'] && is_numeric($data['ListId']))
+            {
+                $data['playlist'] = $this->ListsModel->FetchPlaylistById($data['ListId']);
+
+                if($data['playlist'] === false)
+                {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
+                }
+                else
+                {
+                    $data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId']);
+                }
+            }
+            else
+            {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Opens the playlist quick edit page and processes the form if needed.
+     *
+     * @return void
+     */
+    public function quickEdit()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'playlist/quickEdit';
+            $data['title'] = "Uber Rapsy | Edytuj playlistę!";
+            $data['ListId'] = isset( $_GET['id'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['id'] ) ) : 0;
+
+            if($data['ListId'] && is_numeric($data['ListId']))
+            {
+                $data['playlist'] = $this->ListsModel->FetchPlaylistById($data['ListId']);
+
+                if($data['playlist'] === false)
+                {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
+                }
+                else if(isset($_POST['playlistFormSubmitted']))
+                {
+                    $queryData = [];
+                    $queryData['ListId'] = $data['ListId'];
+                    $queryData['ListUrl'] = isset($_POST['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistId'])) : "";
+                    $queryData['ListName'] = isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "";
+                    $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
+                    $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
+                    $queryData['ListActive'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
+
+                    if($queryData['ListUrl'] && $queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
+                    {
+                        $this->ListsModel->UpdatePlaylist($queryData);
+                        $data['playlist'] = $this->ListsModel->FetchPlaylistById($data['ListId']);
+                        $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
+                    }
+                    else
+                    {
+                        $data['resultMessage'] = $queryData['ListUrl'] == "" ? "ID Playlisty jest wymagane!</br>" : '';
+                        $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
+                        $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
+                        $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
+                        $data['resultMessage'] .= $queryData['ListActive'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
+                    }
+                }
+            }
+            else
+            {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
     function TrimTrailingZeroes($nbr) : float
     {
         return strpos($nbr,'.')!==false ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
