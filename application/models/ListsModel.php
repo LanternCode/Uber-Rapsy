@@ -66,7 +66,7 @@ class ListsModel extends CI_Model
     }
 
     /**
-     * Inserts a new playlist into the database.
+     * Inserts a new local playlist into the database.
      *
      * @param array $queryData  playlist to be inserted
      * @return void
@@ -77,7 +77,7 @@ class ListsModel extends CI_Model
     }
 
     /**
-     * Inserts a new playlist into the database.
+     * Updates a playlist in the database.
      *
      * @param array $queryData  playlist to be updated
      * @return void
@@ -101,5 +101,19 @@ class ListsModel extends CI_Model
             return $this->db->query( $sql )->row();
         }
         else return false;
+    }
+
+    /**
+     * Updates ListActive with the value given.
+     *
+     * @param int $playlistActive value to update with
+     * @param int $listId playlist to update
+     * @return void
+     */
+    function SetPlaylistActiveProperty(int $playlistActive, int $listId)
+    {
+        $reverse = $playlistActive == 1 ? 0 : 1;
+        $sql = "UPDATE list SET ListActive = $reverse WHERE ListId = $listId";
+        $this->db->query($sql);
     }
 }

@@ -9,7 +9,7 @@
 <p>Playlista publiczna: <?=$playlist->ListActive === "1" ? "Tak" : "Nie"?></p><br><br>
 
 <a href="<?=base_url('playlist/quickEdit?id='.$playlist->ListId)?>">Edytuj Playlistę</a><br>
-<a href="<?=base_url('playlist/hidePlaylist?id='.$playlist->ListId)?>">Ukryj Playlistę</a><br>
+<a href="<?=base_url('playlist/hidePlaylist?id='.$playlist->ListId)?>"><?=$playlist->ListActive === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br>
 <a href="<?=base_url('playlist/deleteLocal?id='.$playlist->ListId)?>">Usuń Playlistę</a><br><br>
 
 <h3>Tracklista</h3>

@@ -143,6 +143,51 @@ class Playlist extends CI_Controller {
         else redirect('logout');
     }
 
+    /**
+     * Allows the user to set a playlist as (in)active.
+     *
+     * @return void
+     */
+    public function hidePlaylist()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'playlist/hidePlaylist';
+            $data['title'] = "Uber Rapsy | Ukryj playlistę";
+            $data['ListId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
+            $data['HideList'] = isset($_GET['hide']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['hide'])) : false;
+
+            if($data['ListId'] && is_numeric($data['ListId']))
+            {
+                $data['playlist'] = $this->ListsModel->FetchPlaylistById($data['ListId']);
+
+                if($data['playlist'] === false)
+                {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
+                }
+                else if($data['HideList'] === "true")
+                {
+                    $this->ListsModel->SetPlaylistActiveProperty($data['playlist']->ListActive, $data['ListId']);
+                    redirect('playlist/details?id='.$data['ListId']);
+                }
+            }
+            else
+            {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
     function TrimTrailingZeroes($nbr) : float
     {
         return strpos($nbr,'.')!==false ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
