@@ -10,14 +10,14 @@ class Welcome extends CI_Controller {
 	public function __construct()
 	{
         parent::__construct();
-        $this->load->model( 'ListsModel' );
+        $this->load->model('PlaylistModel');
     }
 
 	public function index()
 	{
 		$data = [];
 
-		$data['lists'] = $this->ListsModel->GetAllLists();
+		$data['lists'] = $this->PlaylistModel->GetAllPublicLists();
 
 		$data['body']  = 'home';
 		$data['title'] = "Homepage!";

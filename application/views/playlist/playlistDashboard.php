@@ -1,3 +1,4 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <h4>Witaj w panelu zarządzania playlistami!</h4>
 <br/><br/>
 <a href="<?=base_url('newPlaylist')?>">Dodaj nową playlistę</a>

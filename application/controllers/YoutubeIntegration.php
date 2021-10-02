@@ -11,8 +11,8 @@ class YoutubeIntegration extends CI_Controller {
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->model( 'ListsModel' );
-		$this->load->model( 'SongsModel' );
+		$this->load->model('PlaylistModel');
+		$this->load->model('SongsModel');
 		$this->load->helper('cookie');
 	}
 

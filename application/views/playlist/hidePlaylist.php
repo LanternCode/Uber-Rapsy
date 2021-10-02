@@ -1,3 +1,4 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <?=$playlist->ListActive === "1" ? "Ukrywasz" : "Upubliczniasz"?> następującą playlistę:<br><br>
 
 <p>Nazwa playlisty: <?=$playlist->ListName?></p><br>

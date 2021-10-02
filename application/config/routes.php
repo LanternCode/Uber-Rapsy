@@ -10,8 +10,8 @@ $route['apitestPlaylist'] = 'YoutubeIntegration/result';
 $route['newToken'] = 'YoutubeIntegration/generate';
 
 $route['playlistDashboard'] = 'Playlist/dashboard';
-$route['newPlaylist'] = 'Playlist/newPlaylist';
-$route['addPlaylist'] = 'Playlist/addPlaylist';
+$route['playlist/newPlaylist'] = 'Playlist/newPlaylist';
+$route['playlist/addPlaylist'] = 'Playlist/addPlaylist';
 $route['playlist/addLocal'] = 'Playlist/addLocal';
 $route['playlist/details'] = 'Playlist/details';
 $route['playlist/quickEdit'] = 'Playlist/quickEdit';

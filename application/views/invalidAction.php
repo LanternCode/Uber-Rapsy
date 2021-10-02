@@ -1,2 +1,2 @@
-</br></br>
-Wystąpił następujący błąd: <?=$errorMessage?>
+<br><br>
+<h4>Wystąpił następujący błąd: <?=$errorMessage ?? 'Błąd Nieznany'?></h4>

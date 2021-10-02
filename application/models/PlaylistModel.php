@@ -8,7 +8,7 @@
  * @version Pre-release
  * @link https://lanterncode.com/Uber-Rapsy/
  */
-class ListsModel extends CI_Model
+class PlaylistModel extends CI_Model
 {
     function __construct(){
         parent::__construct();
@@ -22,6 +22,20 @@ class ListsModel extends CI_Model
     function GetAllLists()
     {
         $sql = "SELECT * FROM list";
+        return $this->db->query( $sql )->result();
+    }
+
+    /**
+     * Fetch all playlists set as public.
+     *
+     * A public playlist is considered to have its ListActive property
+     * set to 1.
+     *
+     * @return array      returns an array containing the lists found
+     */
+    function GetAllPublicLists()
+    {
+        $sql = "SELECT * FROM list WHERE ListActive = 1";
         return $this->db->query( $sql )->result();
     }
 

@@ -5,12 +5,20 @@ if(!isset($_SESSION)){
 	session_start();
 }
 
+/**
+ * Controller responsible for handling views related with playlists.
+ *
+ * @author LanternCode <leanbox@lanterncode.com>
+ * @copyright LanternCode (c) 2019
+ * @version Pre-release
+ * @link https://lanterncode.com/Uber-Rapsy/
+ */
 class Playlist extends CI_Controller {
 
 	public function __construct()
 	{
         parent::__construct();
-        $this->load->model( 'ListsModel' );
+        $this->load->model( 'PlaylistModel' );
 		$this->load->model( 'SongsModel' );
 		$this->load->helper('cookie');
     }
@@ -29,7 +37,7 @@ class Playlist extends CI_Controller {
             $data = [];
             $data['body']  = 'playlist/playlistDashboard';
             $data['title'] = "Uber Rapsy | Zarządzaj playlistami!";
-            $data['playlists'] = $this->ListsModel->GetListsIdsAndNames();
+            $data['playlists'] = $this->PlaylistModel->GetListsIdsAndNames();
 
             $this->load->view( 'templates/main', $data );
         }
@@ -54,7 +62,7 @@ class Playlist extends CI_Controller {
 
             if($data['ListId'] && is_numeric($data['ListId']))
             {
-                $data['playlist'] = $this->ListsModel->FetchPlaylistById($data['ListId']);
+                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
 
                 if($data['playlist'] === false)
                 {
@@ -80,7 +88,7 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Opens the playlist quick edit page and processes the form if needed.
+     * Opens the playlist quick edit page and processes the form.
      *
      * @return void
      */
@@ -97,7 +105,7 @@ class Playlist extends CI_Controller {
 
             if($data['ListId'] && is_numeric($data['ListId']))
             {
-                $data['playlist'] = $this->ListsModel->FetchPlaylistById($data['ListId']);
+                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
 
                 if($data['playlist'] === false)
                 {
@@ -117,8 +125,8 @@ class Playlist extends CI_Controller {
 
                     if($queryData['ListUrl'] && $queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
                     {
-                        $this->ListsModel->UpdatePlaylist($queryData);
-                        $data['playlist'] = $this->ListsModel->FetchPlaylistById($data['ListId']);
+                        $this->PlaylistModel->UpdatePlaylist($queryData);
+                        $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
                         $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
                     }
                     else
@@ -162,7 +170,7 @@ class Playlist extends CI_Controller {
 
             if($data['ListId'] && is_numeric($data['ListId']))
             {
-                $data['playlist'] = $this->ListsModel->FetchPlaylistById($data['ListId']);
+                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
 
                 if($data['playlist'] === false)
                 {
@@ -172,7 +180,7 @@ class Playlist extends CI_Controller {
                 }
                 else if($data['HideList'] === "true")
                 {
-                    $this->ListsModel->SetPlaylistActiveProperty($data['playlist']->ListActive, $data['ListId']);
+                    $this->PlaylistModel->SetPlaylistActiveProperty($data['playlist']->ListActive, $data['ListId']);
                     redirect('playlist/details?id='.$data['ListId']);
                 }
             }
@@ -188,11 +196,11 @@ class Playlist extends CI_Controller {
         else redirect('logout');
     }
 
-    function TrimTrailingZeroes($nbr) : float
-    {
-        return strpos($nbr,'.')!==false ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
-    }
-
+    /**
+     * Opens a playlist with the required filters and settings.
+     *
+     * @return void
+     */
 	public function playlist()
 	{
 		$data = [];
@@ -229,12 +237,12 @@ class Playlist extends CI_Controller {
 		else if ($data['Search'])
 		{
 			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId'], $data['Search']);
-            $data['lists'] = $this->ListsModel->GetListsIdsAndNames();
+            $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
 		}
 		else
 		{
 			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId']);
-			$data['lists'] = $this->ListsModel->GetListsIdsAndNames();
+			$data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
 		}
 
         foreach($data['songs'] as $song)
@@ -247,10 +255,16 @@ class Playlist extends CI_Controller {
 		$this->load->view( 'templates/main', $data );
 	}
 
+    /**
+     * Updates reviewer grades in a playlist and moves songs between playlists.
+     *
+     * @return void
+     */
 	public function update()
 	{
         $data = [];
         $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
+        $userAuthenticated = $this->authenticateUser();
 
         //Check if this request comes from a valid playlist
         if($data['playlistId'] === "invalid")
@@ -258,8 +272,8 @@ class Playlist extends CI_Controller {
             $data['body']  = 'invalidAction';
             $data['title'] = "Błąd akcji!";
             $data['errorMessage'] = "Nie podano numeru playlisty podczas aktualizacji!";
-        } //Now check if the user performing this action is allowed to do it
-        else if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
+        }
+        else if($userAuthenticated)
         {
             $data['body']  = 'update';
             $data['title'] = "Oceny Zapisane!";
@@ -325,13 +339,12 @@ class Playlist extends CI_Controller {
                                 $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
                                     Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
                             }
-                            else
+                            else //perform the api call
                             {
-                                //api call
                                 $newPlaylistId = $rating;
 
                                 //fetch the playlist URL from the database using the id
-                                $playlistURL = $this->ListsModel->GetListUrlById($newPlaylistId);
+                                $playlistURL = $this->PlaylistModel->GetListUrlById($newPlaylistId);
 
                                 //fetch the song URL and PlaylistItemId from the database using the local id
                                 $songDetails = $this->SongsModel->GetSongDetailsForMoving($songId);
@@ -390,10 +403,16 @@ class Playlist extends CI_Controller {
 		$this->load->view( 'templates/main', $data );
 	}
 
+    /**
+     * Updates the playlist with new songs added to it on YouTube.
+     *
+     * @return void
+     */
 	public function downloadSongs()
 	{
 		//id of the list to reload
 		$listId = isset( $_GET['ListId'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['ListId'] ) ) : 0;
+        $userAuthenticated = $this->authenticateUser();
 
 		//declare default variables
 		$data = array(
@@ -405,13 +424,13 @@ class Playlist extends CI_Controller {
 		);
 
 		//Check if the user is allowed to do this action
-        if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
+        if($userAuthenticated)
         {
             //parameters for the api call
             $host = "https://youtube.googleapis.com/youtube/v3/playlistItems";
             $part = "snippet";
             $maxResults = 50; //50 is the most you can get on one page
-            $playlistId = $this->ListsModel->GetListUrlById($listId);
+            $playlistId = $this->PlaylistModel->GetListUrlById($listId);
 
             //fetch the api key from the api_key file
             if($apiKey = file_get_contents("application/api/api_key.txt"))
@@ -519,24 +538,123 @@ class Playlist extends CI_Controller {
 		$this->load->view( 'templates/main', $data );
 	}
 
+    /**
+     * Opens the new playlist form.
+     *
+     * @return void
+     */
 	public function newPlaylist()
 	{
-	    $data = [];
-        //Check if the user is allowed to do this action
-        if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
         {
-            $data['body'] = 'addPlaylist';
-            $data['title'] = 'Dodaj nową playlistę!';
+            $data = array(
+                'body' => 'playlist/addPlaylist',
+                'title' => 'Uber Rapsy | Dodaj nową playlistę!'
+            );
+            $this->load->view('templates/main', $data);
         }
-        else
-        {
-            //The user is not allowed to update anything in the system
-            $data['body']  = 'invalidAction';
-            $data['title'] = "Wystąpił Błąd!";
-            $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
-        }
-		$this->load->view( 'templates/main', $data );
+        else redirect('logout');
 	}
+
+    /**
+     * Processes the Add Playlist form.
+     *
+     * @return void
+     */
+    public function addPlaylist()
+    {
+        $data = [];
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $client = '';
+            //include google library
+            $library_included = true;
+            try {
+                $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
+                require_once $myPath . 'vendor/autoload.php';
+                $client = new Google\Client();
+                $client->setAuthConfig($myPath . 'application/api/client_secret.json');
+            } catch(Exception $e) {
+                //The library or the client could not be initiated
+                $library_included = false;
+            }
+
+            if($library_included)
+            {
+                //validate the access token required for an api call
+                $tokenExpired = $this->validateAuthToken($client);
+
+                if($tokenExpired)
+                {
+                    //refresh token not found
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd autoryzacji tokenu!";
+                    $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
+                                    Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
+                }
+                else
+                {
+                    $data = array(
+                        'body' => 'playlist/addPlaylist',
+                        'title' => isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "",
+                        'description' => isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "",
+                        'link' => '',
+                        'resultMessage' => ''
+                    );
+
+                    //validate the form
+                    if($data['title'] != "" && $data['description'] != "")
+                    {
+                        // Define service object for making API requests.
+                        $service = new Google_Service_YouTube($client);
+
+                        // Define the $playlist object, which will be uploaded as the request body.
+                        $playlist = new Google_Service_YouTube_Playlist();
+
+                        // Add 'snippet' object to the $playlist object.
+                        $playlistSnippet = new Google_Service_YouTube_PlaylistSnippet();
+                        $playlistSnippet->setDefaultLanguage('en');
+                        $playlistSnippet->setDescription($data['description']);
+                        $playlistSnippet->setTags(['Uber Rapsy', 'API call']);
+                        $playlistSnippet->setTitle($data['title']);
+                        $playlist->setSnippet($playlistSnippet);
+
+                        // Add 'status' object to the $playlist object.
+                        $playlistStatus = new Google_Service_YouTube_PlaylistStatus();
+                        $playlistStatus->setPrivacyStatus('public');
+                        $playlist->setStatus($playlistStatus);
+
+                        //save the api call response
+                        $response = $service->playlists->insert('snippet,status', $playlist);
+
+                        //get the unique id of a playlist from the response
+                        $data['link'] = $response->id;
+
+                        //save the playlist into the database
+                        $this->PlaylistModel->InsertPlaylist($data);
+
+                        $data['resultMessage'] = "Playlista zapisana!";
+                    } else {
+                        $data['resultMessage'] = "Proszę wyślij formularz ponownie, wprowadzone dane są niepoprawne.";
+                    }
+                }
+            }
+            else
+            {
+                //could not load the library
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Wystąpił Błąd!";
+                $data['errorMessage'] = "Nie znaleziono biblioteki google!";
+            }
+        }
+        else redirect('logout');
+
+        $this->load->view( 'templates/main', $data );
+    }
 
     /**
      * Shows and validates the form to add a local playlist.
@@ -550,7 +668,7 @@ class Playlist extends CI_Controller {
         if($userAuthenticated)
         {
             $data = [];
-            $data['body']  = 'addLocalPlaylist';
+            $data['body']  = 'playlist/addLocalPlaylist';
             $data['title'] = "Uber Rapsy | Dodaj lokalnie playlistę!";
 
             if(isset($_POST['playlistFormSubmitted']))
@@ -564,7 +682,7 @@ class Playlist extends CI_Controller {
 
                 if($queryData['ListUrl'] && $queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
                 {
-                    $this->ListsModel->InsertLocalPlaylist($queryData);
+                    $this->PlaylistModel->InsertLocalPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
                 }
                 else
@@ -599,105 +717,11 @@ class Playlist extends CI_Controller {
         else return false;
     }
 
-	public function addPlaylist()
-	{
-	    $data = [];
-        //Check if the user is allowed to do this action
-        if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
-        {
-            $client = '';
-            //include google library
-            $library_included = true;
-            try {
-                $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
-                require_once $myPath . 'vendor/autoload.php';
-                $client = new Google\Client();
-                $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-            } catch(Exception $e) {
-                //The library or the client could not be initiated
-                $library_included = false;
-            }
-
-            if($library_included)
-            {
-                //validate the access token required for an api call
-                $tokenExpired = $this->validateAuthToken($client);
-
-                if($tokenExpired)
-                {
-                    //refresh token not found
-                    $data['body']  = 'invalidAction';
-                    $data['title'] = "Błąd autoryzacji tokenu!";
-                    $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
-                                    Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
-                }
-                else
-                {
-                    //api call
-                    $data = array(
-                        'body' => 'addPlaylist',
-                        'title' => isset( $_POST['playlistName'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['playlistName'] ) ) : "",
-                        'description' => isset( $_POST['playlistDesc'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['playlistDesc'] ) ) : "",
-                        'link' => '',
-                        'resultMessage' => ''
-                    );
-
-                    //validate the form
-                    if($data['title'] != "" && $data['description'] != "")
-                    {
-                        // Define service object for making API requests.
-                        $service = new Google_Service_YouTube($client);
-
-                        // Define the $playlist object, which will be uploaded as the request body.
-                        $playlist = new Google_Service_YouTube_Playlist();
-
-                        // Add 'snippet' object to the $playlist object.
-                        $playlistSnippet = new Google_Service_YouTube_PlaylistSnippet();
-                        $playlistSnippet->setDefaultLanguage('en');
-                        $playlistSnippet->setDescription($data['description']);
-                        $playlistSnippet->setTags(['Uber Rapsy', 'API call']);
-                        $playlistSnippet->setTitle($data['title']);
-                        $playlist->setSnippet($playlistSnippet);
-
-                        // Add 'status' object to the $playlist object.
-                        $playlistStatus = new Google_Service_YouTube_PlaylistStatus();
-                        $playlistStatus->setPrivacyStatus('public');
-                        $playlist->setStatus($playlistStatus);
-
-                        //save the api call response
-                        $response = $service->playlists->insert('snippet,status', $playlist);
-
-                        //get the unique id of a playlist from the response
-                        $data['link'] = $response->id;
-
-                        //save the playlist into the database
-                        $this->ListsModel->InsertPlaylist($data);
-
-                        $data['resultMessage'] = "Playlista zapisana!";
-                    } else {
-                        $data['resultMessage'] = "Proszę wyślij formularz ponownie, wprowadzone dane są niepoprawne.";
-                    }
-                }
-            }
-            else
-            {
-                //could not load the library
-                $data['body']  = 'invalidAction';
-                $data['title'] = "Wystąpił Błąd!";
-                $data['errorMessage'] = "Nie znaleziono biblioteki google!";
-            }
-        }
-        else
-        {
-            //The user is not allowed to update anything in the system
-            $data['body']  = 'invalidAction';
-            $data['title'] = "Wystąpił Błąd!";
-            $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
-        }
-
-        $this->load->view( 'templates/main', $data );
-	}
-
+    /**
+     * Validates the google oauth2 token.
+     *
+     * @return bool true if token is valid, false if expired.
+     */
     function validateAuthToken($client): bool
     {
         //get the currently saved token from the cookie
@@ -739,6 +763,17 @@ class Playlist extends CI_Controller {
         }
 
         return $token_expired;
+    }
+
+    /**
+     * Trims trailing zeroes from a given number.
+     *
+     * @param float $nbr number to trim
+     * @return float trimmed number
+     */
+    function TrimTrailingZeroes(float $nbr): float
+    {
+        return strpos($nbr,'.')!==false ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
     }
 
 }

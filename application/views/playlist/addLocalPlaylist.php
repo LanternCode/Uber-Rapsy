@@ -1,3 +1,4 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <?=$resultMessage ?? ""?>
 
 <h3>Dodaj lokalnie playlistę</h3>

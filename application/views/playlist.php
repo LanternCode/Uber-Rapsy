@@ -1,3 +1,4 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>

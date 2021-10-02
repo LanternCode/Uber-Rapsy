@@ -1,3 +1,4 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 Witaj w panelu sterowania YT!
 <br/><br/>
 <a href="<?=base_url('playlistDashboard')?>">Zarządzaj Playlistami</a>

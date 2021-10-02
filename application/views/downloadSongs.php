@@ -1,3 +1,4 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <br /><br />
 <?=$success==false ? "Nie udało się załadować żadnych tracków, sprawdź połączenie z YT!" : "Ładowanie zakończone!" ?>
 <br /><br />

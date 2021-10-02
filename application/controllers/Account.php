@@ -12,7 +12,7 @@ class Account extends CI_Controller
     {
         parent::__construct();
         $this->load->model('AccountModel');
-        $this->load->model('ListsModel');
+        $this->load->model('PlaylistModel');
         $this->load->helper('cookie');
     }
 
@@ -43,7 +43,7 @@ class Account extends CI_Controller
                 {
                     $_SESSION['userLoggedIn'] = 1;
                     $_SESSION['userRole'] = $userData->role;
-                    $data['lists'] = $this->ListsModel->GetAllLists();
+                    $data['lists'] = $this->PlaylistModel->GetAllLists();
                 }
                 else
                 {
