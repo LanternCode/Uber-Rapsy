@@ -120,4 +120,32 @@ class SongsModel extends CI_Model
         $sql = "SELECT SongPlaylistItemsId, SongURL FROM song WHERE SongId = $songId";
         return $this->db->query( $sql )->row();
     }
+
+    /**
+     * Fetch details of a song.
+     *
+     * @param int $songId  id of the song to fetch
+     * @return object|bool      returns an object containing the details found or false it no object was found
+     */
+    function GetSongById(int $songId)
+    {
+        $sql = "SELECT * FROM song WHERE SongId = $songId";
+        if(isset($this->db->query($sql)->row()->SongTitle))
+        {
+            return $this->db->query($sql)->row();
+        }
+        else return false;
+    }
+
+    /**
+     * Deletes a song from the database.
+     *
+     * @param int $songId  id of the song to delete
+     * @return void
+     */
+    function DeleteSong(int $songId)
+    {
+        $sql = "DELETE FROM song WHERE SongId = $songId";
+        $this->db->query($sql);
+    }
 }

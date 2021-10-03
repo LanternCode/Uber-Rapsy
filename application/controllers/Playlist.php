@@ -746,6 +746,55 @@ class Playlist extends CI_Controller {
     }
 
     /**
+     * Allows the user to delete a song from a playlist.
+     *
+     * @return void
+     */
+    public function delSong()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'song/delSong';
+            $data['title'] = "Uber Rapsy | Usuń piosenkę";
+            $data['SongId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
+            $data['DeleteSong'] = isset($_GET['delete']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['delete'])) : false;
+
+            if($data['SongId'] && is_numeric($data['SongId']))
+            {
+                $data['song'] = $this->SongsModel->GetSongById($data['SongId']);
+
+                if($data['song'] === false)
+                {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono piosenki o podanym numerze id!";
+                }
+                else if($data['DeleteSong'] === "true")
+                {
+                    $this->SongsModel->DeleteSong($data['SongId']);
+                    redirect('playlistDashboard');
+                }
+                else
+                {
+                    $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['song']->ListId);
+                }
+            }
+            else
+            {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id piosenki lub nie podano go wcale!";
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+    /**
      * Checks whether the user is logged in and has the appropriate role.
      *
      * @return boolean     true if authenticated, false if not
