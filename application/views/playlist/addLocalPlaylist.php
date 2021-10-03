@@ -1,4 +1,5 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
 <?=$resultMessage ?? ""?>
 
 <h3>Dodaj lokalnie playlistę</h3>

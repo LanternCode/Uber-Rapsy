@@ -37,7 +37,7 @@ class Playlist extends CI_Controller {
             $data = [];
             $data['body']  = 'playlist/playlistDashboard';
             $data['title'] = "Uber Rapsy | Zarządzaj playlistami!";
-            $data['playlists'] = $this->PlaylistModel->GetListsIdsAndNames();
+            $data['playlists'] = $this->PlaylistModel->GetAllLists();
 
             $this->load->view( 'templates/main', $data );
         }
@@ -693,6 +693,51 @@ class Playlist extends CI_Controller {
                     $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListActive'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
                 }
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Allows the user to delete a local playlist.
+     *
+     * @return void
+     */
+    public function deleteLocal()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'playlist/deleteLocal';
+            $data['title'] = "Uber Rapsy | Usuń playlistę";
+            $data['ListId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
+            $data['DeleteList'] = isset($_GET['delete']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['delete'])) : false;
+
+            if($data['ListId'] && is_numeric($data['ListId']))
+            {
+                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
+
+                if($data['playlist'] === false)
+                {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
+                }
+                else if($data['DeleteList'] === "true")
+                {
+                    $this->PlaylistModel->DeleteLocalPlaylist($data['ListId']);
+                    redirect('playlistDashboard');
+                }
+            }
+            else
+            {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
             }
 
             $this->load->view( 'templates/main', $data );

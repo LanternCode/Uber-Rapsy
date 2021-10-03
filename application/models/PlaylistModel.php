@@ -130,4 +130,16 @@ class PlaylistModel extends CI_Model
         $sql = "UPDATE list SET ListActive = $reverse WHERE ListId = $listId";
         $this->db->query($sql);
     }
+
+    /**
+     * Deletes a local playlist from the database.
+     *
+     * @param int $playlistId  id of the playlist to delete
+     * @return void
+     */
+    function DeleteLocalPlaylist(int $playlistId)
+    {
+        $sql = "DELETE FROM list WHERE ListId = $playlistId";
+        $this->db->query($sql);
+    }
 }

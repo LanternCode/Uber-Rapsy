@@ -5,9 +5,16 @@ if(!isset($_SESSION)){
     session_start();
 }
 
+/**
+ * Controller responsible for handling views related with user's account.
+ *
+ * @author LanternCode <leanbox@lanterncode.com>
+ * @copyright LanternCode (c) 2019
+ * @version Pre-release
+ * @link https://lanterncode.com/Uber-Rapsy/
+ */
 class Account extends CI_Controller
 {
-
     public function __construct()
     {
         parent::__construct();
@@ -16,22 +23,21 @@ class Account extends CI_Controller
         $this->load->helper('cookie');
     }
 
+    /**
+     * Handles logins.
+     *
+     * @return void
+     */
     public function index()
     {
         $data = [];
-        $data['body'] = 'home';
-        $data['invalidCredentials'] = 0;
+        $data['body'] = 'login';
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
 
         if(!$userLoggedIn)
         {
-            $loginSuccess = true;
-
-            $data['email'] = (isset($_POST['account--signin--email'])) ?
-                trim(mysqli_real_escape_string($this->db->conn_id, $_POST['account--signin--email'])) : NULL;
-
-            $data['password'] = (isset($_POST['account--signin--password'])) ?
-                trim(mysqli_real_escape_string($this->db->conn_id, $_POST['account--signin--password'])) : NULL;
+            $data['email'] = isset($_POST['userEmail']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userEmail'])) : NULL;
+            $data['password'] = isset($_POST['userPassword']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userPassword'])) : NULL;
 
             if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL))
             {
@@ -43,29 +49,28 @@ class Account extends CI_Controller
                 {
                     $_SESSION['userLoggedIn'] = 1;
                     $_SESSION['userRole'] = $userData->role;
-                    $data['lists'] = $this->PlaylistModel->GetAllLists();
+                    redirect(base_url());
                 }
                 else
                 {
-                    $loginSuccess = false;
                     $data['invalidCredentials'] = 1;
                 }
-            }
-            else $loginSuccess = false;
-
-            if(!$loginSuccess)
-            {
-                $data['body'] = 'login';
             }
         }
 
         $this->load->view('templates/main', $data);
     }
 
+    /**
+     * Handles logouts.
+     *
+     * @return void
+     */
     public function logout()
     {
-        $data = [];
-        $data['body'] = 'logout';
+        $data = array(
+            'body' => 'logout'
+        );
 
         session_unset();
         session_destroy();

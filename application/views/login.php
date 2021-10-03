@@ -23,10 +23,10 @@
         <form method="POST" action="<?=base_url( 'login' )?>">
 
             <label>Adres Email:</label><br />
-            <input type="email" name="account--signin--email" required><br /><br />
+            <input type="email" name="userEmail" required><br /><br />
 
             <label>Hasło:</label>
-            <input type="password" name="account--signin--password" autocomplete="off" required><br /><br />
+            <input type="password" name="userPassword" autocomplete="off" required><br /><br />
 
             <input type="submit" class="btn btn-primary" value="Zaloguj"><br />
         </form>

@@ -13,22 +13,26 @@
 <a href="<?=base_url('playlist/hidePlaylist?id='.$playlist->ListId)?>"><?=$playlist->ListActive === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br>
 <a href="<?=base_url('playlist/deleteLocal?id='.$playlist->ListId)?>">Usuń Playlistę</a><br><br>
 
-<h3>Tracklista</h3>
-<table>
-    <tr>
-        <th>Track</th>
-        <th>Status na YT</th>
-        <th>Ocena Adama</th>
-        <th>Ocena Kościelnego</th>
-        <th>Usuń z listy</th>
-    </tr>
-    <?php foreach($songs as $song): ?>
+<?php if(count($songs) > 0): ?>
+    <h3>Tracklista</h3>
+    <table>
         <tr>
-            <td><?=$song->SongTitle?></td>
-            <td>-</td>
-            <td><?=$song->SongGradeAdam?></td>
-            <td><?=$song->SongGradeChurchie?></td>
-            <td><a href="<?=base_url('playlist/delSong?id='.$song->SongId)?>">Usuń</a></td>
+            <th>Track</th>
+            <th>Status na YT</th>
+            <th>Ocena Adama</th>
+            <th>Ocena Kościelnego</th>
+            <th>Usuń z listy</th>
         </tr>
-    <?php endforeach; ?>
-</table>
+        <?php foreach($songs as $song): ?>
+            <tr>
+                <td><?=$song->SongTitle?></td>
+                <td>-</td>
+                <td><?=$song->SongGradeAdam?></td>
+                <td><?=$song->SongGradeChurchie?></td>
+                <td><a href="<?=base_url('playlist/delSong?id='.$song->SongId)?>">Usuń</a></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php else: ?>
+    <h3>Ta playlista nie posiada żadnych załadowanych tracków.</h3>
+<?php endif; ?>
