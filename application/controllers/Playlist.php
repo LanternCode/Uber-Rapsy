@@ -125,6 +125,7 @@ class Playlist extends CI_Controller {
 
                     if($queryData['ListUrl'] && $queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
                     {
+						print_r($queryData['ListActive']);
                         $this->PlaylistModel->UpdatePlaylist($queryData);
                         $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
                         $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
@@ -206,51 +207,63 @@ class Playlist extends CI_Controller {
 		$data = [];
 
 		$data['ListId'] = isset( $_GET['ListId'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['ListId'] ) ) : 0;
+		$data['ListName'] = $this->PlaylistModel->GetPlaylistNameById($data['ListId']);
 		$data['Operation'] = isset( $_GET['Reviewer'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Reviewer'] ) ) : 0;
 		$data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
 		$data['gradesToDisplay'] = [];
-		$data['body'] = 'playlist';
-		$data['title'] = "Playlist selected!";
+		$data['body'] = 'playlistTest';
 
-		//There are 3 available choices: filter by grade (tierlist), search by title, display all
-		if($data['Operation'])
+		//confirm the playlist exists
+		if($data['ListName'] != false)
 		{
-			$data['songs'] = $this->SongsModel->GetTopSongsFromList($data['ListId'], $data['Operation']);
-			$data['body'] = 'tierlist';
+			$data['title'] = $data['ListName']." | Playlista Uber Rapsy";
 
-			foreach($data['songs'] as $song)
+			//There are 3 available choices: filter by grade (tierlist), search by title, display all
+			if($data['Operation'])
 			{
-				$gradeA = $song->SongGradeAdam;
-				if($gradeA != NULL && !in_array($gradeA, $data['gradesToDisplay']) && $data['Operation'] == "Adam")
-					array_push($data['gradesToDisplay'], $gradeA);
+				$data['songs'] = $this->SongsModel->GetTopSongsFromList($data['ListId'], $data['Operation']);
+				$data['body'] = 'tierlist';
 
-				$gradeB = $song->SongGradeChurchie;
-				if($gradeB != NULL && !in_array($gradeB, $data['gradesToDisplay']) && $data['Operation'] == "Churchie")
-					array_push($data['gradesToDisplay'], $gradeB);
+				foreach($data['songs'] as $song)
+				{
+					$gradeA = $song->SongGradeAdam;
+					if($gradeA != NULL && !in_array($gradeA, $data['gradesToDisplay']) && $data['Operation'] == "Adam")
+						array_push($data['gradesToDisplay'], $gradeA);
 
-				$gradeC = bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2);
-				if($gradeC != NULL && !in_array($gradeC, $data['gradesToDisplay']) && $data['Operation'] == "Average")
-					array_push($data['gradesToDisplay'], $gradeC);
+					$gradeB = $song->SongGradeChurchie;
+					if($gradeB != NULL && !in_array($gradeB, $data['gradesToDisplay']) && $data['Operation'] == "Churchie")
+						array_push($data['gradesToDisplay'], $gradeB);
+
+					$gradeC = bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2);
+					if($gradeC != NULL && !in_array($gradeC, $data['gradesToDisplay']) && $data['Operation'] == "Average")
+						array_push($data['gradesToDisplay'], $gradeC);
+				}
+				rsort($data['gradesToDisplay']);
 			}
-			rsort($data['gradesToDisplay']);
-		}
-		else if ($data['Search'])
-		{
-			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId'], $data['Search']);
-            $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
+			else if ($data['Search'])
+			{
+				$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId'], $data['Search']);
+	            $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
+			}
+			else
+			{
+				$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId']);
+				$data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
+			}
+
+	        foreach($data['songs'] as $song)
+	        {
+	            //Display values without decimals at the end if the decimals are only 0
+	            $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
+	            $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
+	        }
 		}
 		else
 		{
-			$data['songs'] = $this->SongsModel->GetSongsFromList($data['ListId']);
-			$data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
+			$data['body'] = 'invalidAction';
+			$data['title'] = "Błąd akcji!";
+			$data['errorMessage'] = "Wskazana playlista nie istnieje lub jest prywatna.";
 		}
-
-        foreach($data['songs'] as $song)
-        {
-            //Display values without decimals at the end if the decimals are only 0
-            $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
-            $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
-        }
 
 		$this->load->view( 'templates/main', $data );
 	}
@@ -293,6 +306,10 @@ class Playlist extends CI_Controller {
             $oldKoscielnyRating = 0;
             $adamRating = 0;
             $koscielnyRating = 0;
+
+			echo("<pre>");
+			print_r($ratings);
+			echo("</pre>");
 
             foreach($ratings as $rating)
             {

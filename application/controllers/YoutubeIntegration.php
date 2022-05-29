@@ -23,7 +23,7 @@ class YoutubeIntegration extends CI_Controller {
         if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
         {
             $data['body']  = 'youtubeDashboard';
-            $data['title'] = "Uber Rapsy";
+            $data['title'] = "Uber Rapsy | Centrum Zarządzania";
         }
         else
         {

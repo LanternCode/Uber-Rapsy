@@ -20,7 +20,7 @@ class Welcome extends CI_Controller {
 		$data['lists'] = $this->PlaylistModel->GetAllPublicLists();
 
 		$data['body']  = 'home';
-		$data['title'] = "Homepage!";
+		$data['title'] = "Uber Rapsy | Portal do oceniania utworów rapowanych";
 
 		$this->load->view( 'templates/main', $data );
 

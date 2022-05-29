@@ -4,3 +4,6 @@ Playlist: Set visibility status when creating
 Tierlist: Optimize generation
 Tierlist: Songs must be rated by both reviewers before sorting by average
 Models: Change to singular name
+
+ALTER TABLE `song` CHANGE `SongGradeAdam` `SongGradeAdam` VARCHAR(30) NOT NULL;
+ALTER TABLE `song` CHANGE `SongGradeChurchie` `SongGradeChurchie` VARCHAR(30) NOT NULL;

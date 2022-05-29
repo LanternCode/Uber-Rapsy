@@ -58,8 +58,8 @@ class PlaylistModel extends CI_Model
      */
     function GetListUrlById(int $listId): string
     {
-        $sql = "SELECT ListUrl FROM list WHERE ListId = $listId";
-        return $this->db->query( $sql )->row()->ListUrl;
+        $sql = "SELECT ListUrl FROM list WHERE ListId = '$listId'";
+        return $this->db->query($sql)->row()->ListUrl;
     }
 
     /**
@@ -110,9 +110,9 @@ class PlaylistModel extends CI_Model
     function FetchPlaylistById(int $playlistId)
     {
         $sql = "SELECT * FROM list WHERE ListId = $playlistId";
-        if(isset($this->db->query( $sql )->row()->ListName))
+        if(isset($this->db->query($sql)->row()->ListName))
         {
-            return $this->db->query( $sql )->row();
+            return $this->db->query($sql)->row();
         }
         else return false;
     }
@@ -141,5 +141,21 @@ class PlaylistModel extends CI_Model
     {
         $sql = "DELETE FROM list WHERE ListId = $playlistId";
         $this->db->query($sql);
+    }
+
+    /**
+     * Fetches name of the playlist with matching id
+     *
+     * @param int $playlistId  id of the playlist
+     * @return string|bool playlist the name or false if not found
+     */
+    function GetPlaylistNameById(int $playlistId)
+    {
+        $sql = "SELECT ListName FROM list WHERE ListId = $playlistId";
+        if(isset($this->db->query($sql)->row()->ListName))
+        {
+            return $this->db->query($sql)->row()->ListName;
+        }
+        else return false;
     }
 }
