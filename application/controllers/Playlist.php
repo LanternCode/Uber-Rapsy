@@ -438,7 +438,8 @@ class Playlist extends CI_Controller {
                 //load songs for the first time
                 if($playlistId != "")
                 {
-                    $firstCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.$playlistId.'&key='.$apiKey);
+										$url = $host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.urlencode($playlistId).'&key='.urlencode($apiKey);
+                    $firstCall = file_get_contents($url);
                     $downloadedSongs = json_decode($firstCall, true);
                     array_push($data['songsJsonArray'], $downloadedSongs);
                 }
@@ -487,7 +488,8 @@ class Playlist extends CI_Controller {
                                     {
                                         //get all required data to save a song in the database
                                         $songURL = $song['snippet']['resourceId']['videoId'];
-                                        $songThumbnailURL = $song['snippet']['thumbnails']['medium']['url'];
+																				$songPublic = isset($song['snippet']['thumbnails']['medium']['url']) ? true : false;
+                                        $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
                                         $songTitle = mysqli_real_escape_string( $this->db->conn_id, $song['snippet']['title'] );
                                         $songPlaylistItemsId = $song['id'];
 
@@ -499,13 +501,13 @@ class Playlist extends CI_Controller {
                                             {
                                                 echo $songTitle . " - ⏸<br />";
                                             } //attempt to insert the song to the database
-                                            else if($this->SongsModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId))
+                                            else if($songPublic && $this->SongsModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId))
                                             {
                                                 echo $songTitle . " - ✔<br />";
                                             } //if insertion failed
                                             else
                                             {
-                                                echo $songTitle . " - ❌<br />";
+                                                echo $songURL . " is private - ❌<br />";
                                             }
                                         }
                                     }
