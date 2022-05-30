@@ -8,7 +8,7 @@
  * @version Pre-release
  * @link https://lanterncode.com/Uber-Rapsy/
  */
-class SongsModel extends CI_Model
+class SongModel extends CI_Model
 {
     function __construct(){
         parent::__construct();
@@ -17,14 +17,14 @@ class SongsModel extends CI_Model
     /**
      * Fetch songs from a list filtering by title.
      *
-     * @param int $ListId  id of the list to get songs from
+     * @param int $listId  id of the list to get songs from
      * @param string $Search  title filter
      * @return array      returns an array containing the songs found
      */
-    function GetSongsFromList(int $ListId, string $Search = "" ): array
+    function GetSongsFromList(int $listId, string $Search = "" ): array
     {
         $searchQuery = " AND SongTitle LIKE '%$Search%'";
-        $sql = "SELECT * FROM song WHERE ListId = $ListId";
+        $sql = "SELECT * FROM song WHERE ListId = $listId";
         if($Search != "") $sql = $sql . $searchQuery;
 
         return $this->db->query($sql)->result();
@@ -33,12 +33,12 @@ class SongsModel extends CI_Model
     /**
      * Fetch URL of every song in a playlist.
      *
-     * @param int $ListId  id of the list to fetch URLs from
+     * @param int $listId  id of the list to fetch URLs from
      * @return array      returns an array containing the URLs found
      */
-    function GetURLsOfAllSongsInList(int $ListId): array
+    function GetURLsOfAllSongsInList(int $listId): array
     {
-        $sql = "SELECT SongURL FROM song WHERE ListId = $ListId";
+        $sql = "SELECT SongURL FROM song WHERE ListId = $listId";
         return $this->db->query( $sql )->result();
     }
 
@@ -80,6 +80,27 @@ class SongsModel extends CI_Model
     }
 
     /**
+     * Update a song with scores added by the reviewers.
+     *
+     * @param int $songId  id of the song to update
+     * @param bool $updateAdam flag is true if adam's grade has changed
+     * @param float $gradeAdam  grade added by Adam
+     * @param bool $updateChurchie flag is true if churchie's grade has changed
+     * @param float $gradeKoscielny  grade added by Koscielny
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongWithScoresTest(int $songId, bool $updateAdam, float $gradeAdam, bool $updateChurchie, float $gradeKoscielny): bool
+    {
+        $updateQuery = $updateAdam ? "SongGradeAdam = '$gradeAdam'" : "";
+        $updateQuery .= ($updateAdam && $updateChurchie) ? ", " : "";
+        $updateQuery .= $updateChurchie ? "SongGradeChurchie = '$gradeKoscielny'" : "";
+        $sql = "UPDATE song SET ".$updateQuery." WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
      * Update a moved song with the new PlaylistItemsId and PlaylistId.
      *
      * @param int $songId  id of the song to update
@@ -98,15 +119,15 @@ class SongsModel extends CI_Model
     /**
      * Fetch songs of one reviewer, sorted by grade descending.
      *
-     * @param int $ListId  id of the list to fetch from
+     * @param int $listId  id of the list to fetch from
      * @param string $operation  name of the reviewer
      * @return array           returns an array containing the songs found
      */
-    function GetTopSongsFromList(int $ListId, string $operation): array
+    function GetTopSongsFromList(int $listId, string $operation): array
     {
         $orderBy = $operation == "Adam" ? "SongGradeAdam" : ($operation == "Churchie" ? "SongGradeChurchie" : "((SongGradeAdam+SongGradeChurchie)/2)");
-        $sql = "SELECT * FROM song WHERE ListId = $ListId ORDER BY $orderBy DESC";
-        return $this->db->query( $sql )->result();
+        $sql = "SELECT * FROM song WHERE ListId = $listId ORDER BY $orderBy DESC";
+        return $this->db->query($sql)->result();
     }
 
     /**
@@ -118,7 +139,7 @@ class SongsModel extends CI_Model
     function GetSongDetailsForMoving(int $songId): object
     {
         $sql = "SELECT SongPlaylistItemsId, SongURL FROM song WHERE SongId = $songId";
-        return $this->db->query( $sql )->row();
+        return $this->db->query($sql)->row();
     }
 
     /**
@@ -147,5 +168,17 @@ class SongsModel extends CI_Model
     {
         $sql = "DELETE FROM song WHERE SongId = $songId";
         $this->db->query($sql);
+    }
+
+    /**
+     * Fetch grades of every song in a playlist.
+     *
+     * @param int $listId  id of the list to fetch grades from
+     * @return array      returns an array containing the grades found
+     */
+    function GetAllSongGradesInPlaylist(int $listId): array
+    {
+        $sql = "SELECT SongId, SongGradeAdam, SongGradeChurchie FROM song WHERE ListId = $listId";
+        return $this->db->query($sql)->result();
     }
 }

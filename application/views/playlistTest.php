@@ -25,39 +25,30 @@
     <?php endif; ?>
 </header>
 <h2>Przeglądasz playlistę <?=$ListName ?? "o nieznanej nazwie"?>!</h2>
-<form id="songsForm" method="post" action="<?=base_url('updateGrades')?>">
+<form id="songsForm" method="post" action="<?=base_url('updateGradesTest')?>">
 	<?php if(count($songs) > 0): ?>
-		<?php foreach($songs as $song):?>
+		<?php
+        $i = 0;
+        foreach($songs as $song):?>
 			<div class="videoContainer">
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailLeft" />
 				<div class="dataContainer">
+                    <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
 					<h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
 						<h4 class="dataContainer--gradeContainer">
 							<label>Adam:</label>
-                            <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>"
-                            <?=isset($_SESSION['userRole']) ? ($_SESSION['userRole'] != "reviewer" ? "disabled" : "") : "disabled"?>/>
-							<span class="newScore" id="<?='NGBA-'.$song->SongId?>">
-                                <label for="<?='A-'.$song->SongId?>">→</label>
-							</span>
+                            <input name="nwGradeA-<?=$i+1?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?>/>
 						</h4>
 						<h4 class="dataContainer--gradeContainer">
 							<label>Kościelny:</label>
-                            <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>"
-                            <?=isset($_SESSION['userRole']) ? ($_SESSION['userRole'] != "reviewer" ? "disabled" : "") : "disabled"?>/>
-							<span class="newScore" id="<?='NGBK-'.$song->SongId?>">
-								<label for="<?='K-'.$song->SongId?>">→</label>
-							</span>
+                            <input name="nwGradeC-<?=$i+2?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?>/>
 						</h4>
 						<h5 class="dataContainer--gradeContainer">
                             <label>Średnia:</label>
-							<input type="text" value="<?=$song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0 ? ($song->SongGradeAdam + $song->SongGradeChurchie) / 2 : 'Nieoceniona'?>" disabled />
-							<span class="newScore" id="<?='NGBAv-'.$song->SongId?>">
-                                <label for="<?=$song->SongId?>">→</label>
-								<input class="averageNew" type="text" id="<?=$song->SongId?>" value="<?=($song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : 'Nieoceniona'?>" />
-							</span>
+							<input type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
 						</h5>
 						<?php  //only 1 list means there is nowhere to move the song to
-						if(count($lists) > 1 && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
+						/*if(count($lists) > 1 && $reviewer): ?>
 							<h5 class="dataContainer--gradeContainer">
                                 <label>Przenieś do:</label>
 								<select name="<?="playlistId-".$song->SongId?>">
@@ -74,11 +65,13 @@
                             <select style="display:none;" name="<?="playlistId-".$song->SongId?>">
                                 <option value="0">Nie przenoś</option>
                             </select>
-                        <?php endif;?>
+                        <?php endif;*/?>
 				</div>
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailRight" />
 			</div>
-		<?php endforeach;?>
+		<?php
+        $i += 3;
+        endforeach;?>
 	<?php else: ?>
 		<h3>Ta playlista jest pusta mordo, nowy sezon już wkrótce!</h3>
 	<?php endif; ?>
