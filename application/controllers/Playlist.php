@@ -211,7 +211,7 @@ class Playlist extends CI_Controller {
 		$data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
 		$data['reviewer'] = isset($_SESSION['userRole']) ? ($_SESSION['userRole'] == "reviewer" ? true : false) : false;
 		$data['gradesToDisplay'] = [];
-		$data['body'] = 'playlistTest';
+		$data['body'] = 'playlist';
 
 		//confirm the playlist exists
 		if($data['ListName'] != false)
@@ -271,150 +271,88 @@ class Playlist extends CI_Controller {
 
     /**
      * Updates reviewer grades in a playlist and moves songs between playlists.
+     * @deprecated YT integrations are not yet adjusted to the new format
+     * @deprecated Kept only for further reference - will be deleted when merged
      *
      * @return void
      */
-	public function update()
+	public function updateOld()
 	{
-        $data = [];
-        $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
-        $userAuthenticated = $this->authenticateUser();
+        //Left this only for further reference
+        //When the focus moves on to YT integrations
 
-        //Check if this request comes from a valid playlist
-        if($data['playlistId'] === "invalid")
-        {
-            $data['body']  = 'invalidAction';
-            $data['title'] = "Błąd akcji!";
-            $data['errorMessage'] = "Nie podano numeru playlisty podczas aktualizacji!";
+        //include google library
+        $library_included = true;
+        try {
+            $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
+            require_once $myPath . 'vendor/autoload.php';
+            $client = new Google\Client();
+            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
+        } catch(Exception $e) {
+            //The library or the client could not be initiated
+            $library_included = false;
         }
-        else if($userAuthenticated)
+
+        //only proceed when the library was successfully included
+        if($library_included)
         {
-            $data['body']  = 'update';
-            $data['title'] = "Oceny Zapisane!";
-            $i = 0;
+            //validate the access token required for an api call
+            $tokenExpired = $this->validateAuthToken($client);
 
-            //separate results into key and value respectively
-            foreach ($_POST as $key => $value) {
-                $ratings[$i] = $key;
-                $ratings[$i+1] = $value;
-                $i += 2;
-            }
-
-            //pair keys and values to update the score
-            $i = 0;
-            $songId = "";
-            $oldAdamRating = 0;
-            $oldKoscielnyRating = 0;
-            $adamRating = 0;
-            $koscielnyRating = 0;
-
-            foreach($ratings as $rating)
+            if($tokenExpired)
             {
-                if($i == 1) $oldAdamRating = floatval($rating);
-                else if($i == 2) $songId = $rating;
-                else if($i == 3) $adamRating = floatval($rating);
-                else if($i == 5) $oldKoscielnyRating = floatval($rating);
-                else if($i == 7)
-                {
-                    $koscielnyRating = floatval($rating);
-                    $songId = substr($songId, 2);
+                //refresh token not found
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd autoryzacji tokenu!";
+                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
+                    Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
+            }
+            else //perform the api call
+            {
+                $newPlaylistId = $rating;
 
-                    if($oldAdamRating != $adamRating || $oldKoscielnyRating != $koscielnyRating)
-                        $this->SongModel->UpdateSongWithScores($songId, $adamRating, $koscielnyRating);
-                }
-                else if($i == 9)
-                {
-                    //0 means we do not update the playlist
-                    if($rating > 0)
-                    {
-                        //include google library
-                        $library_included = true;
-                        try {
-                            $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
-                            require_once $myPath . 'vendor/autoload.php';
-                            $client = new Google\Client();
-                            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-                        } catch(Exception $e) {
-                            //The library or the client could not be initiated
-                            $library_included = false;
-                        }
+                //fetch the playlist URL from the database using the id
+                $playlistURL = $this->PlaylistModel->GetListUrlById($newPlaylistId);
 
-                        //only proceed when the library was successfully included
-                        if($library_included)
-                        {
-                            //validate the access token required for an api call
-                            $tokenExpired = $this->validateAuthToken($client);
+                //fetch the song URL and PlaylistItemId from the database using the local id
+                $songDetails = $this->SongModel->GetSongDetailsForMoving($songId);
 
-                            if($tokenExpired)
-                            {
-                                //refresh token not found
-                                $data['body']  = 'invalidAction';
-                                $data['title'] = "Błąd autoryzacji tokenu!";
-                                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
-                                    Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
-                            }
-                            else //perform the api call
-                            {
-                                $newPlaylistId = $rating;
+                // Define service object for making API requests.
+                $service = new Google_Service_YouTube($client);
 
-                                //fetch the playlist URL from the database using the id
-                                $playlistURL = $this->PlaylistModel->GetListUrlById($newPlaylistId);
+                // Define the $playlistItem object, which will be uploaded as the request body.
+                $playlistItem = new Google_Service_YouTube_PlaylistItem();
 
-                                //fetch the song URL and PlaylistItemId from the database using the local id
-                                $songDetails = $this->SongModel->GetSongDetailsForMoving($songId);
+                // Add 'snippet' object to the $playlistItem object.
+                $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
+                $playlistItemSnippet->setPlaylistId($playlistURL);
+                //with a large enough number, last position available will be taken
+                $playlistItemSnippet->setPosition(1000);
+                $resourceId = new Google_Service_YouTube_ResourceId();
+                $resourceId->setKind('youtube#video');
+                $resourceId->setVideoId($songDetails->SongURL);
+                $playlistItemSnippet->setResourceId($resourceId);
+                $playlistItem->setSnippet($playlistItemSnippet);
 
-                                // Define service object for making API requests.
-                                $service = new Google_Service_YouTube($client);
+                //add the song to the playlist
+                $response = $service->playlistItems->insert('snippet', $playlistItem);
+                //New PlaylistItemsId is generated, so we need to update it in the db
+                $newSongPlaylistItemsId = $response->id;
 
-                                // Define the $playlistItem object, which will be uploaded as the request body.
-                                $playlistItem = new Google_Service_YouTube_PlaylistItem();
+                //delete the song from the earlier playlist
+                $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
 
-                                // Add 'snippet' object to the $playlistItem object.
-                                $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
-                                $playlistItemSnippet->setPlaylistId($playlistURL);
-                                //with a large enough number, last position available will be taken
-                                $playlistItemSnippet->setPosition(1000);
-                                $resourceId = new Google_Service_YouTube_ResourceId();
-                                $resourceId->setKind('youtube#video');
-                                $resourceId->setVideoId($songDetails->SongURL);
-                                $playlistItemSnippet->setResourceId($resourceId);
-                                $playlistItem->setSnippet($playlistItemSnippet);
-
-                                //add the song to the playlist
-                                $response = $service->playlistItems->insert('snippet', $playlistItem);
-                                //New PlaylistItemsId is generated, so we need to update it in the db
-                                $newSongPlaylistItemsId = $response->id;
-
-                                //delete the song from the earlier playlist
-                                $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
-
-                                //move the song in the database
-                                $this->SongModel->UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
-                            }
-                        }
-                        else
-                        {
-                            //could not load the library
-                            $data['body']  = 'invalidAction';
-                            $data['title'] = "Wystąpił Błąd!";
-                            $data['errorMessage'] = "Nie znaleziono biblioteki google!";
-                        }
-                    }
-                }
-
-                $i++;
-                if($i > 9) $i = 0;
+                //move the song in the database
+                $this->SongModel->UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
             }
         }
         else
         {
-            //The user is not allowed to update anything in the system
+            //could not load the library
             $data['body']  = 'invalidAction';
             $data['title'] = "Wystąpił Błąd!";
-            $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
+            $data['errorMessage'] = "Nie znaleziono biblioteki google!";
         }
-
-		$this->load->view( 'templates/main', $data );
 	}
 
 	/**
@@ -422,7 +360,7 @@ class Playlist extends CI_Controller {
      *
      * @return void
      */
-	public function updateTest()
+	public function update()
 	{
 		$data = [];
         $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
@@ -454,7 +392,7 @@ class Playlist extends CI_Controller {
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15)
                 $ratingsValid = false;
-                if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && InRange($newAdamRating, 0, 15) && InRange($newChurchieRating, 0, 15))
+                if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && $this->InRange($newAdamRating, 0, 15) && $this->InRange($newChurchieRating, 0, 15))
                 {
                     if(fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0)
                     {
@@ -479,7 +417,7 @@ class Playlist extends CI_Controller {
 
 				//update scores
                 if($adamGradeUpdated || $churchieGradeUpdated && $ratingsValid)
-				    $this->SongModel->UpdateSongWithScoresTest($songId, $adamGradeUpdated, $newAdamRating, $churchieGradeUpdated, $newChurchieRating);
+				    $this->SongModel->UpdateSongWithScores($songId, $adamGradeUpdated, $newAdamRating, $churchieGradeUpdated, $newChurchieRating);
 
                 //move the song from playlist to playlist
                 if($newPlaylistId != $data['playlistId'] && $newPlaylistId != 0)

@@ -67,29 +67,13 @@ class SongModel extends CI_Model
      * Update a song with scores added by the reviewers.
      *
      * @param int $songId  id of the song to update
-     * @param float $gradeAdam  grade added by Adam
-     * @param float $gradeKoscielny  grade added by Koscielny
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongWithScores(int $songId, float $gradeAdam, float $gradeKoscielny): bool
-    {
-        $sql = "UPDATE song SET SongGradeAdam = '$gradeAdam', SongGradeChurchie = '$gradeKoscielny' WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Update a song with scores added by the reviewers.
-     *
-     * @param int $songId  id of the song to update
      * @param bool $updateAdam flag is true if adam's grade has changed
      * @param float $gradeAdam  grade added by Adam
      * @param bool $updateChurchie flag is true if churchie's grade has changed
      * @param float $gradeKoscielny  grade added by Koscielny
      * @return boolean           true if query worked, false if it failed
      */
-    function UpdateSongWithScoresTest(int $songId, bool $updateAdam, float $gradeAdam, bool $updateChurchie, float $gradeKoscielny): bool
+    function UpdateSongWithScores(int $songId, bool $updateAdam, float $gradeAdam, bool $updateChurchie, float $gradeKoscielny): bool
     {
         $updateQuery = $updateAdam ? "SongGradeAdam = '$gradeAdam'" : "";
         $updateQuery .= ($updateAdam && $updateChurchie) ? ", " : "";

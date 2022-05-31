@@ -1,53 +1,28 @@
-let grade = 5;
-let jump = 1;
-
-function changeGrade(event) {
-    //prevents mouse wheel from scrolling the page
-    event.preventDefault();
-
-    const gradeBox = document.getElementById(event.target.name.substr(1));
-
-    let value = gradeBox.value;
-    if(value === "Nieoceniona") value = 5;
-    else value = parseFloat(value);
-
-    let change = -jump * event.deltaY / 100;
-    value += change;
-
-    let id = event.target.name.substr(3);
-    if(value >= 1 && value <= 15)
-    {
-        let user = event.target.name.substr(1, 1);
-        gradeBox.value = value;
-        document.getElementById("NGB" + user + "-" + id).style.display = "inline";
-    }
-
-    calculateAverage(id);
-}
-
-const gradeBoxes = document.querySelectorAll(".gradeInput");
-
-for (let i = 0; i < gradeBoxes.length; ++i) {
-    gradeBoxes[i].addEventListener('wheel', changeGrade);
-}
-
-function calculateAverage(id)
+function updateAverage(event)
 {
-    let adamGrade = document.getElementById('A-' + id).value;
-    let koscielnyGrade = document.getElementById('K-' + id).value;
-
-    if(isNaN(adamGrade) || isNaN(koscielnyGrade))
+    //find this event's index in the list of dataContainer children
+    let childIndex = Array.prototype.indexOf.call(event.parentElement.parentElement.children, event.parentElement);
+    //establish the second rating's index
+    let indexToSelect = childIndex === 2 ? 3 : 2;
+    //save the new rating directly from the event
+    let newRating = event.value;
+    //obtain the second rating based on the established index
+    let secondRating = event.parentElement.parentElement.children[indexToSelect].children[1].value;
+    //ensure the entered rating is within the 0-15 range
+    if(newRating < 0 || newRating > 15)
     {
-        document.getElementById(id).value = 'Nieoceniona';
+        //incorrect value was passed, reset it
+        event.value = 0;
+        newRating = 0;
     }
-    else
-    {
-        let average = (parseInt(adamGrade) + parseInt(koscielnyGrade)) / 2;
-        let playlistName = getPlaylistName(average);
-
-        document.getElementById(id).value = average + " (" + playlistName + ")";
-        document.getElementById("NGBAv-" + id).style.display = "inline";
-    }
+    //find the dom element that has the average box
+    let avgElem = event.parentElement.parentElement.children[4].children[1];
+    //calculate the average
+    let average = (parseFloat(newRating) + parseFloat(secondRating)) / 2;
+    //find the proposed playlist for this rating
+    let playlistName = getPlaylistName(average);
+    //update the average
+    avgElem.value = average + " (" + playlistName + ")";
 }
 
 function getPlaylistName(average)
@@ -59,7 +34,8 @@ function getPlaylistName(average)
     else return "Akademia";
 }
 
-function updateJump(value)
-{
-    jump = value;
+const gradeBoxes = document.querySelectorAll(".gradeInput");
+
+for (let i = 0; i < gradeBoxes.length; ++i) {
+    gradeBoxes[i].addEventListener('input', () => {updateAverage(gradeBoxes[i])});
 }
