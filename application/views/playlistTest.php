@@ -37,21 +37,21 @@
 					<h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
 						<h4 class="dataContainer--gradeContainer">
 							<label>Adam:</label>
-                            <input name="nwGradeA-<?=$i+1?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?>/>
+                            <input name="nwGradeA-<?=$i+1?>" class="gradeInput" type="number" value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?> min="0" max="15"/>
 						</h4>
 						<h4 class="dataContainer--gradeContainer">
 							<label>Kościelny:</label>
-                            <input name="nwGradeC-<?=$i+2?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?>/>
+                            <input name="nwGradeC-<?=$i+2?>" class="gradeInput" type="number" value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?> min="0" max="15"/>
 						</h4>
 						<h5 class="dataContainer--gradeContainer">
                             <label>Średnia:</label>
 							<input type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
 						</h5>
 						<?php  //only 1 list means there is nowhere to move the song to
-						/*if(count($lists) > 1 && $reviewer): ?>
+						if(count($lists) > 1 && $reviewer): ?>
 							<h5 class="dataContainer--gradeContainer">
                                 <label>Przenieś do:</label>
-								<select name="<?="playlistId-".$song->SongId?>">
+								<select name="<?="nwPlistId-".$i+3?>">
 									<option value="0">Nie przenoś</option>
 									<?php foreach($lists as $list):
 										//Do not show the current list in the options
@@ -65,12 +65,12 @@
                             <select style="display:none;" name="<?="playlistId-".$song->SongId?>">
                                 <option value="0">Nie przenoś</option>
                             </select>
-                        <?php endif;*/?>
+                        <?php endif;?>
 				</div>
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailRight" />
 			</div>
 		<?php
-        $i += 3;
+        $i += 4;
         endforeach;?>
 	<?php else: ?>
 		<h3>Ta playlista jest pusta mordo, nowy sezon już wkrótce!</h3>

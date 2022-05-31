@@ -103,14 +103,33 @@ class SongModel extends CI_Model
     /**
      * Update a moved song with the new PlaylistItemsId and PlaylistId.
      *
+     * An integrated song is moved to a playlist integrated with YT
+     *
      * @param int $songId  id of the song to update
      * @param int $newPlaylistId  id of the playlist the song was moved to
      * @param string $newSongPlaylistItemsId  unique YT PlaylistItemsId (API item)
      * @return boolean           true if query worked, false if it failed
      */
-    function UpdateSongPlaylist(int $songId, int $newPlaylistId, string $newSongPlaylistItemsId): bool
+    function UpdateIntegratedSongPlaylist(int $songId, int $newPlaylistId, string $newSongPlaylistItemsId): bool
     {
         $sql = "UPDATE song SET ListId = $newPlaylistId, SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Update a moved song with the new PlaylistId.
+     *
+     * A local song is in a playlist not integrated with a YT playlist
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newPlaylistId  id of the playlist the song was moved to
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateLocalSongPlaylist(int $songId, int $newPlaylistId): bool
+    {
+        $sql = "UPDATE song SET ListId = $newPlaylistId WHERE SongId = $songId";
 
         if($this->db->simple_query($sql)) return true;
         else return false;
