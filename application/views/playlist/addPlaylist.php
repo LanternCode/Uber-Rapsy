@@ -3,12 +3,20 @@
 <?=$resultMessage ?? ""?>
 
 <h3>Dodaj nową playlistę</h3>
+<h4>Zostanie ona dodana na YT oraz w bazie danych Uber-Rapsów, będzie automatycznie zintegrowana.</h4><br />
 <form method="post" action="<?=base_url('playlist/addPlaylist')?>">
 	<label>Nazwa Playlisty:</label>
-	<input type="text" name="playlistName" />
+	<input type="text" name="playlistName" size="40" />
 
-	<label>Opis Playlisty:</label>
-	<input type="text" name="playlistDesc" />
+	<br><br><label>Opis Playlisty:</label><br>
+    <textarea name="playlistDesc" rows="10" cols="50"></textarea>
 
-	<input type="submit" value="Zapisz" />
+    <br><br><label>Status Playlisty:</label>
+    <select name="playlistVisibility">
+        <option value="public">Publiczna</option>
+        <option value="unlisted">Niepubliczna</option>
+        <option value="private">Prywatna</option>
+    </select>
+
+	<br><br><input type="submit" value="Dodaj playlistę na YT" />
 </form>

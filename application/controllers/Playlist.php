@@ -636,12 +636,13 @@ class Playlist extends CI_Controller {
                         'body' => 'playlist/addPlaylist',
                         'title' => isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "",
                         'description' => isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "",
+                        'visibility' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
                         'link' => '',
                         'resultMessage' => ''
                     );
 
                     //validate the form
-                    if($data['title'] != "" && $data['description'] != "")
+                    if($data['title'] != "" && $data['description'] != "" && in_array($data['visibility'], ["public", "unlisted", "private"]) )
                     {
                         // Define service object for making API requests.
                         $service = new Google_Service_YouTube($client);
@@ -659,7 +660,7 @@ class Playlist extends CI_Controller {
 
                         // Add 'status' object to the $playlist object.
                         $playlistStatus = new Google_Service_YouTube_PlaylistStatus();
-                        $playlistStatus->setPrivacyStatus('public');
+                        $playlistStatus->setPrivacyStatus($data['visibility']);
                         $playlist->setStatus($playlistStatus);
 
                         //save the api call response
@@ -713,6 +714,16 @@ class Playlist extends CI_Controller {
                 $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
                 $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
                 $queryData['ListActive'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
+
+                //obtain the unique playlist ID from the url given
+                $listPos = strpos($queryData['ListUrl'], "list=");
+                if($listPos > 0)
+                {
+                    $indexPos = strpos($queryData['ListUrl'], "&index=");
+                    $indexLength = strlen(substr($queryData['ListUrl'], $indexPos));
+                    if($indexPos > 0) $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5, -$indexLength);
+                    else $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5);
+                }
 
                 if($queryData['ListUrl'] && $queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
                 {
