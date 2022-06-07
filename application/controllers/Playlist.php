@@ -123,7 +123,7 @@ class Playlist extends CI_Controller {
                     $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
                     $queryData['ListActive'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
 
-                    if($queryData['ListUrl'] && $queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
+                    if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
                     {
                         $this->PlaylistModel->UpdatePlaylist($queryData);
                         $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
@@ -131,7 +131,6 @@ class Playlist extends CI_Controller {
                     }
                     else
                     {
-                        $data['resultMessage'] = $queryData['ListUrl'] == "" ? "ID Playlisty jest wymagane!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
@@ -207,6 +206,8 @@ class Playlist extends CI_Controller {
 
 		$data['ListId'] = isset( $_GET['ListId'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['ListId'] ) ) : 0;
 		$data['ListName'] = $this->PlaylistModel->GetPlaylistNameById($data['ListId']);
+        $data['ListIntegrated'] = $this->PlaylistModel->GetPlaylistIntegratedById($data['ListId']);
+        $data['ListUrl'] = $this->PlaylistModel->GetListUrlById($data['ListId']);
 		$data['Operation'] = isset( $_GET['Reviewer'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Reviewer'] ) ) : 0;
 		$data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
 		$data['reviewer'] = isset($_SESSION['userRole']) ? ($_SESSION['userRole'] == "reviewer" ? true : false) : false;
@@ -254,7 +255,6 @@ class Playlist extends CI_Controller {
 	        foreach($data['songs'] as $song)
 	        {
 	            //Display values without decimals at the end if the decimals are only 0
-                //only use this if grades are numeric
                 if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
 	            if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
 	        }
@@ -725,14 +725,13 @@ class Playlist extends CI_Controller {
                     else $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5);
                 }
 
-                if($queryData['ListUrl'] && $queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
+                if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
                 {
                     $this->PlaylistModel->InsertLocalPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
                 }
                 else
                 {
-                    $data['resultMessage'] = $queryData['ListUrl'] == "" ? "ID Playlisty jest wymagane!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';

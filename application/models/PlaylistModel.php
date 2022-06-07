@@ -158,4 +158,20 @@ class PlaylistModel extends CI_Model
         }
         else return false;
     }
+
+    /**
+     * Fetches ListIntegrated property of the playlist with matching id
+     *
+     * @param int $playlistId  id of the playlist
+     * @return bool returned property
+     */
+    function GetPlaylistIntegratedById(int $playlistId): bool
+    {
+        $sql = "SELECT ListIntegrated FROM list WHERE ListId = $playlistId";
+        if(isset($this->db->query($sql)->row()->ListIntegrated))
+        {
+            return $this->db->query($sql)->row()->ListIntegrated;
+        }
+        else return false;
+    }
 }

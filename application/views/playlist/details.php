@@ -3,14 +3,16 @@
 
 <p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
 <p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br>
-<p>Link do playlisty: <a target="_blank" href="https://www.youtube.com/playlist?list=<?=$playlist->ListUrl?>"><?=$playlist->ListName?></a></p></br>
+
+<p>Link do playlisty: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>$playlist->ListName</a>" : "Playlista niezintegrowana"?></p></br>
 <p>Nazwa playlisty: <?=$playlist->ListName?></p><br>
 <p>Opis playlisty: <?=$playlist->ListDesc?></p><br>
 <p>Data dodania playlisty: <?=$playlist->ListCreatedAt?></p><br>
+<p>Playlista zintegrowana: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?></p><br>
 <p>Playlista publiczna: <?=$playlist->ListActive === "1" ? "Tak" : "Nie"?></p><br><br>
 
-<a href="<?=base_url('playlist/quickEdit?id='.$playlist->ListId)?>">Edytuj Playlistę</a><br>
-<a href="<?=base_url('playlist/hidePlaylist?id='.$playlist->ListId)?>"><?=$playlist->ListActive === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br>
+<a href="<?=base_url('playlist/quickEdit?id='.$playlist->ListId)?>">Edytuj Playlistę</a><br><br>
+<a href="<?=base_url('playlist/hidePlaylist?id='.$playlist->ListId)?>"><?=$playlist->ListActive === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br><br>
 <a href="<?=base_url('playlist/deleteLocal?id='.$playlist->ListId)?>">Usuń Playlistę</a><br><br>
 
 <?php if(count($songs) > 0): ?>

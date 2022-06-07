@@ -20,9 +20,12 @@
         <?php if(count($songs) > 0): ?>
             <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
         <?php endif; ?>
-        <a class="optionsURL" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a>
+        <?php if($ListIntegrated): ?>
+            <a class="optionsURL" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a>
+        <?php endif; ?>
         <a class="optionsURL" href="<?=base_url('playlist/details?id='.$ListId)?>">Statystyki i Ustawienia</a>
     <?php endif; ?>
+    <p class="optionsURL">Zintegrowana: <?=$ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$ListUrl'>Tak</a>" : "Nie"?></p>
 </header>
 <h2>Przeglądasz playlistę <?=$ListName ?? "o nieznanej nazwie"?>!</h2>
 <form id="songsForm" method="post" action="<?=base_url('updateGrades')?>">

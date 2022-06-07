@@ -3,7 +3,7 @@
 <?=$resultMessage ?? ""?>
 
 <h3>Dodaj lokalnie playlistę</h3>
-<h4>Nie zostanie ona dodana na YT a jedynie w bazie danych Uber-Rapsów. Nie jest zintegrowana.</h4><br />
+<h4>Nie zostanie ona dodana na YT a jedynie w bazie danych Uber-Rapsów. Domyślnie nie jest zintegrowana.</h4><br />
 <form method="post" action="<?=base_url('playlist/addLocal')?>">
     <label>Nazwa Playlisty:</label><br />
     <input type="text" name="playlistName" size="40" /><br /><br />
