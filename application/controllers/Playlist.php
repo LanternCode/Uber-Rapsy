@@ -390,8 +390,10 @@ class Playlist extends CI_Controller {
 				$newChurchieRating = $_POST["nwGradeC-".$i+2];
                 $newPlaylistId = $_POST["nwPlistId-".$i+3];
 
-                //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15)
+                //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (. separator and not ,)
                 $ratingsValid = false;
+                $newAdamRating = str_replace(',', '.', $newAdamRating);
+                $newChurchieRating = str_replace(',', '.', $newChurchieRating);
                 if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && $this->InRange($newAdamRating, 0, 15) && $this->InRange($newChurchieRating, 0, 15))
                 {
                     if(fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0)
