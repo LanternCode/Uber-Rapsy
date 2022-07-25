@@ -269,92 +269,6 @@ class Playlist extends CI_Controller {
 		$this->load->view( 'templates/main', $data );
 	}
 
-    /**
-     * Updates reviewer grades in a playlist and moves songs between playlists.
-     * @deprecated YT integrations are not yet adjusted to the new format
-     * @deprecated Kept only for further reference - will be deleted when merged
-     *
-     * @return void
-     */
-	public function updateOld()
-	{
-        //Left this only for further reference
-        //When the focus moves on to YT integrations
-
-        //include google library
-        $library_included = true;
-        try {
-            $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
-            require_once $myPath . 'vendor/autoload.php';
-            $client = new Google\Client();
-            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-        } catch(Exception $e) {
-            //The library or the client could not be initiated
-            $library_included = false;
-        }
-
-        //only proceed when the library was successfully included
-        if($library_included)
-        {
-            //validate the access token required for an api call
-            $tokenExpired = $this->validateAuthToken($client);
-
-            if($tokenExpired)
-            {
-                //refresh token not found
-                $data['body']  = 'invalidAction';
-                $data['title'] = "Błąd autoryzacji tokenu!";
-                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
-                    Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
-            }
-            else //perform the api call
-            {
-                $newPlaylistId = $rating;
-
-                //fetch the playlist URL from the database using the id
-                $playlistURL = $this->PlaylistModel->GetListUrlById($newPlaylistId);
-
-                //fetch the song URL and PlaylistItemId from the database using the local id
-                $songDetails = $this->SongModel->GetSongDetailsForMoving($songId);
-
-                // Define service object for making API requests.
-                $service = new Google_Service_YouTube($client);
-
-                // Define the $playlistItem object, which will be uploaded as the request body.
-                $playlistItem = new Google_Service_YouTube_PlaylistItem();
-
-                // Add 'snippet' object to the $playlistItem object.
-                $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
-                $playlistItemSnippet->setPlaylistId($playlistURL);
-                //with a large enough number, last position available will be taken
-                $playlistItemSnippet->setPosition(1000);
-                $resourceId = new Google_Service_YouTube_ResourceId();
-                $resourceId->setKind('youtube#video');
-                $resourceId->setVideoId($songDetails->SongURL);
-                $playlistItemSnippet->setResourceId($resourceId);
-                $playlistItem->setSnippet($playlistItemSnippet);
-
-                //add the song to the playlist
-                $response = $service->playlistItems->insert('snippet', $playlistItem);
-                //New PlaylistItemsId is generated, so we need to update it in the db
-                $newSongPlaylistItemsId = $response->id;
-
-                //delete the song from the earlier playlist
-                $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
-
-                //move the song in the database
-                $this->SongModel->UpdateSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
-            }
-        }
-        else
-        {
-            //could not load the library
-            $data['body']  = 'invalidAction';
-            $data['title'] = "Wystąpił Błąd!";
-            $data['errorMessage'] = "Nie znaleziono biblioteki google!";
-        }
-	}
-
 	/**
      * Updates reviewer grades in a playlist and moves songs between playlists.
      *
@@ -365,6 +279,18 @@ class Playlist extends CI_Controller {
 		$data = [];
         $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
         $userAuthenticated = $this->authenticateUser();
+
+        //include google library
+        $libraryIncluded = true;
+        try {
+            $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
+            require_once $myPath . 'vendor/autoload.php';
+            $client = new Google\Client();
+            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
+        } catch(Exception $e) {
+            //The library or the client could not be initiated
+            $libraryIncluded = false;
+        }
 
 		//Check if this request comes from a valid playlist
         if($data['playlistId'] === "invalid")
@@ -421,9 +347,105 @@ class Playlist extends CI_Controller {
                 if($adamGradeUpdated || $churchieGradeUpdated && $ratingsValid)
 				    $this->SongModel->UpdateSongWithScores($songId, $adamGradeUpdated, $newAdamRating, $churchieGradeUpdated, $newChurchieRating);
 
-                //move the song from playlist to playlist
+                //check if there is any need to move songs between playlists
                 if($newPlaylistId != $data['playlistId'] && $newPlaylistId != 0)
-                    $this->SongModel->UpdateLocalSongPlaylist($songId, $newPlaylistId);
+                {
+                    //only proceed when the library was successfully included
+                    if($libraryIncluded)
+                    {
+                        //validate the access token required for an api call
+                        $tokenExpired = $this->validateAuthToken($client);
+
+                        if ($tokenExpired)
+                        {
+                            //refresh token not found
+                            $data['body'] = 'invalidAction';
+                            $data['title'] = "Błąd autoryzacji tokenu!";
+                            $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
+                                Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
+                        }
+                        else //perform the api call
+                        {
+                            //get old and new playlist data for moving
+                            $oldPlaylistDetails = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
+                            $newPlaylistDetails = $this->PlaylistModel->FetchPlaylistById($newPlaylistId);
+                            $newSongPlaylistItemsId = '';
+
+                            // Define service object for making API requests.
+                            $service = new Google_Service_YouTube($client);
+
+                            // Define the $playlistItem object, which will be uploaded as the request body.
+                            $playlistItem = new Google_Service_YouTube_PlaylistItem();
+
+                            // Add 'snippet' object to the $playlistItem object.
+                            $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
+                            $playlistItemSnippet->setPlaylistId($newPlaylistDetails->ListUrl);
+
+                            //fetch the song URL and PlaylistItemId from the database using the local id
+                            $songDetails = $this->SongModel->GetSongDetailsForMoving($songId);
+
+                            //with a large enough number, last position available will be taken
+                            $playlistItemSnippet->setPosition(1000);
+                            $resourceId = new Google_Service_YouTube_ResourceId();
+                            $resourceId->setKind('youtube#video');
+                            $resourceId->setVideoId($songDetails->SongURL);
+                            $playlistItemSnippet->setResourceId($resourceId);
+                            $playlistItem->setSnippet($playlistItemSnippet);
+
+                            if(!$oldPlaylistDetails->ListIntegrated && $newPlaylistDetails->ListIntegrated)
+                            {
+                                //this playlist is local and target playlist is integrated with yt so add the song to the integrated playlist
+                                $response = $service->playlistItems->insert('snippet', $playlistItem);
+                                //new PlaylistItemsId is generated, so we need to capture it to update it in the db
+                                $newSongPlaylistItemsId = $response->id;
+                                //create a log for the playlist
+                                $this->LogModel->CreateLog("objecttype-playlist", "objectid=playlistid", "Nuta dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
+                            }
+                            else if($oldPlaylistDetails->ListIntegrated && !$newPlaylistDetails->ListIntegrated)
+                            {
+                                //this playlist is integrated with yt and target playlist is local so delete the song from the integrated playlist
+                                $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
+                                //create a log for the playlist
+                                $this->LogModel->CreateLog("objecttype-playlist", "objectid=playlistid", "Nuta usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
+                            }
+                            else if ($oldPlaylistDetails->ListIntegrated && $newPlaylistDetails->ListIntegrated)
+                            {
+                                //both playlists are integrated with yt so add the song to the new playlist
+                                $response = $service->playlistItems->insert('snippet', $playlistItem);
+                                //create a log of the song being added in the playlist's record
+                                $this->LogModel->CreateLog("objecttype-playlist", "objectid=playlistid", "Nuta dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
+                                //New PlaylistItemsId is generated, so we need to capture it to update it in the db
+                                $newSongPlaylistItemsId = $response->id;
+                                //both playlists are integrated with yt so delete the song from the old playlist
+                                $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
+                                //create a log of this deletion in the playlist's record
+                                $this->LogModel->CreateLog("objecttype-playlist", "objectid=playlistid", "Nuta usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
+                            }
+
+                            //based on the target playlist status, the update is different
+                            if(!$newPlaylistDetails->ListIntegrated)
+                            {
+                                //target playlist is local - move the song in the local database and create a log for the song
+                                $this->SongModel->UpdateLocalSongPlaylist($songId, $newPlaylistId);
+                            }
+                            else
+                            {
+                                //target playlist is integrated
+                                $this->SongModel->UpdateIntegratedSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
+                            }
+
+                            //log the move in the particular song's record
+                            $this->LogModel->CreateLog("objecttype-song", "objectid=songid", "Nuta przeniesiona z ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
+                        }
+                    }
+                    else
+                    {
+                        //could not load the youtube api
+                        $data['body']  = 'invalidAction';
+                        $data['title'] = "Wystąpił Błąd!";
+                        $data['errorMessage'] = "Nie znaleziono biblioteki google!";
+                    }
+                }
 			}
 		}
 		else
@@ -472,7 +494,7 @@ class Playlist extends CI_Controller {
                 //load songs for the first time
                 if($playlistId != "")
                 {
-										$url = $host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.urlencode($playlistId).'&key='.urlencode($apiKey);
+					$url = $host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.urlencode($playlistId).'&key='.urlencode($apiKey);
                     $firstCall = file_get_contents($url);
                     $downloadedSongs = json_decode($firstCall, true);
                     array_push($data['songsJsonArray'], $downloadedSongs);
@@ -522,7 +544,7 @@ class Playlist extends CI_Controller {
                                     {
                                         //get all required data to save a song in the database
                                         $songURL = $song['snippet']['resourceId']['videoId'];
-																				$songPublic = isset($song['snippet']['thumbnails']['medium']['url']) ? true : false;
+										$songPublic = isset($song['snippet']['thumbnails']['medium']['url']) ? true : false;
                                         $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
                                         $songTitle = mysqli_real_escape_string( $this->db->conn_id, $song['snippet']['title'] );
                                         $songPlaylistItemsId = $song['id'];

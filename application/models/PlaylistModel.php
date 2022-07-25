@@ -73,8 +73,9 @@ class PlaylistModel extends CI_Model
         $link = $data['link'];
         $title = $data['title'];
         $desc = $data['description'];
+        $visibility = $data['visibility'] == "public";
 
-        $sql = "INSERT INTO list(`ListURL`, `ListName`, `ListDesc`) VALUES ('$link', '$title', '$desc')";
+        $sql = "INSERT INTO list(`ListURL`, `ListName`, `ListDesc`, `ListIntegrated`, `ListActive`) VALUES ('$link', '$title', '$desc', true, $visibility)";
         if($this->db->simple_query($sql)) return true;
         else return false;
     }
