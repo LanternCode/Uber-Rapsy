@@ -1,2 +1,4 @@
 ALTER TABLE `list` ADD `ListIntegrated` BOOLEAN NOT NULL AFTER `ListCreatedAt`;
 ALTER TABLE `list` CHANGE `ListUrl` `ListUrl` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_polish_ci NULL;
+
+CREATE TABLE `lanternc_uberrapsy`.`log` (`LogId` INT NOT NULL AUTO_INCREMENT , `EntityType` VARCHAR(10) NOT NULL COMMENT 'Must be a valid database entity (user/song/playlist)' , `EntityId` INT NOT NULL COMMENT 'Id of the entity logged' , `Description` VARCHAR(250) NOT NULL , `Timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`LogId`)) ENGINE = MyISAM;

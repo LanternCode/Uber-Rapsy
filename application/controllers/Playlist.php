@@ -18,8 +18,9 @@ class Playlist extends CI_Controller {
 	public function __construct()
 	{
         parent::__construct();
-        $this->load->model( 'PlaylistModel' );
-		$this->load->model( 'SongModel' );
+        $this->load->model('PlaylistModel');
+		$this->load->model('SongModel');
+        $this->load->model('LogModel');
 		$this->load->helper('cookie');
     }
 
@@ -385,7 +386,7 @@ class Playlist extends CI_Controller {
                             $songDetails = $this->SongModel->GetSongDetailsForMoving($songId);
 
                             //with a large enough number, last position available will be taken
-                            $playlistItemSnippet->setPosition(1000);
+                            $playlistItemSnippet->setPosition(0);
                             $resourceId = new Google_Service_YouTube_ResourceId();
                             $resourceId->setKind('youtube#video');
                             $resourceId->setVideoId($songDetails->SongURL);
@@ -399,27 +400,27 @@ class Playlist extends CI_Controller {
                                 //new PlaylistItemsId is generated, so we need to capture it to update it in the db
                                 $newSongPlaylistItemsId = $response->id;
                                 //create a log for the playlist
-                                $this->LogModel->CreateLog("objecttype-playlist", "objectid=playlistid", "Nuta dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
+                                $this->LogModel->CreateLog("playlist", $newPlaylistDetails->ListId, "Nuta dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
                             }
                             else if($oldPlaylistDetails->ListIntegrated && !$newPlaylistDetails->ListIntegrated)
                             {
                                 //this playlist is integrated with yt and target playlist is local so delete the song from the integrated playlist
                                 $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
                                 //create a log for the playlist
-                                $this->LogModel->CreateLog("objecttype-playlist", "objectid=playlistid", "Nuta usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
+                                $this->LogModel->CreateLog("playlist", $oldPlaylistDetails->ListId, "Nuta usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
                             }
                             else if ($oldPlaylistDetails->ListIntegrated && $newPlaylistDetails->ListIntegrated)
                             {
                                 //both playlists are integrated with yt so add the song to the new playlist
                                 $response = $service->playlistItems->insert('snippet', $playlistItem);
                                 //create a log of the song being added in the playlist's record
-                                $this->LogModel->CreateLog("objecttype-playlist", "objectid=playlistid", "Nuta dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
+                                $this->LogModel->CreateLog("playlist", $newPlaylistDetails->ListId, "Nuta dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
                                 //New PlaylistItemsId is generated, so we need to capture it to update it in the db
                                 $newSongPlaylistItemsId = $response->id;
                                 //both playlists are integrated with yt so delete the song from the old playlist
                                 $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
                                 //create a log of this deletion in the playlist's record
-                                $this->LogModel->CreateLog("objecttype-playlist", "objectid=playlistid", "Nuta usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
+                                $this->LogModel->CreateLog("playlist", $oldPlaylistDetails->ListId, "Nuta usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
                             }
 
                             //based on the target playlist status, the update is different
@@ -435,7 +436,7 @@ class Playlist extends CI_Controller {
                             }
 
                             //log the move in the particular song's record
-                            $this->LogModel->CreateLog("objecttype-song", "objectid=songid", "Nuta przeniesiona z ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
+                            $this->LogModel->CreateLog("song", $songId, "Nuta przeniesiona z playlisty ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
                         }
                     }
                     else
