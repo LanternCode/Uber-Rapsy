@@ -864,6 +864,70 @@ class Playlist extends CI_Controller {
     }
 
     /**
+     * Allows the user to switch the integration status of a playlist
+     *
+     * @return void
+     */
+    public function integrate()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'playlist/integrate';
+            $data['title'] = "Uber Rapsy | Zintegruj playlistę";
+            $data['playlistId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
+            $data['status'] = isset($_GET['status']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['status'])) : 0;
+
+            if($data['playlistId'] && is_numeric($data['playlistId']))
+            {
+                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
+
+                if($data['playlist'] === false)
+                {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
+                }
+
+                //status is passed when the form is submitted, otherwise we open the form
+                if($data['status'] == "confirm")
+                {
+                    $updatedIntegrationStatus = $data['playlist']->ListIntegrated ? "0" : "1";
+                    $updatedLink = isset($_POST['nlink']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['nlink'])) : 0;
+                    $data['playlistUpdatedMessage'] = "<h2>Playlista została zaktualizowana!</h2>";
+                    $data['playlistUpdatedStatus'] = true;
+
+                    //check if there is a valid link existing or entered when integrating the playlist with YT
+                    $validLink = !$updatedIntegrationStatus || (strlen($data['playlist']->ListUrl) > 10 || strlen($updatedLink) > 10);
+                    if($validLink)
+                    {
+                        $this->PlaylistModel->UpdatePlaylistIntegrationStatus($data['playlistId'], $updatedIntegrationStatus, $updatedLink);
+                        $this->LogModel->CreateLog('playlist', $data['playlistId'],
+                            $updatedIntegrationStatus ? "Playlista została zintegrowana z YT" : "Usunięto integrację playlisty z YT");
+                    }
+                    else
+                    {
+                        //the playlist does not have a link when one is required to integrate with youtube
+                        $data['playlistUpdatedMessage'] = "<h2>Zintegrowana plalista musi posiadać swój link na YouTube!</h2>";
+                        $data['playlistUpdatedStatus'] = false;
+                    }
+                }
+            }
+            else
+            {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+    /**
      * Checks whether the user is logged in and has the appropriate role.
      *
      * @return boolean     true if authenticated, false if not

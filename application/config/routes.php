@@ -18,6 +18,7 @@ $route['playlist/quickEdit'] = 'Playlist/quickEdit';
 $route['playlist/hidePlaylist'] = 'Playlist/hidePlaylist';
 $route['playlist/deleteLocal'] = 'Playlist/deleteLocal';
 $route['playlist/delSong'] = 'Playlist/delSong';
+$route['playlist/integrate'] = 'Playlist/integrate';
 
 $route['login'] = 'Account';
 $route['logout'] = 'Account/logout';

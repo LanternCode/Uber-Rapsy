@@ -175,4 +175,20 @@ class PlaylistModel extends CI_Model
         }
         else return false;
     }
+
+    /**
+     * Updates the playlist's integration status
+     *
+     * @param int $playlistId  id of the playlist
+     * @param int $updatedIntegrationStatus true (1) if integrated, otherwise false (0)
+     * @param string $updatedLink new playlist link (optional)
+     * @return bool true if the query succeeded, false otherwise
+     */
+    function UpdatePlaylistIntegrationStatus(int $playlistId, int $updatedIntegrationStatus, string $updatedLink = ''): bool
+    {
+        $updateLink = strlen($updatedLink) > 10 ? ", ListUrl = $updatedLink" : "";
+        $sql = "UPDATE list SET ListIntegrated = $updatedIntegrationStatus".$updateLink." WHERE ListId = $playlistId";
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
 }

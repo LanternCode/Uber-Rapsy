@@ -8,7 +8,7 @@
 <p>Nazwa playlisty: <?=$playlist->ListName?></p><br>
 <p>Opis playlisty: <?=$playlist->ListDesc?></p><br>
 <p>Data dodania playlisty: <?=$playlist->ListCreatedAt?></p><br>
-<p>Playlista zintegrowana: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?></p><br>
+<p>Playlista zintegrowana: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?> <a href="<?=base_url('playlist/integrate?id='.$playlist->ListId)?>">(Zmień status integracji)</a></p><br>
 <p>Playlista publiczna: <?=$playlist->ListActive === "1" ? "Tak" : "Nie"?></p><br><br>
 
 <a href="<?=base_url('playlist/quickEdit?id='.$playlist->ListId)?>">Edytuj Playlistę</a><br><br>
