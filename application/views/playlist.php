@@ -71,11 +71,12 @@
                                 <option value="0">Nie przenoś</option>
                             </select>
                         <?php endif;?>
+                    <label><input type="hidden" name="<?="songRehearsal-".$i+4?>" value="<?=$song->SongRehearsal?>"><input type="checkbox" <?=$song->SongRehearsal ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Do ponownego odsłuchu</label>
 				</div>
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailRight" />
 			</div>
 		<?php
-        $i += 4;
+        $i += 5;
         endforeach;?>
 	<?php else: ?>
 		<h3>Ta playlista jest pusta mordo, nowy sezon już wkrótce!</h3>

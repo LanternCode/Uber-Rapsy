@@ -174,14 +174,29 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Fetch grades of every song in a playlist.
+     * Fetch grades and rehearsal status of every song in a playlist.
      *
      * @param int $listId  id of the list to fetch grades from
-     * @return array      returns an array containing the grades found
+     * @return array      returns an array containing the data found
      */
-    function GetAllSongGradesInPlaylist(int $listId): array
+    function GetAllSongUpdateDataInPlaylist(int $listId): array
     {
-        $sql = "SELECT SongId, SongGradeAdam, SongGradeChurchie FROM song WHERE ListId = $listId";
+        $sql = "SELECT SongId, SongGradeAdam, SongGradeChurchie, SongRehearsal FROM song WHERE ListId = $listId";
         return $this->db->query($sql)->result();
+    }
+
+    /**
+     * Updated the SongRehearsal property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongRehearsal  id of the playlist the song was moved to
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongRehearsalStatus(int $songId, int $newSongRehearsal): bool
+    {
+        $sql = "UPDATE song SET SongRehearsal = $newSongRehearsal WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
     }
 }
