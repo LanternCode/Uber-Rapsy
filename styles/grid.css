@@ -161,7 +161,7 @@
     border-radius: 15px;
 }
 
-.reviewBox {
+.reviewBox, .reviewBoxDate {
     margin: 10px;
     display: block;
 }
@@ -169,4 +169,45 @@
 .gradeInputReview {
     width: 50px;
     margin: 5px;
+}
+
+.reviewSuccess {
+    color: #009900;
+    margin: 15px;
+    font-size: 2em;
+}
+
+.reviewError {
+    color: #CC0000;
+    margin: 15px;
+    font-size: 1.3em;
+}
+
+.reviewBox, .reviewBoxDate {
+    font-size: 1.2em;
+}
+
+.btnSaveReview {
+    margin: 10px;
+    font-size: 1.2em;
+    background-color: lawngreen;
+}
+
+.btnCancel {
+    margin: 10px;
+    font-size: 1.2em;
+    background-color: red;
+    color: white;
+}
+
+.reviewBox input {
+    height: 25px;
+    width: 65px;
+    font-size: 1.2em;
+}
+
+.reviewBoxDate input {
+    width: 180px;
+    height: 25px;
+    font-size: 1.2em;
 }

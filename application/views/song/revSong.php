@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<?=isset($successMessage) && $successMessage == 1 ? "Recenzja została zapisana!<br><br>" : ""?>
-<?= $errorMessage ?? "" ?>
+<?=isset($successMessage) && $successMessage == 1 ? "<h3 class='reviewSuccess'>Recenzja została zapisana!</h3><br><br>" : ""?>
+<?=$errorMessage ? "<h4 class='reviewError'>".$errorMessage."</h4>" : "" ?>
 <?php if($existingReview != false){
     $rD = $existingReview['reviewDate'];
     $rT = $existingReview['reviewText'];
@@ -11,18 +11,16 @@
     $rR = $existingReview['reviewReflection'];
     $rU = $existingReview['reviewUber'];
     $rP = $existingReview['reviewPartner'];
-    $rV = $existingReview['reviewRev'];
+    $rV = stripcslashes($existingReview['reviewRev']);
 
-    if($errorMessage == "") {
-        $total = $rT + $rM + $rI + $rH + $rC + $rR + $rU + $rP;
-        $percentage = floor($total / 90 * 100);
-    }
+    $total = $rT + $rM + $rI + $rH + $rC + $rR + $rU + $rP;
+    $percentage = floor($total / 90 * 100);
 }
 ?>
 <label class="reviewBox">Tytuł: <?=$song->SongTitle?></label>
 <label class="reviewBox">Autor: <?='?'//$song->SongAuthor?></label><br>
 <form method="POST" action="<?=base_url('song/rev?id='.$song->SongId)?>">
-    <article class="reviewBox">
+    <article class="reviewBoxDate">
         <label>Data Oceny:</label>
         <input id="createdAt" type="text" name="reviewDate" value="<?=$rD ?? ''?>">
         <button onclick="createdAt.value = new Date().toISOString().slice(0, 10); return false;">Dzisiaj</button>
@@ -65,7 +63,15 @@
     </article>
     <article class="reviewBox">
         <label>Recenzja:</label><br>
-        <textarea name="reviewRev" rows="10" cols="100"><?=$rV ?? ''?></textarea><br>
+        <textarea name="reviewRev" id="txt" class=""><?=$rV ?? ''?></textarea>
     </article>
-    <input type="submit" value="Zapisz Recenzję!">
+    <input type="submit" class="btnSaveReview" value="Zapisz Recenzję!"><br>
 </form>
+<script src="https://cdn.tiny.cloud/1/622hecsg6zxldlharfjthzkv1fck34b6l7eufosk6rwayu6r/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+        selector: '#txt',
+        height: '420',
+        width: '840'
+    });
+</script>

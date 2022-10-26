@@ -43,6 +43,7 @@ class Song extends CI_Controller
             //Check if there is an existing review
             $reviewExists = (array) $this->SongModel->GetSongReview($songId, $_SESSION['userId']);
             $data['existingReview'] = count($reviewExists) == 1 ? false : $reviewExists;
+            $data['errorMessage'] = "";
 
             //Check if the post review form was submitted
             if(isset($_POST['reviewMusic']))
@@ -62,8 +63,19 @@ class Song extends CI_Controller
                 //Validate the numeric data
                 foreach($review as $key => $revPiece)
                 {
-                    if(!(is_numeric($revPiece) && $revPiece >= 1 && $revPiece <= 20))
-                        $data['errorMessage'] .= "Podano niepoprawną wartość dla " . $key . ".<br>";
+                    $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 : (($key == "reviewUber" || $key == "reviewPartner") ? 15 : (($key == "reviewImpact" || $key == "reviewRh") ? 5 : 10));
+                    $optName = ($key == "reviewText" ? "Tekst" : ($key == "reviewMusic" ? "Muzyka" : (($key == "reviewUber" ? "Ocena Uber"
+                        : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewImpact" ? "Popularność" : (($key == "reviewRh" ? "Słuchalność"
+                            : (($key == "reviewComp" ? "Kompozycja" : "Refleksyjność"))))))))))));
+
+                    if(!is_numeric($revPiece))
+                        $data['errorMessage'] .= "Podano niepoprawną wartość dla " . $optName . "!<br>";
+                    else if ($revPiece < 1)
+                        $data['errorMessage'] .= "Podano niepoprawną wartość minimalną dla " . $optName . ". Ocena musi być większa lub równa 1!<br>";
+                    else if ($revPiece > $maxAllowed)
+                        $data['errorMessage'] .= "Podano niepoprawną wartość maksymalną dla " . $optName . ". Ocena musi być mniejsza lub równa " . $maxAllowed . "!<br>";
+                    else if(fmod($revPiece, 0.5) != 0)
+                        $data['errorMessage'] .= "Podano niepoprawną ocenę dla " . $optName . ". Ocena musi być pełną liczbą lub zakończoną połówką, np. 5.5!<br>";
                 }
 
                 //Get Non-numeric date
