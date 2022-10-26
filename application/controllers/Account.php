@@ -49,6 +49,7 @@ class Account extends CI_Controller
                 {
                     $_SESSION['userLoggedIn'] = 1;
                     $_SESSION['userRole'] = $userData->role;
+                    $_SESSION['userId'] = $userData->id;
                     redirect(base_url());
                 }
                 else

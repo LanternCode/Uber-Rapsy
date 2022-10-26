@@ -35,7 +35,7 @@
 				<img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailLeft" />
 				<div class="dataContainer">
                     <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
-					<h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
+                    <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
                     <h4 class="dataContainer--gradeContainer">
                         <label>Adam:</label>
                         <?=$song->SongGradeAdam ?? 'Nieoceniona'?> ->

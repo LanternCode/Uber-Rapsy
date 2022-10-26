@@ -199,4 +199,43 @@ class SongModel extends CI_Model
         if($this->db->simple_query($sql)) return true;
         else return false;
     }
+
+    /**
+     * Inserts a new song review into the database
+     *
+     * @param array $songReview  review to be inserted
+     * @return void
+     */
+    function InsertSongReview(array $songReview): void
+    {
+        $this->db->insert('review', $songReview);
+    }
+
+    /**
+     * Fetches a song review
+     *
+     * @param int $songId  id of the song for which the review is made
+     * @param int $userId  id of the user submitting the review
+     * @return stdClass|bool table row with the review or false if it does not exist
+     */
+    function GetSongReview(int $songId, int $userId): bool|stdClass
+    {
+        $sql = "SELECT * FROM review WHERE reviewSongId = $songId AND reviewUserId = $userId";
+        if(isset($this->db->query($sql)->row()->reviewId))
+        {
+            return $this->db->query($sql)->row();
+        }
+        else return false;
+    }
+
+    /**
+     * Replaces an existing review with a new review
+     *
+     * @param array $songReview  playlist to be inserted
+     * @return void
+     */
+    function UpdateReview(array $songReview): void
+    {
+        $this->db->replace('review', $songReview);
+    }
 }

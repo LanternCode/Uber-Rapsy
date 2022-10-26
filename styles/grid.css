@@ -160,3 +160,13 @@
     border: 1px solid aqua;
     border-radius: 15px;
 }
+
+.reviewBox {
+    margin: 10px;
+    display: block;
+}
+
+.gradeInputReview {
+    width: 50px;
+    margin: 5px;
+}

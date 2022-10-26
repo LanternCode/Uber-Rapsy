@@ -20,6 +20,8 @@ $route['playlist/deleteLocal'] = 'Playlist/deleteLocal';
 $route['playlist/delSong'] = 'Playlist/delSong';
 $route['playlist/integrate'] = 'Playlist/integrate';
 
+$route['song/rev'] = 'Song/reviewSong';
+
 $route['login'] = 'Account';
 $route['logout'] = 'Account/logout';
 
