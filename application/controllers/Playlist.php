@@ -226,7 +226,13 @@ class Playlist extends CI_Controller {
 			{
                 if($data['Operation'] == "Repeat")
                 {
+                    //Fetch songs with true repeat rehearsal status
                     $data['songs'] = $this->SongModel->FilterByRepeat(true, $data['ListId']);
+                }
+                else if ($data['Operation'] == "Unrated")
+                {
+                    //Fetch unrated songs
+                    $data['songs'] = $this->SongModel->FilterUnrated($data['ListId']);
                 }
 				else
                 {

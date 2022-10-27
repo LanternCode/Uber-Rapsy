@@ -251,4 +251,16 @@ class SongModel extends CI_Model
         $sql = "SELECT * FROM song WHERE SongRehearsal = $repeat AND ListId = $listId";
         return $this->db->query($sql)->result();
     }
+
+    /**
+     * Fetches songs that are not yet fully rated
+     *
+     * @param int $listId Current playlist id
+     * @return Array songs returned
+     */
+    function FilterUnrated(int $listId): Array
+    {
+        $sql = "SELECT * FROM song WHERE (SongGradeAdam = 0 OR SongGradeChurchie = 0) AND ListId = $listId";
+        return $this->db->query($sql)->result();
+    }
 }
