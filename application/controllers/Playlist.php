@@ -216,41 +216,47 @@ class Playlist extends CI_Controller {
 		$data['body'] = 'playlist';
 
 		//confirm the playlist exists
-		if($data['ListName'] != false)
+		if($data['ListName'])
 		{
+            $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
 			$data['title'] = $data['ListName']." | Playlista Uber Rapsy";
 
 			//There are 3 available choices: filter by grade (tierlist), search by title, display all
 			if($data['Operation'])
 			{
-				$data['songs'] = $this->SongModel->GetTopSongsFromList($data['ListId'], $data['Operation']);
-				$data['body'] = 'tierlist';
+                if($data['Operation'] == "Repeat")
+                {
+                    $data['songs'] = $this->SongModel->FilterByRepeat(true, $data['ListId']);
+                }
+				else
+                {
+                    $data['body'] = 'tierlist';
+                    $data['songs'] = $this->SongModel->GetTopSongsFromList($data['ListId'], $data['Operation']);
 
-				foreach($data['songs'] as $song)
-				{
-					$gradeA = $song->SongGradeAdam;
-					if($gradeA != NULL && !in_array($gradeA, $data['gradesToDisplay']) && $data['Operation'] == "Adam")
-						array_push($data['gradesToDisplay'], $gradeA);
+                    foreach($data['songs'] as $song)
+                    {
+                        $gradeA = $song->SongGradeAdam;
+                        if($gradeA != NULL && !in_array($gradeA, $data['gradesToDisplay']) && $data['Operation'] == "Adam")
+                            array_push($data['gradesToDisplay'], $gradeA);
 
-					$gradeB = $song->SongGradeChurchie;
-					if($gradeB != NULL && !in_array($gradeB, $data['gradesToDisplay']) && $data['Operation'] == "Churchie")
-						array_push($data['gradesToDisplay'], $gradeB);
+                        $gradeB = $song->SongGradeChurchie;
+                        if($gradeB != NULL && !in_array($gradeB, $data['gradesToDisplay']) && $data['Operation'] == "Churchie")
+                            array_push($data['gradesToDisplay'], $gradeB);
 
-					$gradeC = bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2);
-					if($gradeC != NULL && !in_array($gradeC, $data['gradesToDisplay']) && $data['Operation'] == "Average")
-						array_push($data['gradesToDisplay'], $gradeC);
-				}
-				rsort($data['gradesToDisplay']);
+                        $gradeC = bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2);
+                        if($gradeC != NULL && !in_array($gradeC, $data['gradesToDisplay']) && $data['Operation'] == "Average")
+                            array_push($data['gradesToDisplay'], $gradeC);
+                    }
+                    rsort($data['gradesToDisplay']);
+                }
 			}
 			else if ($data['Search'])
 			{
 				$data['songs'] = $this->SongModel->GetSongsFromList($data['ListId'], $data['Search']);
-	            $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
 			}
 			else
 			{
 				$data['songs'] = $this->SongModel->GetSongsFromList($data['ListId']);
-				$data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
 			}
 
 	        foreach($data['songs'] as $song)

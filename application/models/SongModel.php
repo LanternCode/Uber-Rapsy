@@ -238,4 +238,17 @@ class SongModel extends CI_Model
     {
         $this->db->replace('review', $songReview);
     }
+
+    /**
+     * Fetches songs with a filter of SongRehearsal set by the user from a given playlist
+     *
+     * @param bool $repeat SongRehearsal on or off
+     * @param int $listId Current playlist id
+     * @return Array songs returned
+     */
+    function FilterByRepeat(bool $repeat, int $listId): Array
+    {
+        $sql = "SELECT * FROM song WHERE SongRehearsal = $repeat AND ListId = $listId";
+        return $this->db->query($sql)->result();
+    }
 }
