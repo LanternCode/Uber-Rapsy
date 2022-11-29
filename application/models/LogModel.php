@@ -1,5 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
+if(!isset($_SESSION)){
+    session_start();
+}
+
 /**
  * Class responsible for managing the Log table in the database
  *
@@ -23,18 +27,30 @@ class LogModel extends CI_Model
      * @param string $description the logged message
      * @return boolean            true if query worked, false if it failed
      */
-    function CreateLog($entityType, $entityId, $description)
+    function CreateLog(string $entityType, int $entityId, string $description): bool
     {
         //ensure the entity type is legit
         $allowedTypes = ["playlist", "song", "user"];
         $validType = in_array($entityType, $allowedTypes);
+        $actionBy = $_SESSION['userId'];
 
         if($validType)
         {
-            $sql = "INSERT INTO log (`EntityType`, `EntityId`, `Description`) VALUES ('$entityType', $entityId, '$description')";
+            $sql = "INSERT INTO log (`UserId`,`EntityType`, `EntityId`, `Description`) VALUES ($actionBy, '$entityType', $entityId, '$description')";
             if($this->db->simple_query($sql)) return true;
             else return false;
         }
         else return false;
+    }
+
+    /**
+     * Fetches the logs for a playlist
+     *
+     * @param integer $playlistId   unique identifier of the playlist
+     */
+    function GetPlaylistLog(int $playlistId): array
+    {
+        $sql = "SELECT * FROM log WHERE EntityType = 'playlist' AND EntityId = $playlistId";
+        return $this->db->query($sql)->result();
     }
 }

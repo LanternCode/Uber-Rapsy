@@ -68,12 +68,12 @@ class SongModel extends CI_Model
      *
      * @param int $songId  id of the song to update
      * @param bool $updateAdam flag is true if adam's grade has changed
-     * @param float $gradeAdam  grade added by Adam
+     * @param float|string $gradeAdam  grade added by Adam
      * @param bool $updateChurchie flag is true if churchie's grade has changed
-     * @param float $gradeKoscielny  grade added by Koscielny
+     * @param float|string $gradeKoscielny  grade added by Koscielny
      * @return boolean           true if query worked, false if it failed
      */
-    function UpdateSongWithScores(int $songId, bool $updateAdam, float $gradeAdam, bool $updateChurchie, float $gradeKoscielny): bool
+    function UpdateSongWithScores(int $songId, bool $updateAdam, mixed $gradeAdam, bool $updateChurchie, mixed $gradeKoscielny): bool
     {
         $updateQuery = $updateAdam ? "SongGradeAdam = '$gradeAdam'" : "";
         $updateQuery .= ($updateAdam && $updateChurchie) ? ", " : "";

@@ -191,4 +191,20 @@ class PlaylistModel extends CI_Model
         if($this->db->simple_query($sql)) return true;
         else return false;
     }
+
+    /**
+     * Fetches ListId property of the playlist with matching timestamp
+     *
+     * @param int $timestamp  id of the playlist
+     * @return int returned id
+     */
+    function GetPlaylistIdByTimestamp($timestamp)
+    {
+        $sql = "SELECT ListId FROM list WHERE ListCreatedAt = '$timestamp'";
+        if(isset($this->db->query($sql)->row()->ListId))
+        {
+            return $this->db->query($sql)->row()->ListId;
+        }
+        else return 0;
+    }
 }

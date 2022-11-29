@@ -317,6 +317,9 @@ class Playlist extends CI_Controller {
 			$data['body']  = 'update';
             $data['title'] = "Oceny Zapisane!";
 
+            //create a log
+            $this->LogModel->CreateLog('playlist', $data['playlistId'], "Zapisano oceny na playliście");
+
 			//fetch all ratings for the playlist
 			$songsGrades = $this->SongModel->GetAllSongUpdateDataInPlaylist($data['playlistId']);
 
@@ -334,13 +337,16 @@ class Playlist extends CI_Controller {
                 $ratingsValid = false;
                 $newAdamRating = str_replace(',', '.', $newAdamRating);
                 $newChurchieRating = str_replace(',', '.', $newChurchieRating);
-                if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && $this->InRange($newAdamRating, 0, 15) && $this->InRange($newChurchieRating, 0, 15))
-                {
-                    if(fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0)
-                    {
-                        $ratingsValid = true;
-                    }
-                }
+				if(strlen($newAdamRating) > 0 && strlen($newChurchieRating) > 0)
+				{
+					if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && $this->InRange($newAdamRating, 0, 15) && $this->InRange($newChurchieRating, 0, 15))
+	                {
+	                    if(fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0)
+	                    {
+	                        $ratingsValid = true;
+	                    }
+	                }
+				}
 
 				//establish the current details
 				foreach($songsGrades as $songGrades)
@@ -506,6 +512,9 @@ class Playlist extends CI_Controller {
             $maxResults = 50; //50 is the most you can get on one page
             $playlistId = $this->PlaylistModel->GetListUrlById($listId);
 
+            //create a log
+            $this->LogModel->CreateLog('playlist', $listId, "Załadowano nowe nuty na playlistę");
+
             //fetch the api key from the api_key file
             if($apiKey = file_get_contents("application/api/api_key.txt"))
             {
@@ -524,12 +533,12 @@ class Playlist extends CI_Controller {
                 if($allResults > 0)
                 {
                     //keep loading songs until all are loaded
-                    for($scannedResults = $downloadedSongs['pageInfo']['resultsPerPage']; $scannedResults < $allResults; $scannedResults += $downloadedSongs['pageInfo']['resultsPerPage'])
+                    for($scannedResults = isset($downloadedSongs['pageInfo']['resultsPerPage']) ? $downloadedSongs['pageInfo']['resultsPerPage'] : 150000; $scannedResults < $allResults; $scannedResults += $downloadedSongs['pageInfo']['resultsPerPage'])
                     {
                         //get the token of the next page
                         $pageToken = $downloadedSongs['nextPageToken'];
                         //perform the api call
-                        $nextCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&pageToken='.$pageToken.'&playlistId='.$playlistId.'&key='.$apiKey);
+                        $nextCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&pageToken='.$pageToken.'&playlistId='.urlencode($playlistId).'&key='.urlencode($apiKey));
                         //decode the result from json to array
                         $downloadedSongs = json_decode($nextCall, true);
                         //save the songs into the array
@@ -714,6 +723,13 @@ class Playlist extends CI_Controller {
                         //save the playlist into the database
                         $this->PlaylistModel->InsertPlaylist($data);
 
+                        //create a log
+                        print_r("<h2 class='reviewError'>Jeśli to zobaczysz to podeślij mi screena z tymi wszystkimi dziwnymi numerkami pod tym ok? Ok, dziena</h2>");
+                        print_r($data);
+                        print_r($playlist);
+                        print_r($response);
+                        //$this->LogModel->CreateLog('playlist', $listId, "Stworzono zintegrowaną playlistę");
+
                         $data['resultMessage'] = "Playlista zapisana!";
                     } else {
                         $data['resultMessage'] = "Proszę wyślij formularz ponownie, wprowadzone dane są niepoprawne.";
@@ -771,6 +787,10 @@ class Playlist extends CI_Controller {
                 {
                     $this->PlaylistModel->InsertLocalPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
+
+                    //fetch the newly created playlist to obtain the id and create a log
+                    $playlistId = $this->PlaylistModel->GetPlaylistIdByTimestamp($queryData['ListCreatedAt']);
+                    $this->LogModel->CreateLog('playlist', $playlistId, "Stworzono lokalną playlistę");
                 }
                 else
                 {
@@ -931,6 +951,48 @@ class Playlist extends CI_Controller {
                         $data['playlistUpdatedStatus'] = false;
                     }
                 }
+            }
+            else
+            {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+	/**
+     * Allows the user to see the logs of the playlist
+     *
+     * @return void
+     */
+    public function showLog()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'playlist/showLog';
+            $data['title'] = "Uber Rapsy | Historia playlisty";
+            $data['playlistId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
+
+            if($data['playlistId'] && is_numeric($data['playlistId']))
+            {
+                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
+				$data['playlistLog'] = $this->LogModel->GetPlaylistLog($data['playlistId']);
+
+                if($data['playlist'] === false)
+                {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
+                }
+
+                $this->LogModel->CreateLog('playlist', $data['playlistId'], "Otworzono historię playlisty");
             }
             else
             {
