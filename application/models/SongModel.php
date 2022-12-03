@@ -181,7 +181,7 @@ class SongModel extends CI_Model
      */
     function GetAllSongUpdateDataInPlaylist(int $listId): array
     {
-        $sql = "SELECT SongId, SongGradeAdam, SongGradeChurchie, SongRehearsal, SongDistinction, SongMemorial FROM song WHERE ListId = $listId";
+        $sql = "SELECT SongId, SongGradeAdam, SongGradeChurchie, SongRehearsal, SongDistinction, SongMemorial, SongXD FROM song WHERE ListId = $listId";
         return $this->db->query($sql)->result();
     }
 
@@ -225,6 +225,21 @@ class SongModel extends CI_Model
     function UpdateSongMemorialStatus(int $songId, int $newSongMemorial): bool
     {
         $sql = "UPDATE song SET SongMemorial = $newSongMemorial WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongXD property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongXD  song XD status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongXDStatus(int $songId, int $newSongXD): bool
+    {
+        $sql = "UPDATE song SET SongXD = $newSongXD WHERE SongId = $songId";
 
         if($this->db->simple_query($sql)) return true;
         else return false;

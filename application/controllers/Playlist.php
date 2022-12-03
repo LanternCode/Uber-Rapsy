@@ -324,7 +324,7 @@ class Playlist extends CI_Controller {
 			$songsGrades = $this->SongModel->GetAllSongUpdateDataInPlaylist($data['playlistId']);
 
             //4 values are passed for each song
-			for ($i = 0; $i < count($_POST)-1; $i+=7)
+			for ($i = 0; $i < count($_POST)-1; $i+=8)
 			{
 				//save the new data to a temp variable
 				$songId = $_POST["songId-".$i];
@@ -334,6 +334,7 @@ class Playlist extends CI_Controller {
                 $newSongRehearsal = $_POST["songRehearsal-".$i+4];
                 $newSongDistinction = $_POST["songDistinction-".$i+5];
                 $newSongMemorial = $_POST["songMemorial-".$i+6];
+                $newSongXD = $_POST["songXD-".$i+7];
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (. separator and not ,)
                 $ratingsValid = false;
@@ -360,6 +361,7 @@ class Playlist extends CI_Controller {
                         $currentRehearsalStatus = $songGrades->SongRehearsal;
                         $currentDistinctionStatus = $songGrades->SongDistinction;
                         $currentMemorialStatus = $songGrades->SongMemorial;
+                        $currentXDStatus = $songGrades->SongXD;
 						break;
 					}
 				}
@@ -376,6 +378,10 @@ class Playlist extends CI_Controller {
                 if($currentRehearsalStatus != $newSongRehearsal) $this->SongModel->UpdateSongRehearsalStatus($songId, $newSongRehearsal);
                 if($currentDistinctionStatus != $newSongDistinction) $this->SongModel->UpdateSongDistinctionStatus($songId, $newSongDistinction);
                 if($currentMemorialStatus != $newSongMemorial) $this->SongModel->UpdateSongMemorialStatus($songId, $newSongMemorial);
+                if($currentXDStatus != $newSongXD) $this->SongModel->UpdateSongXDStatus($songId, $newSongXD);
+
+                //create a log
+                $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty");
 
                 //check if there is any need to move songs between playlists
                 if($newPlaylistId != $data['playlistId'] && $newPlaylistId != 0)
