@@ -1,5 +1,5 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
+<a href="<?=base_url('playlist/details?id='.$playlist->ListId)?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
 
 <p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
 <p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br>

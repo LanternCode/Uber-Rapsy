@@ -18,7 +18,7 @@ class Song extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        //$this->load->model('AccountModel');
+        $this->load->model('LogModel');
         $this->load->model('SongModel');
         //$this->load->helper('cookie');
     }
@@ -114,6 +114,65 @@ class Song extends CI_Controller
         else redirect('logout');
 
         $this->load->view('templates/main', $data);
+    }
+
+    /**
+     * Allows the user to see the logs of the song
+     *
+     * @return void
+     */
+    public function showLog()
+    {
+        $userAuthenticated = $this->authenticateUser();
+
+        if($userAuthenticated)
+        {
+            $data = [];
+            $data['body']  = 'song/showLog';
+            $data['title'] = "Uber Rapsy | Historia nuty";
+            $data['songId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
+
+            if($data['songId'] && is_numeric($data['songId']))
+            {
+                $data['song'] = $this->SongModel->GetSongById($data['songId']);
+                $data['songLog'] = $this->LogModel->GetSongLog($data['songId']);
+
+                if($data['song'] === false)
+                {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono nuty o podanym numerze id!";
+                }
+
+                $this->LogModel->CreateLog('song', $data['songId'], "Otworzono historię nuty");
+            }
+            else
+            {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id nuty lub nie podano go wcale!";
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Checks whether the user is logged in and has the appropriate role.
+     *
+     * @return boolean     true if authenticated, false if not
+     */
+    function authenticateUser(): bool
+    {
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
+        $userRole = $_SESSION['userRole'] ?? 0;
+
+        if($userLoggedIn === 1 && $userRole === 'reviewer')
+        {
+            return true;
+        }
+        else return false;
     }
 
 }

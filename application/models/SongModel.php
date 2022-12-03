@@ -181,7 +181,7 @@ class SongModel extends CI_Model
      */
     function GetAllSongUpdateDataInPlaylist(int $listId): array
     {
-        $sql = "SELECT SongId, SongGradeAdam, SongGradeChurchie, SongRehearsal FROM song WHERE ListId = $listId";
+        $sql = "SELECT SongId, SongGradeAdam, SongGradeChurchie, SongRehearsal, SongDistinction, SongMemorial FROM song WHERE ListId = $listId";
         return $this->db->query($sql)->result();
     }
 
@@ -189,12 +189,42 @@ class SongModel extends CI_Model
      * Updated the SongRehearsal property of a song
      *
      * @param int $songId  id of the song to update
-     * @param int $newSongRehearsal  id of the playlist the song was moved to
+     * @param int $newSongRehearsal  Song rehearsal status
      * @return boolean           true if query worked, false if it failed
      */
     function UpdateSongRehearsalStatus(int $songId, int $newSongRehearsal): bool
     {
         $sql = "UPDATE song SET SongRehearsal = $newSongRehearsal WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongDistinction property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongDistinction  song distinction status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongDistinctionStatus(int $songId, int $newSongDistinction): bool
+    {
+        $sql = "UPDATE song SET SongDistinction = $newSongDistinction WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongMemorial property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongMemorial  song memorial status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongMemorialStatus(int $songId, int $newSongMemorial): bool
+    {
+        $sql = "UPDATE song SET SongMemorial = $newSongMemorial WHERE SongId = $songId";
 
         if($this->db->simple_query($sql)) return true;
         else return false;

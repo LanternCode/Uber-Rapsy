@@ -25,6 +25,7 @@
             <th>Ocena Adama</th>
             <th>Ocena Kościelnego</th>
             <th>Usuń z listy</th>
+            <th>Sprawdź Historię</th>
         </tr>
         <?php foreach($songs as $song): ?>
             <tr>
@@ -33,6 +34,7 @@
                 <td><?=$song->SongGradeAdam?></td>
                 <td><?=$song->SongGradeChurchie?></td>
                 <td><a href="<?=base_url('playlist/delSong?id='.$song->SongId)?>">Usuń</a></td>
+                <td><a href="<?=base_url('song/showLog?id='.$song->SongId)?>">Historia</a></td>
             </tr>
         <?php endforeach; ?>
     </table>

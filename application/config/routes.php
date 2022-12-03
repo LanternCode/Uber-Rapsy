@@ -22,6 +22,7 @@ $route['playlist/integrate'] = 'Playlist/integrate';
 $route['playlist/showLog'] = 'Playlist/showLog';
 
 $route['song/rev'] = 'Song/reviewSong';
+$route['song/showLog'] = 'Song/showLog';
 
 $route['login'] = 'Account';
 $route['logout'] = 'Account/logout';

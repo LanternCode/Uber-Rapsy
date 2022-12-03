@@ -53,4 +53,15 @@ class LogModel extends CI_Model
         $sql = "SELECT * FROM log WHERE EntityType = 'playlist' AND EntityId = $playlistId";
         return $this->db->query($sql)->result();
     }
+
+    /**
+     * Fetches the logs for a song
+     *
+     * @param integer $songId   unique identifier of the song
+     */
+    function GetSongLog(int $songId): array
+    {
+        $sql = "SELECT * FROM log WHERE EntityType = 'song' AND EntityId = $songId";
+        return $this->db->query($sql)->result();
+    }
 }

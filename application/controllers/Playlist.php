@@ -324,7 +324,7 @@ class Playlist extends CI_Controller {
 			$songsGrades = $this->SongModel->GetAllSongUpdateDataInPlaylist($data['playlistId']);
 
             //4 values are passed for each song
-			for ($i = 0; $i < count($_POST)-1; $i+=5)
+			for ($i = 0; $i < count($_POST)-1; $i+=7)
 			{
 				//save the new data to a temp variable
 				$songId = $_POST["songId-".$i];
@@ -332,6 +332,8 @@ class Playlist extends CI_Controller {
 				$newChurchieRating = $_POST["nwGradeC-".$i+2];
                 $newPlaylistId = $_POST["nwPlistId-".$i+3];
                 $newSongRehearsal = $_POST["songRehearsal-".$i+4];
+                $newSongDistinction = $_POST["songDistinction-".$i+5];
+                $newSongMemorial = $_POST["songMemorial-".$i+6];
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (. separator and not ,)
                 $ratingsValid = false;
@@ -356,6 +358,8 @@ class Playlist extends CI_Controller {
 						$currentAdamRating = $songGrades->SongGradeAdam;
 						$currentChurchieRating = $songGrades->SongGradeChurchie;
                         $currentRehearsalStatus = $songGrades->SongRehearsal;
+                        $currentDistinctionStatus = $songGrades->SongDistinction;
+                        $currentMemorialStatus = $songGrades->SongMemorial;
 						break;
 					}
 				}
@@ -370,6 +374,8 @@ class Playlist extends CI_Controller {
 
                 //update the rehearsalRequired property
                 if($currentRehearsalStatus != $newSongRehearsal) $this->SongModel->UpdateSongRehearsalStatus($songId, $newSongRehearsal);
+                if($currentDistinctionStatus != $newSongDistinction) $this->SongModel->UpdateSongDistinctionStatus($songId, $newSongDistinction);
+                if($currentMemorialStatus != $newSongMemorial) $this->SongModel->UpdateSongMemorialStatus($songId, $newSongMemorial);
 
                 //check if there is any need to move songs between playlists
                 if($newPlaylistId != $data['playlistId'] && $newPlaylistId != 0)
