@@ -1,3 +1,0 @@
-ALTER TABLE `song` ADD `SongDistinction` BIT(1) NOT NULL DEFAULT b'0' AFTER `SongRehearsal`, ADD `SongMemorial` BIT(1) NOT NULL DEFAULT b'0' AFTER `SongDistinction`;
-
-ALTER TABLE `song` ADD `SongXD` BIT(1) NOT NULL DEFAULT b'0' AFTER `SongMemorial`;

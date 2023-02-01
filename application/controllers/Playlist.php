@@ -324,7 +324,7 @@ class Playlist extends CI_Controller {
 			$songsGrades = $this->SongModel->GetAllSongUpdateDataInPlaylist($data['playlistId']);
 
             //4 values are passed for each song
-			for ($i = 0; $i < count($_POST)-1; $i+=8)
+			for ($i = 0; $i < count($_POST)-1; $i+=12)
 			{
 				//save the new data to a temp variable
 				$songId = $_POST["songId-".$i];
@@ -335,6 +335,10 @@ class Playlist extends CI_Controller {
                 $newSongDistinction = $_POST["songDistinction-".$i+5];
                 $newSongMemorial = $_POST["songMemorial-".$i+6];
                 $newSongXD = $_POST["songXD-".$i+7];
+				$newSongNotRap = $_POST["songNotRap-".$i+8];
+				$newSongDiscomfort = $_POST["songDiscomfort-".$i+9];
+				$newSongTop = $_POST["songTop-".$i+10];
+				$newSongNoGrade = $_POST["songNoGrade-".$i+11];
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (. separator and not ,)
                 $ratingsValid = false;
@@ -362,6 +366,10 @@ class Playlist extends CI_Controller {
                         $currentDistinctionStatus = $songGrades->SongDistinction;
                         $currentMemorialStatus = $songGrades->SongMemorial;
                         $currentXDStatus = $songGrades->SongXD;
+						$currentNotRapStatus = $songGrades->SongNotRap;
+						$currentDiscomfortStatus = $songGrades->SongDiscomfort;
+						$currentTopStatus = $songGrades->SongTop;
+						$currentNoGradeStatus = $songGrades->SongNoGrade;
 						break;
 					}
 				}
@@ -379,6 +387,10 @@ class Playlist extends CI_Controller {
                 if($currentDistinctionStatus != $newSongDistinction) $this->SongModel->UpdateSongDistinctionStatus($songId, $newSongDistinction);
                 if($currentMemorialStatus != $newSongMemorial) $this->SongModel->UpdateSongMemorialStatus($songId, $newSongMemorial);
                 if($currentXDStatus != $newSongXD) $this->SongModel->UpdateSongXDStatus($songId, $newSongXD);
+				if($currentNotRapStatus != $newSongNotRap) $this->SongModel->UpdateSongNotRapStatus($songId, $newSongNotRap);
+				if($currentDiscomfortStatus != $newSongDiscomfort) $this->SongModel->UpdateSongDiscomfortStatus($songId, $newSongDiscomfort);
+				if($currentTopStatus != $newSongTop) $this->SongModel->UpdateSongTopStatus($songId, $newSongTop);
+				if($currentNoGradeStatus != $newSongNoGrade) $this->SongModel->UpdateSongNoGradeStatus($songId, $newSongNoGrade);
 
                 //create a log
                 $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty");
