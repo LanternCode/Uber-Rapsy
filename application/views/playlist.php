@@ -30,6 +30,7 @@
 <h2>Przeglądasz playlistę <?=$ListName ?? "o nieznanej nazwie"?>!</h2>
 <form id="songsForm" method="post" action="<?=base_url('updateGrades')?>">
 	<?php if(count($songs) > 0): ?>
+        <h3>Liczba nut: <?=count($songs)?></h3>
 		<?php
         $i = 0;
         foreach($songs as $song):?>
