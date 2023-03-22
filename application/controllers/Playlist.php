@@ -324,9 +324,14 @@ class Playlist extends CI_Controller {
 			//fetch all ratings for the playlist
 			$songsGrades = $this->SongModel->GetSongsFromList($data['playlistId']);
 
-            //4 values are passed for each song
+            //create a string to store the update report in
+            $resultMessage = "<pre>";
+
+            //process each song separately
 			for ($i = 0; $i < count($_POST)-1; $i+=14)
 			{
+                //create a variable for the song's update message
+                $localResultMessage = "";
 				//save the new data to a temp variable
 				$songId = $_POST["songId-".$i];
 				$newAdamRating = $_POST["nwGradeA-".$i+1];
@@ -343,7 +348,7 @@ class Playlist extends CI_Controller {
 				$newSongUber = $_POST["songUber-".$i+12];
 				$newSongBelow = $_POST["songBelow-".$i+13];
 
-                //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (. separator and not ,)
+                //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
                 $ratingsValid = false;
                 $newAdamRating = str_replace(',', '.', $newAdamRating);
                 $newChurchieRating = str_replace(',', '.', $newChurchieRating);
@@ -359,10 +364,12 @@ class Playlist extends CI_Controller {
 				}
 
 				//establish the current details
+                $currSongTitle = "";
 				foreach($songsGrades as $songGrades)
 				{
 					if($songGrades->SongId == $songId)
 					{
+                        $currSongTitle = $songGrades->SongTitle;
 						$currentAdamRating = $songGrades->SongGradeAdam;
 						$currentChurchieRating = $songGrades->SongGradeChurchie;
                         $currentRehearsalStatus = $songGrades->SongRehearsal;
@@ -384,20 +391,69 @@ class Playlist extends CI_Controller {
 				$churchieGradeUpdated = !($currentChurchieRating == $newChurchieRating);
 
 				//update scores
-                if($adamGradeUpdated || $churchieGradeUpdated && $ratingsValid)
-				    $this->SongModel->UpdateSongWithScores($songId, $adamGradeUpdated, $newAdamRating, $churchieGradeUpdated, $newChurchieRating);
+                if($adamGradeUpdated || $churchieGradeUpdated && $ratingsValid) {
+                    $this->SongModel->UpdateSongWithScores($songId, $adamGradeUpdated, $newAdamRating, $churchieGradeUpdated, $newChurchieRating);
+                    if($adamGradeUpdated && $churchieGradeUpdated) {
+                        $localResultMessage .= "\tOcena Adama: " . $currentAdamRating . " -> " . $newAdamRating . "<br>";
+                        $localResultMessage .= "\tOcena Kościelnego: " . $currentChurchieRating . " -> " . $newChurchieRating;
+                    }
+                    else if ($adamGradeUpdated)
+                        $localResultMessage .= "\tOcena Adama: " . $currentAdamRating . " -> " . $newAdamRating;
+                    else
+                        $localResultMessage .= "\tOcena Kościelnego: " . $currentChurchieRating . " -> " . $newChurchieRating;
+                }
 
-                //update the rehearsalRequired property
-                if($currentRehearsalStatus != $newSongRehearsal) $this->SongModel->UpdateSongRehearsalStatus($songId, $newSongRehearsal);
-                if($currentDistinctionStatus != $newSongDistinction) $this->SongModel->UpdateSongDistinctionStatus($songId, $newSongDistinction);
-                if($currentMemorialStatus != $newSongMemorial) $this->SongModel->UpdateSongMemorialStatus($songId, $newSongMemorial);
-                if($currentXDStatus != $newSongXD) $this->SongModel->UpdateSongXDStatus($songId, $newSongXD);
-				if($currentNotRapStatus != $newSongNotRap) $this->SongModel->UpdateSongNotRapStatus($songId, $newSongNotRap);
-				if($currentDiscomfortStatus != $newSongDiscomfort) $this->SongModel->UpdateSongDiscomfortStatus($songId, $newSongDiscomfort);
-				if($currentTopStatus != $newSongTop) $this->SongModel->UpdateSongTopStatus($songId, $newSongTop);
-				if($currentNoGradeStatus != $newSongNoGrade) $this->SongModel->UpdateSongNoGradeStatus($songId, $newSongNoGrade);
-				if($currentUberStatus != $newSongUber) $this->SongModel->UpdateSongUberStatus($songId, $newSongUber);
-				if($currentBelowStatus != $newSongBelow) $this->SongModel->UpdateSongBelowStatus($songId, $newSongBelow);
+                //update the song checkbox properties
+                if($currentRehearsalStatus != $newSongRehearsal)  {
+                    $this->SongModel->UpdateSongRehearsalStatus($songId, $newSongRehearsal);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongRehearsal ? "Zaznaczono" : "Odznaczono") . " ponowny odsłuch";
+                }
+                if($currentDistinctionStatus != $newSongDistinction) {
+                    $this->SongModel->UpdateSongDistinctionStatus($songId, $newSongDistinction);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongDistinction ? "Zaznaczono" : "Odznaczono") . " wyróżnienie";
+                }
+                if($currentMemorialStatus != $newSongMemorial) {
+                    $this->SongModel->UpdateSongMemorialStatus($songId, $newSongMemorial);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongMemorial ? "Zaznaczono" : "Odznaczono") . " 10*";
+                }
+                if($currentXDStatus != $newSongXD) {
+                    $this->SongModel->UpdateSongXDStatus($songId, $newSongXD);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongXD ? "Zaznaczono" : "Odznaczono") . " XD";
+                }
+				if($currentNotRapStatus != $newSongNotRap) {
+                    $this->SongModel->UpdateSongNotRapStatus($songId, $newSongNotRap);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongNotRap ? "Zaznaczono" : "Odznaczono") . " to nie rapsik";
+                }
+				if($currentDiscomfortStatus != $newSongDiscomfort) {
+                    $this->SongModel->UpdateSongDiscomfortStatus($songId, $newSongDiscomfort);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongDiscomfort ? "Zaznaczono" : "Odznaczono") . " strefa dyskomfortu";
+                }
+				if($currentTopStatus != $newSongTop) {
+                    $this->SongModel->UpdateSongTopStatus($songId, $newSongTop);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongTop ? "Zaznaczono" : "Odznaczono") . " X15";
+                }
+				if($currentNoGradeStatus != $newSongNoGrade) {
+                    $this->SongModel->UpdateSongNoGradeStatus($songId, $newSongNoGrade);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongNoGrade ? "Zaznaczono" : "Odznaczono") . " nie oceniam";
+                }
+				if($currentUberStatus != $newSongUber) {
+                    $this->SongModel->UpdateSongUberStatus($songId, $newSongUber);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongUber ? "Zaznaczono" : "Odznaczono") . " Uber";
+                }
+				if($currentBelowStatus != $newSongBelow) {
+                    $this->SongModel->UpdateSongBelowStatus($songId, $newSongBelow);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 7";
+                }
 
                 //create a log
                 $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty");
@@ -491,6 +547,9 @@ class Playlist extends CI_Controller {
 
                             //log the move in the particular song's record
                             $this->LogModel->CreateLog("song", $songId, "Nuta przeniesiona z playlisty ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
+
+                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                            $localResultMessage .= "Przeniesiono z playlisty ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName;
                         }
                     }
                     else
@@ -501,6 +560,9 @@ class Playlist extends CI_Controller {
                         $data['errorMessage'] = "Nie znaleziono biblioteki google!";
                     }
                 }
+                //save the result message and pass it to the report
+                $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currSongTitle . ":<br><br>" . $localResultMessage) : "";
+                $resultMessage .= $finalResultMessage;
 			}
 		}
 		else
@@ -511,6 +573,7 @@ class Playlist extends CI_Controller {
             $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
         }
 
+        $data['resultMessage'] = $resultMessage . "</pre>";
 		$this->load->view('templates/main', $data);
 	}
 

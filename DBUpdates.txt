@@ -1,1 +1,0 @@
-ALTER TABLE `song` ADD `SongUber` BIT(1) NOT NULL DEFAULT b'0' COMMENT 'Checkbox \'Uber\'' AFTER `SongNoGrade`, ADD `SongBelow` BIT(1) NOT NULL DEFAULT b'0' COMMENT 'Checkbox \'< 7\'' AFTER `SongUber`;
