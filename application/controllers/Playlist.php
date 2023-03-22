@@ -717,7 +717,7 @@ class Playlist extends CI_Controller {
                     $data = array(
                         'body' => 'playlist/addPlaylist',
                         'title' => isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "",
-                        'description' => isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "",
+                        'description' => $_POST['playlistDesc'] ?? "",
                         'visibility' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
                         'link' => '',
                         'resultMessage' => ''
@@ -727,7 +727,7 @@ class Playlist extends CI_Controller {
                     if($data['title'] != "" && $data['description'] != "" && in_array($data['visibility'], ["public", "unlisted", "private"]) )
                     {
                         //update the description new-line characters
-                        $data['description'] = str_replace("\r\n", PHP_EOL, $data['description']);
+                        $data['description'] = trim(str_replace(["\r\n", "\r"], "\n", $data['description']));
 
                         // Define service object for making API requests.
                         $service = new Google_Service_YouTube($client);
@@ -739,7 +739,6 @@ class Playlist extends CI_Controller {
                         $playlistSnippet = new Google_Service_YouTube_PlaylistSnippet();
                         $playlistSnippet->setDefaultLanguage('en');
                         $playlistSnippet->setDescription($data['description']);
-                        $playlistSnippet->setTags(['Uber Rapsy', 'API call']);
                         $playlistSnippet->setTitle($data['title']);
                         $playlist->setSnippet($playlistSnippet);
 
@@ -749,7 +748,7 @@ class Playlist extends CI_Controller {
                         $playlist->setStatus($playlistStatus);
 
                         //save the api call response
-                        $response = $service->playlists->insert('snippet,status', $playlist);
+                        $response = $service->playlists->insert('snippet, status', $playlist);
 
                         //get the unique id of a playlist from the response
                         $data['link'] = $response->id;
