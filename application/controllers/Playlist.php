@@ -756,12 +756,11 @@ class Playlist extends CI_Controller {
                         //save the playlist into the database
                         $this->PlaylistModel->InsertPlaylist($data);
 
+                        //fetch the local id of the newly created playlist
+                        $listId = $this->PlaylistModel->GetListIdByUrl($data['link']);
+
                         //create a log
-                        print_r("<h2 class='reviewError'>Jeśli to zobaczysz to podeślij mi screena z tymi wszystkimi dziwnymi numerkami pod tym ok? Ok, dziena</h2>");
-                        print_r($data);
-                        print_r($playlist);
-                        print_r($response);
-                        //$this->LogModel->CreateLog('playlist', $listId, "Stworzono zintegrowaną playlistę");
+                        $this->LogModel->CreateLog('playlist', $listId, "Stworzono zintegrowaną playlistę");
 
                         $data['resultMessage'] = "Playlista zapisana!";
                     } else {

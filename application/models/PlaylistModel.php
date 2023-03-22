@@ -63,6 +63,18 @@ class PlaylistModel extends CI_Model
     }
 
     /**
+     * Returns the id of a playlist.
+     *
+     * @param string $listUrl  url of the playlist
+     * @return int      returns the id found
+     */
+    function GetListIdByUrl(string $listUrl): int
+    {
+        $sql = "SELECT ListId FROM list WHERE ListUrl = '$listUrl'";
+        return $this->db->query($sql)->row()->ListId;
+    }
+
+    /**
      * Inserts a new playlist into the database.
      *
      * @param array $data  details of the playlist to be inserted
@@ -75,9 +87,7 @@ class PlaylistModel extends CI_Model
         $desc = $data['description'];
         $visibility = $data['visibility'];
 
-        print_r($desc);
         $sql = "INSERT INTO list(`ListURL`, `ListName`, `ListDesc`, `ListIntegrated`, `ListActive`) VALUES ('$link', '$title', '$desc', true, '$visibility')";
-        print_r($sql);
         if($this->db->simple_query($sql)) return true;
         else return false;
     }
