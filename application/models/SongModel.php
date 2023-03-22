@@ -174,18 +174,6 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Fetch grades and rehearsal status of every song in a playlist.
-     *
-     * @param int $listId  id of the list to fetch grades from
-     * @return array      returns an array containing the data found
-     */
-    function GetAllSongUpdateDataInPlaylist(int $listId): array
-    {
-        $sql = "SELECT SongId, SongGradeAdam, SongGradeChurchie, SongRehearsal, SongDistinction, SongMemorial, SongXD, SongNotRap, SongDiscomfort, SongTop, SongNoGrade FROM song WHERE ListId = $listId";
-        return $this->db->query($sql)->result();
-    }
-
-    /**
      * Updated the SongRehearsal property of a song
      *
      * @param int $songId  id of the song to update
@@ -300,6 +288,36 @@ class SongModel extends CI_Model
     function UpdateSongNoGradeStatus(int $songId, int $newSongNoGrade): bool
     {
         $sql = "UPDATE song SET SongNoGrade = $newSongNoGrade WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongUber property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongUber  song uber status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongUberStatus(int $songId, int $newSongUber): bool
+    {
+        $sql = "UPDATE song SET SongUber = $newSongUber WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongBelow property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongBelow  song below status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongBelowStatus(int $songId, int $newSongBelow): bool
+    {
+        $sql = "UPDATE song SET SongBelow = $newSongBelow WHERE SongId = $songId";
 
         if($this->db->simple_query($sql)) return true;
         else return false;

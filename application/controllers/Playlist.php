@@ -322,10 +322,10 @@ class Playlist extends CI_Controller {
             $this->LogModel->CreateLog('playlist', $data['playlistId'], "Zapisano oceny na playliście");
 
 			//fetch all ratings for the playlist
-			$songsGrades = $this->SongModel->GetAllSongUpdateDataInPlaylist($data['playlistId']);
+			$songsGrades = $this->SongModel->GetSongsFromList($data['playlistId']);
 
             //4 values are passed for each song
-			for ($i = 0; $i < count($_POST)-1; $i+=12)
+			for ($i = 0; $i < count($_POST)-1; $i+=14)
 			{
 				//save the new data to a temp variable
 				$songId = $_POST["songId-".$i];
@@ -340,6 +340,8 @@ class Playlist extends CI_Controller {
 				$newSongDiscomfort = $_POST["songDiscomfort-".$i+9];
 				$newSongTop = $_POST["songTop-".$i+10];
 				$newSongNoGrade = $_POST["songNoGrade-".$i+11];
+				$newSongUber = $_POST["songUber-".$i+12];
+				$newSongBelow = $_POST["songBelow-".$i+13];
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (. separator and not ,)
                 $ratingsValid = false;
@@ -371,6 +373,8 @@ class Playlist extends CI_Controller {
 						$currentDiscomfortStatus = $songGrades->SongDiscomfort;
 						$currentTopStatus = $songGrades->SongTop;
 						$currentNoGradeStatus = $songGrades->SongNoGrade;
+						$currentUberStatus = $songGrades->SongUber;
+						$currentBelowStatus = $songGrades->SongBelow;
 						break;
 					}
 				}
@@ -392,6 +396,8 @@ class Playlist extends CI_Controller {
 				if($currentDiscomfortStatus != $newSongDiscomfort) $this->SongModel->UpdateSongDiscomfortStatus($songId, $newSongDiscomfort);
 				if($currentTopStatus != $newSongTop) $this->SongModel->UpdateSongTopStatus($songId, $newSongTop);
 				if($currentNoGradeStatus != $newSongNoGrade) $this->SongModel->UpdateSongNoGradeStatus($songId, $newSongNoGrade);
+				if($currentUberStatus != $newSongUber) $this->SongModel->UpdateSongUberStatus($songId, $newSongUber);
+				if($currentBelowStatus != $newSongBelow) $this->SongModel->UpdateSongBelowStatus($songId, $newSongBelow);
 
                 //create a log
                 $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty");
@@ -720,6 +726,9 @@ class Playlist extends CI_Controller {
                     //validate the form
                     if($data['title'] != "" && $data['description'] != "" && in_array($data['visibility'], ["public", "unlisted", "private"]) )
                     {
+                        //update the description new-line characters
+                        $data['description'] = str_replace("\r\n", PHP_EOL, $data['description']);
+
                         // Define service object for making API requests.
                         $service = new Google_Service_YouTube($client);
 
