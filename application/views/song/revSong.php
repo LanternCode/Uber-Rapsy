@@ -3,14 +3,14 @@
 <?=$errorMessage ? "<h4 class='reviewError'>".$errorMessage."</h4>" : "" ?>
 <?php if($existingReview != false){
     $rD = $existingReview['reviewDate'];
-    $rT = $existingReview['reviewText'];
-    $rM = $existingReview['reviewMusic'];
-    $rI = $existingReview['reviewImpact'];
-    $rH = $existingReview['reviewRh'];
-    $rC = $existingReview['reviewComp'];
-    $rR = $existingReview['reviewReflection'];
-    $rU = $existingReview['reviewUber'];
-    $rP = $existingReview['reviewPartner'];
+    $rT = is_numeric($existingReview['reviewText']) ? $existingReview['reviewText'] : 0;
+    $rM = is_numeric($existingReview['reviewMusic']) ? $existingReview['reviewMusic'] : 0;
+    $rI = is_numeric($existingReview['reviewImpact']) ? $existingReview['reviewImpact'] : 0;
+    $rH = is_numeric($existingReview['reviewRh']) ? $existingReview['reviewRh'] : 0;
+    $rC = is_numeric($existingReview['reviewComp']) ? $existingReview['reviewComp'] : 0;
+    $rR = is_numeric($existingReview['reviewReflection']) ? $existingReview['reviewReflection'] : 0;
+    $rU = is_numeric($existingReview['reviewUber']) ? $existingReview['reviewUber'] : 0;
+    $rP = is_numeric($existingReview['reviewPartner']) ? $existingReview['reviewPartner'] : 0;
     $rV = stripcslashes($existingReview['reviewRev']);
 
     $total = $rT + $rM + $rI + $rH + $rC + $rR + $rU + $rP;
