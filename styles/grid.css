@@ -7,7 +7,7 @@
 
 .videoContainer {
     display: grid;
-    grid-template-columns: 14vw 69vw 14vw;
+    grid-template-columns: 21vw 76vw;
     grid-template-rows: 100%;
 }
 
@@ -17,14 +17,9 @@
     }
 
     .dataContainer {
-        text-align: center;
+        text-align: left;
         grid-column-start: 2;
         grid-column-end: 3;
-    }
-
-    .songThumbnailRight {
-        grid-column-start: 3;
-        grid-column-end: 4;
     }
 
 .btnGrade {
@@ -46,6 +41,7 @@
 
 .dataContainer--gradeContainer {
     margin: 5px;
+    margin: 5px;
 }
 
 .optionsHeader {
@@ -53,7 +49,7 @@
     background-color: black;
     position: fixed;
     top: 0;
-    width: 100vw;
+    width: 99vw;
     height: 50px;
 }
 
@@ -67,6 +63,10 @@
     border: 1px solid aqua;
     border-radius: 15px;
 }
+
+    .optionsRight {
+        float: right;
+    }
 
 .optionsSearchLabel {
     background-color: black;
@@ -146,7 +146,7 @@
     color: white;
     background-color: black;
     position: block;
-    width: 100vw;
+    width: 98vw;
     height: 50px;
 }
 

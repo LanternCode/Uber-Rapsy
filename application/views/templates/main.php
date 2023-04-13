@@ -20,6 +20,11 @@
             <?php else: ?>
                 <a class="omniNav--Option" href="<?=base_url("login")?>">Zaloguj się</a>
             <?php endif; ?>
+            <form class="omniNav--Option optionsRight" method="get" action="<?=base_url("search")?>">
+                <label class="optionsSearchLabel">Szukaj nuty</label>
+                <input type="text" placeholder="Rajaner" name="Search" />
+                <input type="submit" value="Szukaj" />
+            </form>
 		</nav>
 	    <main>
 	        <?php isset($body) ? $this->load->view($body) : redirect(base_url()); ?>

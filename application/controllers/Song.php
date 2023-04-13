@@ -159,6 +159,41 @@ class Song extends CI_Controller
     }
 
     /**
+     * Filters all songs by the title and shows them in a playlist
+     *
+     * @return void
+     */
+    public function search()
+    {
+        $data = [];
+        $data['title'] = "Wyniki Wyszukiwania | Uber Rapsy";
+        $data['body'] = 'playlistSearch';
+        $data['reviewer'] = isset($_SESSION['userRole']) ? ($_SESSION['userRole'] == "reviewer" ? true : false) : false;
+        $data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
+        $data['songs'] = $this->SongModel->GetSongsFromSearch($data['Search']);
+
+        foreach($data['songs'] as $song)
+        {
+            //Display values without decimals at the end if the decimals are only 0
+            if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
+            if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
+        }
+
+        $this->load->view( 'templates/main', $data );
+    }
+
+    /**
+     * Trims trailing zeroes from a given number.
+     *
+     * @param float $nbr number to trim
+     * @return float trimmed number
+     */
+    function TrimTrailingZeroes(float $nbr): float
+    {
+        return str_contains($nbr, '.') ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
+    }
+
+    /**
      * Checks whether the user is logged in and has the appropriate role.
      *
      * @return boolean     true if authenticated, false if not

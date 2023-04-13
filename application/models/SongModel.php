@@ -31,6 +31,18 @@ class SongModel extends CI_Model
     }
 
     /**
+     * Fetch songs filtering by title.
+     *
+     * @param string $Search  title filter
+     * @return array      returns an array containing the songs found
+     */
+    function GetSongsFromSearch(string $Search = "" ): array
+    {
+        $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$Search%'";
+        return $this->db->query($sql)->result();
+    }
+
+    /**
      * Fetch URL of every song in a playlist.
      *
      * @param int $listId  id of the list to fetch URLs from
