@@ -1,14 +1,17 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<header class="optionsHeader">
-    <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
+<nav class="omniNav">
+    <a class="omniNav--Option" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#songsForm">Góra Listy</a>
+    <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+        <a class="omniNav--Option" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
+    <?php endif; ?>
     <form class="omniNav--Option optionsRight" method="get" action="<?=base_url("search")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
         <input type="text" placeholder="Rajaner" name="Search" />
         <input type="submit" value="Szukaj" />
     </form>
-</header>
+</nav>
 <h2>Wyniki wyszukiwania!</h2>
 	<?php if(count($songs) > 0): ?>
         <h3>Liczba nut: <?=count($songs)?></h3>

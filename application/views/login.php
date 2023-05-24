@@ -1,5 +1,4 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-
 <div class="homepage--logo">
     <h2>Zaloguj się do UberRapsów!</h2>
 </div>

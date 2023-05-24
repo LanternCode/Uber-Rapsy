@@ -179,7 +179,7 @@ class Song extends CI_Controller
             if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
         }
 
-        $this->load->view( 'templates/main', $data );
+        $this->load->view( 'templates/customNav', $data );
     }
 
     /**

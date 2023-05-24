@@ -22,7 +22,7 @@ class Welcome extends CI_Controller {
 		$data['body']  = 'home';
 		$data['title'] = "Uber Rapsy | Portal do oceniania utworów rapowanych";
 
-		$this->load->view( 'templates/main', $data );
+		$this->load->view( 'templates/customNav', $data );
 
 	}
 

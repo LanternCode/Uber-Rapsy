@@ -10,22 +10,15 @@
 		<link rel="icon" href="<?=base_url( 'styles/icons/favicon.ico' )?>" type="image/x-icon">
 	</head>
 	<body>
-		<nav class="omniNav">
-			<a class="omniNav--Option" href="<?=base_url()?>">UberRapsy</a>
+        <nav class="omniNav">
+            <a class="omniNav--Option" href="<?=base_url()?>">UberRapsy</a>
             <p class="omniNav--Option">Status: <?=(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']
                     && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer") ? "Recenzent" : "Gość"?></p>
             <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
                 <a class="omniNav--Option" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
                 <a class="omniNav--Option" href="<?=base_url("logout")?>">Wyloguj się</a>
-            <?php else: ?>
-                <a class="omniNav--Option" href="<?=base_url("login")?>">Zaloguj się</a>
             <?php endif; ?>
-            <form class="omniNav--Option optionsRight" method="get" action="<?=base_url("search")?>">
-                <label class="optionsSearchLabel">Szukaj nuty</label>
-                <input type="text" placeholder="Rajaner" name="Search" />
-                <input type="submit" value="Szukaj" />
-            </form>
-		</nav>
+        </nav>
 	    <main>
 	        <?php isset($body) ? $this->load->view($body) : redirect(base_url()); ?>
 	    </main>

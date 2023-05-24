@@ -1,3 +1,4 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <br><br>
 Wygenerowano nowy token odświeżający:
 <br><br>
