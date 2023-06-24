@@ -395,7 +395,9 @@ class SongModel extends CI_Model
      */
     function FilterUnrated(int $listId): Array
     {
-        $sql = "SELECT * FROM song WHERE SongGradeAdam = 0 AND SongGradeChurchie = 0 AND ListId = $listId";
+        $sql = "SELECT * FROM song WHERE SongGradeAdam = 0 AND SongGradeChurchie = 0 AND ListId = $listId
+                     AND SongDistinction = 0 AND SongMemorial = 0 AND SongXD = 0 AND SongNotRap = 0
+                     AND SongDiscomfort = 0 AND SongTop = 0 AND SongNoGrade = 0 AND SongUber = 0 AND SongBelow = 0";
         return $this->db->query($sql)->result();
     }
 }
