@@ -59,7 +59,7 @@ class PlaylistModel extends CI_Model
     function GetListUrlById(int $listId): string
     {
         $sql = "SELECT ListUrl FROM list WHERE ListId = '$listId'";
-        return $this->db->query($sql)->row()->ListUrl;
+        return isset($this->db->query($sql)->row()->ListUrl) ? $this->db->query($sql)->row()->ListUrl : 0;
     }
 
     /**

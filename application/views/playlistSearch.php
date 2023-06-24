@@ -3,8 +3,8 @@
     <a class="omniNav--Option" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#songsForm">Góra Listy</a>
-    <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-        <a class="omniNav--Option" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
+    <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer" && count($songs) > 0): ?>
+        <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
     <?php endif; ?>
     <form class="omniNav--Option optionsRight" method="get" action="<?=base_url("search")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
@@ -15,6 +15,7 @@
 <h2>Wyniki wyszukiwania!</h2>
 	<?php if(count($songs) > 0): ?>
         <h3>Liczba nut: <?=count($songs)?></h3>
+        <form id="songsForm" method="post" action="<?=base_url('updateSelection')?>">
 		<?php
         $i = 0;
         foreach($songs as $song):?>
@@ -40,6 +41,7 @@
                         <label>Średnia:</label>
                         <input type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
                     </h5>
+                    <input type="hidden" name="<?="nwPlistId-".$i+3?>" value="0">
                     <label><input type="hidden" name="<?="songRehearsal-".$i+4?>" value="<?=$song->SongRehearsal?>"><input type="checkbox" <?=$song->SongRehearsal ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Do ponownego odsłuchu</label>
                     <label><input type="hidden" name="<?="songBelow-".$i+13?>" value="<?=$song->SongBelow?>"><input type="checkbox" <?=$song->SongBelow ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 7</label>
                     <label><input type="hidden" name="<?="songDistinction-".$i+5?>" value="<?=$song->SongDistinction?>"><input type="checkbox" <?=$song->SongDistinction ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Wyróżnienie</label>
@@ -55,8 +57,9 @@
 		<?php
         $i += 14;
         endforeach;?>
+            <input type="hidden" name="playlistId" value="search"/>
+        </form>
 	<?php else: ?>
 		<h3>Nie znaleziono nic o podanej nazwie!</h3>
 	<?php endif; ?>
 <span id="bottom"></span>
-<script type="text/javascript" src="<?=base_url( 'scripts/playlist.js' )?>"></script>

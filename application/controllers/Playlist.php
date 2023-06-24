@@ -198,7 +198,9 @@ class Playlist extends CI_Controller {
     }
 
     /**
+     * Updates a selected number of songs (not the entire playlist)
      *
+     * @return void
      */
     public function updateSelection()
     {
@@ -231,7 +233,8 @@ class Playlist extends CI_Controller {
             $data['title'] = "Oceny Zapisane!";
 
             //create a log
-            $this->LogModel->CreateLog('playlist', $data['playlistId'], "Zapisano oceny na playliście");
+            if($data['playlistId'] !== "search")
+                $this->LogModel->CreateLog('playlist', $data['playlistId'], "Zapisano oceny na playliście");
 
             //create a string to store the update report in
             $resultMessage = "<pre>";
@@ -358,7 +361,7 @@ class Playlist extends CI_Controller {
                 }
 
                 //create a log
-                $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty");
+                $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty z ".($data['playlistId'] === "search" ? "wyszukiwarki" : "tierlisty"));
 
                 //save the result message and pass it to the report
                 $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currSongTitle . ":<br><br>" . $localResultMessage) : "";
@@ -387,9 +390,6 @@ class Playlist extends CI_Controller {
 		$data = [];
 
 		$data['ListId'] = isset( $_GET['ListId'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['ListId'] ) ) : 0;
-		$data['ListName'] = $this->PlaylistModel->GetPlaylistNameById($data['ListId']);
-        $data['ListIntegrated'] = $this->PlaylistModel->GetPlaylistIntegratedById($data['ListId']);
-        $data['ListUrl'] = $this->PlaylistModel->GetListUrlById($data['ListId']);
 		$data['Operation'] = isset( $_GET['Reviewer'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Reviewer'] ) ) : 0;
 		$data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
 		$data['reviewer'] = isset($_SESSION['userRole']) ? ($_SESSION['userRole'] == "reviewer" ? true : false) : false;
@@ -397,8 +397,11 @@ class Playlist extends CI_Controller {
 		$data['body'] = 'playlist';
 
 		//confirm the playlist exists
+        $data['ListName'] = is_numeric($data['ListId']) ? $this->PlaylistModel->GetPlaylistNameById($data['ListId']) : false;
 		if($data['ListName'])
 		{
+            $data['ListIntegrated'] = $this->PlaylistModel->GetPlaylistIntegratedById($data['ListId']);
+            $data['ListUrl'] = $this->PlaylistModel->GetListUrlById($data['ListId']);
             $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
 			$data['title'] = $data['ListName']." | Playlista Uber Rapsy";
 
