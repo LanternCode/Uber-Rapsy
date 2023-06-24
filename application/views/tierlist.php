@@ -21,9 +21,10 @@
         if(in_array($i, $gradesToDisplay)): ?>
             <h4 class="gradeCategory">Ocena <?=$i?>:</h4>
             <?php foreach($songs as $song):
-                if($Operation == "Adam" && $song->SongGradeAdam == $i): ?>
+                if(($Operation == "Adam" && $song->SongGradeAdam == $i) || ($Operation == "Churchie" && $song->SongGradeChurchie == $i) ||
+                    ($Operation == "Average" && bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2) == $i)): ?>
                     <div class="videoContainer">
-                        <img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailLeft" />
+                        <img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft" />
                         <div class="dataContainer">
                             <h3 class="songTitle"><a href="<?=$song->SongURL?>"><?=$song->SongTitle?></a></h3>
                             <h4 class="dataContainer--gradeContainer">
@@ -55,82 +56,17 @@
                                         value="<?=($song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : 'Nieoceniona'?>" />
                                 </span>
                             </h5>
+                            <label><input type="hidden" name="<?="songRehearsal-".$i+4?>" value="<?=$song->SongRehearsal?>"><input type="checkbox" <?=$song->SongRehearsal ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Do ponownego odsłuchu</label>
+                            <label><input type="hidden" name="<?="songBelow-".$i+13?>" value="<?=$song->SongBelow?>"><input type="checkbox" <?=$song->SongBelow ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 7</label>
+                            <label><input type="hidden" name="<?="songDistinction-".$i+5?>" value="<?=$song->SongDistinction?>"><input type="checkbox" <?=$song->SongDistinction ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Wyróżnienie</label>
+                            <label><input type="hidden" name="<?="songMemorial-".$i+6?>" value="<?=$song->SongMemorial?>"><input type="checkbox" <?=$song->SongMemorial ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> 10*</label>
+                            <label><input type="hidden" name="<?="songUber-".$i+12?>" value="<?=$song->SongUber?>"><input type="checkbox" <?=$song->SongUber ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Uber</label>
+                            <label><input type="hidden" name="<?="songTop-".$i+10?>" value="<?=$song->SongTop?>"><input type="checkbox" <?=$song->SongTop ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> X15</label>
+                            <label><input type="hidden" name="<?="songXD-".$i+7?>" value="<?=$song->SongXD?>"><input type="checkbox" <?=$song->SongXD ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> XD</label>
+                            <label><input type="hidden" name="<?="songDiscomfort-".$i+9?>" value="<?=$song->SongDiscomfort?>"><input type="checkbox" <?=$song->SongDiscomfort ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Strefa Dyskomfortu</label>
+                            <label><input type="hidden" name="<?="songNotRap-".$i+8?>" value="<?=$song->SongNotRap?>"><input type="checkbox" <?=$song->SongNotRap ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> To nie rapsik</label>
+                            <label><input type="hidden" name="<?="songNoGrade-".$i+11?>" value="<?=$song->SongNoGrade?>"><input type="checkbox" <?=$song->SongNoGrade ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Nie oceniam</label>
                         </div>
-                        <img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailRight" />
-                    </div>
-                <?php elseif($Operation == "Churchie" && $song->SongGradeChurchie == $i): ?>
-                    <div class="videoContainer">
-                        <img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailLeft" />
-                        <div class="dataContainer">
-                            <h3 class="songTitle"><a href="<?=$song->SongURL?>"><?=$song->SongTitle?></a></h3>
-                            <h4 class="dataContainer--gradeContainer">
-                                Kościelny:
-                                <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
-                                <span class="newScore" id="<?='NGBK-'.$song->SongId?>">
-                                    ->
-                                    <input class="gradeInputNew" type="text"
-                                        id="<?='K-'.$song->SongId?>" name="<?='K-'.$song->SongId?>"
-                                        value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
-                                </span>
-                            </h4>
-                            <h4 class="dataContainer--gradeContainer">
-                                Adam:
-                                <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
-                                <span class="newScore" id="<?='NGBA-'.$song->SongId?>">
-                                    ->
-                                    <input class="gradeInputNew" type="text"
-                                        id="<?='A-'.$song->SongId?>" name="<?='A-'.$song->SongId?>"
-                                        value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
-                                </span>
-                            </h4>
-                            <h5 class="dataContainer--gradeContainer">Średnia:
-                                <input type="text" value="<?=$song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0 ? ($song->SongGradeAdam + $song->SongGradeChurchie) / 2 : 'Nieoceniona'?>" disabled />
-                                <span class="newScore" id="<?='NGBAv-'.$song->SongId?>">
-                                    ->
-                                    <input class="averageNew" type="text"
-                                        id="<?=$song->SongId?>"
-                                        value="<?=($song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : 'Nieoceniona'?>" />
-                                </span>
-                            </h5>
-                        </div>
-                        <img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailRight" />
-                    </div>
-                <?php elseif($Operation == "Average" && bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2) == $i ): ?>
-                    <div class="videoContainer">
-                        <img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailLeft" />
-                        <div class="dataContainer">
-                            <h3 class="songTitle"><a href="<?=$song->SongURL?>"><?=$song->SongTitle?></a></h3>
-                            <h5 class="dataContainer--gradeContainer">Średnia:
-                                <input type="text" value="<?=$song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0 ? ($song->SongGradeAdam + $song->SongGradeChurchie) / 2 : 'Nieoceniona'?>" disabled />
-                                <span class="newScore" id="<?='NGBAv-'.$song->SongId?>">
-                                    ->
-                                    <input class="averageNew" type="text"
-                                        id="<?=$song->SongId?>"
-                                        value="<?=($song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : 'Nieoceniona'?>" />
-                                </span>
-                            </h5>
-                            <h4 class="dataContainer--gradeContainer">
-                                Adam:
-                                <input name="<?='OA-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
-                                <span class="newScore" id="<?='NGBA-'.$song->SongId?>">
-                                    ->
-                                    <input class="gradeInputNew" type="text"
-                                        id="<?='A-'.$song->SongId?>" name="<?='A-'.$song->SongId?>"
-                                        value="<?=$song->SongGradeAdam > 0 ? $song->SongGradeAdam : 'Nieoceniona'?>" />
-                                </span>
-                            </h4>
-                            <h4 class="dataContainer--gradeContainer">
-                                Kościelny:
-                                <input name="<?='OK-'.$song->SongId?>" class="gradeInput" type="text" value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
-                                <span class="newScore" id="<?='NGBK-'.$song->SongId?>">
-                                    ->
-                                    <input class="gradeInputNew" type="text"
-                                        id="<?='K-'.$song->SongId?>" name="<?='K-'.$song->SongId?>"
-                                        value="<?=$song->SongGradeChurchie > 0 ? $song->SongGradeChurchie : 'Nieoceniona'?>" />
-                                </span>
-                            </h4>
-                        </div>
-                        <img src="<?=$song->SongThumbnailURL?>" width="250" height="140" alt="thumbnail" class="songThumbnailRight" />
                     </div>
                 <?php endif;
             endforeach;
