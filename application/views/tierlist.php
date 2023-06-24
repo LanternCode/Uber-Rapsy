@@ -12,6 +12,12 @@
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Repeat")?>">Ponowny Odsłuch</option>
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Unrated")?>">Nieoceniona</option>
     </select>
+    <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>">
+        <label class="optionsSearchLabel">Szukaj nuty</label>
+        <input type="hidden" name="ListId" value="<?=$ListId?>" />
+        <input type="text" placeholder="Rajaner" name="Search" />
+        <input type="submit" value="Szukaj" />
+    </form>
 </header>
 <div id="songsForm" class="optionsHeaderSpace"></div>
 <?php if(count($gradesToDisplay) == 1): ?>
