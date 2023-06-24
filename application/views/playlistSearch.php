@@ -22,6 +22,7 @@
 				<img src="<?=$song->SongThumbnailURL?>" width="" height="" alt="thumbnail" class="songThumbnailLeft" />
 				<div class="dataContainer">
                     <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
+                    <h4>Z playlisty: <?=$songPlaylistNames[$i/14]?></h4>
                     <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
                     <h4 class="dataContainer--gradeContainer">
                         <label>Adam:</label>

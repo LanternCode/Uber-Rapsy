@@ -20,6 +20,7 @@ class Song extends CI_Controller
         parent::__construct();
         $this->load->model('LogModel');
         $this->load->model('SongModel');
+        $this->load->model('PlaylistModel');
         //$this->load->helper('cookie');
     }
 
@@ -171,9 +172,12 @@ class Song extends CI_Controller
         $data['reviewer'] = isset($_SESSION['userRole']) ? ($_SESSION['userRole'] == "reviewer" ? true : false) : false;
         $data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
         $data['songs'] = $this->SongModel->GetSongsFromSearch($data['Search']);
+        $data['songPlaylistNames'] = [];
 
         foreach($data['songs'] as $song)
         {
+            //Fill the playlist name array (1 entry per song)
+            $data['songPlaylistNames'][] = $this->PlaylistModel->GetPlaylistNameById($song->ListId);
             //Display values without decimals at the end if the decimals are only 0
             if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
             if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
