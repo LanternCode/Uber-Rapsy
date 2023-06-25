@@ -106,6 +106,8 @@ class Song extends CI_Controller
                     }
                     else $this->SongModel->InsertSongReview($review);
                     $data['successMessage'] = 1;
+
+                    $this->LogModel->CreateLog('song', $songId, "Zrecenzowano utwór");
                 }
 
                 //Update the review data with the newly inserted data for user convenience

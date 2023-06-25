@@ -572,9 +572,10 @@ class Playlist extends CI_Controller {
 				//set update flags
 				$adamGradeUpdated = !($currentAdamRating == $newAdamRating);
 				$churchieGradeUpdated = !($currentChurchieRating == $newChurchieRating);
+                $createUpdateLog = false;
 
 				//update scores
-                if($adamGradeUpdated || $churchieGradeUpdated && $ratingsValid) {
+                if(($adamGradeUpdated || $churchieGradeUpdated) && $ratingsValid) {
                     $this->SongModel->UpdateSongWithScores($songId, $adamGradeUpdated, $newAdamRating, $churchieGradeUpdated, $newChurchieRating);
                     if($adamGradeUpdated && $churchieGradeUpdated) {
                         $localResultMessage .= "\tOcena Adama: " . $currentAdamRating . " -> " . $newAdamRating . "<br>";
@@ -584,6 +585,8 @@ class Playlist extends CI_Controller {
                         $localResultMessage .= "\tOcena Adama: " . $currentAdamRating . " -> " . $newAdamRating;
                     else
                         $localResultMessage .= "\tOcena Kościelnego: " . $currentChurchieRating . " -> " . $newChurchieRating;
+
+                    $createUpdateLog = true;
                 }
 
                 //update the song checkbox properties
@@ -591,55 +594,66 @@ class Playlist extends CI_Controller {
                     $this->SongModel->UpdateSongRehearsalStatus($songId, $newSongRehearsal);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongRehearsal ? "Zaznaczono" : "Odznaczono") . " ponowny odsłuch";
+                    $createUpdateLog = true;
                 }
                 if($currentDistinctionStatus != $newSongDistinction) {
                     $this->SongModel->UpdateSongDistinctionStatus($songId, $newSongDistinction);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongDistinction ? "Zaznaczono" : "Odznaczono") . " wyróżnienie";
+                    $createUpdateLog = true;
                 }
                 if($currentMemorialStatus != $newSongMemorial) {
                     $this->SongModel->UpdateSongMemorialStatus($songId, $newSongMemorial);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongMemorial ? "Zaznaczono" : "Odznaczono") . " 10*";
+                    $createUpdateLog = true;
                 }
                 if($currentXDStatus != $newSongXD) {
                     $this->SongModel->UpdateSongXDStatus($songId, $newSongXD);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongXD ? "Zaznaczono" : "Odznaczono") . " XD";
+                    $createUpdateLog = true;
                 }
 				if($currentNotRapStatus != $newSongNotRap) {
                     $this->SongModel->UpdateSongNotRapStatus($songId, $newSongNotRap);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongNotRap ? "Zaznaczono" : "Odznaczono") . " to nie rapsik";
+                    $createUpdateLog = true;
                 }
 				if($currentDiscomfortStatus != $newSongDiscomfort) {
                     $this->SongModel->UpdateSongDiscomfortStatus($songId, $newSongDiscomfort);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongDiscomfort ? "Zaznaczono" : "Odznaczono") . " strefa dyskomfortu";
+                    $createUpdateLog = true;
                 }
 				if($currentTopStatus != $newSongTop) {
                     $this->SongModel->UpdateSongTopStatus($songId, $newSongTop);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongTop ? "Zaznaczono" : "Odznaczono") . " X15";
+                    $createUpdateLog = true;
                 }
 				if($currentNoGradeStatus != $newSongNoGrade) {
                     $this->SongModel->UpdateSongNoGradeStatus($songId, $newSongNoGrade);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongNoGrade ? "Zaznaczono" : "Odznaczono") . " nie oceniam";
+                    $createUpdateLog = true;
                 }
 				if($currentUberStatus != $newSongUber) {
                     $this->SongModel->UpdateSongUberStatus($songId, $newSongUber);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongUber ? "Zaznaczono" : "Odznaczono") . " Uber";
+                    $createUpdateLog = true;
                 }
 				if($currentBelowStatus != $newSongBelow) {
                     $this->SongModel->UpdateSongBelowStatus($songId, $newSongBelow);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 7";
+                    $createUpdateLog = true;
                 }
 
-                //create a log
-                $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty");
+                //create a log if changes were made
+                if($createUpdateLog)
+                    $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty");
 
                 //check if there is any need to move songs between playlists
                 if($newPlaylistId != $data['playlistId'] && $newPlaylistId != 0)
