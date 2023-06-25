@@ -501,9 +501,6 @@ class Playlist extends CI_Controller {
 			$data['body']  = 'update';
             $data['title'] = "Oceny Zapisane!";
 
-            //create a log
-            $this->LogModel->CreateLog('playlist', $data['playlistId'], "Zapisano oceny na playliście");
-
 			//fetch all ratings for the playlist
 			$songsGrades = $this->SongModel->GetSongsFromList($data['playlistId']);
 
@@ -664,35 +661,35 @@ class Playlist extends CI_Controller {
                         //validate the access token required for an api call
                         $tokenExpired = $this->validateAuthToken($client);
 
+                        //Perform the api call or refresh the auth token
                         if ($tokenExpired)
                         {
-                            //refresh token not found
                             $data['body'] = 'invalidAction';
                             $data['title'] = "Błąd autoryzacji tokenu!";
                             $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
                                 Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
                         }
-                        else //perform the api call
+                        else
                         {
-                            //get old and new playlist data for moving
+                            //Get old and new playlist data for moving
                             $oldPlaylistDetails = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
                             $newPlaylistDetails = $this->PlaylistModel->FetchPlaylistById($newPlaylistId);
                             $newSongPlaylistItemsId = '';
 
-                            // Define service object for making API requests.
+                            //Define service object for making API requests.
                             $service = new Google_Service_YouTube($client);
 
-                            // Define the $playlistItem object, which will be uploaded as the request body.
+                            //Define the $playlistItem object, which will be uploaded as the request body.
                             $playlistItem = new Google_Service_YouTube_PlaylistItem();
 
-                            // Add 'snippet' object to the $playlistItem object.
+                            //Add 'snippet' object to the $playlistItem object.
                             $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
                             $playlistItemSnippet->setPlaylistId($newPlaylistDetails->ListUrl);
 
-                            //fetch the song URL and PlaylistItemId from the database using the local id
+                            //Fetch the song URL and PlaylistItemId from the database using the local id
                             $songDetails = $this->SongModel->GetSongDetailsForMoving($songId);
 
-                            //with a large enough number, last position available will be taken
+                            //With a large enough number, last position available will be taken
                             $playlistItemSnippet->setPosition(0);
                             $resourceId = new Google_Service_YouTube_ResourceId();
                             $resourceId->setKind('youtube#video');
@@ -761,6 +758,11 @@ class Playlist extends CI_Controller {
                 $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currSongTitle . ":<br><br>" . $localResultMessage) : "";
                 $resultMessage .= $finalResultMessage;
 			}
+            //finalise the result message
+            $data['resultMessage'] = $resultMessage . "</pre>";
+            //create a log
+            $logMessage = "Zapisano oceny na playliście, wprowadzono następujące zmiany:<br>" . $data['resultMessage'];
+            $this->LogModel->CreateLog('playlist', $data['playlistId'], $logMessage);
 		}
 		else
         {
@@ -770,7 +772,6 @@ class Playlist extends CI_Controller {
             $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
         }
 
-        $data['resultMessage'] = $resultMessage . "</pre>";
 		$this->load->view('templates/main', $data);
 	}
 

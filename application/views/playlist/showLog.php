@@ -10,7 +10,7 @@
 <?php if(count($playlistLog) > 0): ?>
     <h3>Historia Playlisty</h3>
         <?php foreach($playlistLog as $log): ?>
-            <?=$log->Description?> <?=$log->Timestamp?> <br> 
+            <?=$log->Timestamp?> <?=$log->Description?><br>
         <?php endforeach; ?>
 <?php else: ?>
     <h3>Ta playlista nie posiada żadnej historii.</h3>

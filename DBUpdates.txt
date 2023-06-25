@@ -1,0 +1,1 @@
+ALTER TABLE `log` CHANGE `Description` `Description` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci NOT NULL;
