@@ -29,12 +29,14 @@
 </header>
 <h2>Przeglądasz playlistę <?=$ListName ?? "o nieznanej nazwie"?>!</h2>
 <form id="songsForm" method="post" action="<?=base_url('updateGrades')?>">
-	<?php if(count($songs) > 0): ?>
+	<?php if(count($songs) > 0):
+        $i = 0; ?>
         <h3>Liczba nut: <?=count($songs)?></h3>
-		<?php
-        $i = 0;
-        foreach($songs as $song):?>
-			<div class="videoContainer">
+        <h4>Średnia Ocen Playlisty: <?=$avgOverall?></h4>
+        <h4>Średnia Ocen (Adam): <?=$avgAdam?></h4>
+        <h4>Średnia Ocen (Kościelny): <?=$avgChurchie?></h4>
+		<?php foreach($songs as $song): ?>
+            <div class="videoContainer">
 				<img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft" />
 				<div class="dataContainer">
                     <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>

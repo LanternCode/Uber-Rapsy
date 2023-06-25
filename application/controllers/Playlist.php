@@ -208,18 +208,6 @@ class Playlist extends CI_Controller {
         $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
         $userAuthenticated = $this->authenticateUser();
 
-        //include google library
-        $libraryIncluded = true;
-        try {
-            $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
-            require_once $myPath . 'vendor/autoload.php';
-            $client = new Google\Client();
-            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-        } catch(Exception $e) {
-            //The library or the client could not be initiated
-            $libraryIncluded = false;
-        }
-
         //Check if this request comes from a valid playlist
         if($data['playlistId'] === "invalid")
         {
@@ -449,12 +437,24 @@ class Playlist extends CI_Controller {
 				$data['songs'] = $this->SongModel->GetSongsFromList($data['ListId']);
 			}
 
+            //Calculate the averages
+            $avgOverall = 0;
+            $avgAdam = 0;
+            $avgChurchie = 0;
+            $ratedCount = 0;
 	        foreach($data['songs'] as $song)
 	        {
 	            //Display values without decimals at the end if the decimals are only 0
                 if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
 	            if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
+                $avgOverall += ($song->SongGradeAdam + $song->SongGradeChurchie) / 2;
+                $avgAdam += $song->SongGradeAdam;
+                $avgChurchie += $song->SongGradeChurchie;
+                $ratedCount += $song->SongGradeAdam > 0 && $song->SongGradeChurchie > 0 ? 1 : 0;
 	        }
+            $data['avgOverall'] = $ratedCount > 0 ? $avgOverall/$ratedCount : 0;
+            $data['avgAdam'] = $ratedCount > 0 ? $avgAdam/$ratedCount : 0;
+            $data['avgChurchie'] = $ratedCount > 0 ? $avgChurchie/$ratedCount : 0;
 		}
 		else
 		{
