@@ -1,1 +1,3 @@
 ALTER TABLE `log` CHANGE `Description` `Description` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci NOT NULL;
+
+ALTER TABLE `song` ADD `SongBelTen` BIT(1) NOT NULL DEFAULT b'0' COMMENT '<10 button' AFTER `SongBelow`, ADD `SongBelNine` BIT(1) NOT NULL DEFAULT b'0' COMMENT '<9 button' AFTER `SongBelTen`, ADD `SongBelEight` BIT(1) NOT NULL DEFAULT b'0' COMMENT '<8 button' AFTER `SongBelNine`, ADD `SongBelFour` BIT(1) NOT NULL DEFAULT b'0' COMMENT '<4 button' AFTER `SongBelEight`, ADD `SongDuoTen` BIT(1) NOT NULL DEFAULT b'0' COMMENT '\"10\" button' AFTER `SongBelFour`, ADD `SongVeto` BIT(1) NOT NULL DEFAULT b'0' COMMENT 'Veto button' AFTER `SongDuoTen`;

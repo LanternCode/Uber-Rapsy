@@ -228,7 +228,7 @@ class Playlist extends CI_Controller {
             $resultMessage = "<pre>";
 
             //process each song separately
-            for ($i = 0; $i < count($_POST)-1; $i+=14)
+            for ($i = 0; $i < count($_POST)-1; $i+=20)
             {
                 //create a variable for the song's update message
                 $localResultMessage = "";
@@ -247,6 +247,12 @@ class Playlist extends CI_Controller {
                 $newSongNoGrade = $_POST["songNoGrade-".$i+11];
                 $newSongUber = $_POST["songUber-".$i+12];
                 $newSongBelow = $_POST["songBelow-".$i+13];
+                $newSongBelTen = $_POST["songBelTen-".$i+14];
+                $newSongBelNine = $_POST["songBelNine-".$i+15];
+                $newSongBelEight = $_POST["songBelEight-".$i+16];
+                $newSongBelFour = $_POST["songBelFour-".$i+17];
+                $newSongDuoTen = $_POST["songDuoTen-".$i+18];
+                $newSongVeto = $_POST["songVeto-".$i+19];
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
                 $ratingsValid = false;
@@ -278,6 +284,12 @@ class Playlist extends CI_Controller {
                 $currentNoGradeStatus = $currentSong->SongNoGrade;
                 $currentUberStatus = $currentSong->SongUber;
                 $currentBelowStatus = $currentSong->SongBelow;
+                $currentBelTenStatus = $currentSong->SongBelTen;
+                $currentBelNineStatus = $currentSong->SongBelNine;
+                $currentBelEightStatus = $currentSong->SongBelEight;
+                $currentBelFourStatus = $currentSong->SongBelFour;
+                $currentDuoTenStatus = $currentSong->SongDuoTen;
+                $currentVetoStatus = $currentSong->SongVeto;
 
                 //set update flags
                 $adamGradeUpdated = !($currentAdamRating == $newAdamRating);
@@ -347,6 +359,42 @@ class Playlist extends CI_Controller {
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 7";
                 }
+                if($currentBelTenStatus != $newSongBelTen) {
+                    $this->SongModel->UpdateSongBelTenStatus($songId, $newSongBelTen);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 10";
+                    $createUpdateLog = true;
+                }
+                if($currentBelNineStatus != $newSongBelNine) {
+                    $this->SongModel->UpdateSongBelNineStatus($songId, $newSongBelNine);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 9";
+                    $createUpdateLog = true;
+                }
+                if($currentBelEightStatus != $newSongBelEight) {
+                    $this->SongModel->UpdateSongBelEightStatus($songId, $newSongBelEight);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 8";
+                    $createUpdateLog = true;
+                }
+                if($currentBelFourStatus != $newSongBelFour) {
+                    $this->SongModel->UpdateSongBelFourStatus($songId, $newSongBelFour);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 4";
+                    $createUpdateLog = true;
+                }
+                if($currentDuoTenStatus != $newSongDuoTen) {
+                    $this->SongModel->UpdateSongDuoTenStatus($songId, $newSongDuoTen);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . ' "10"';
+                    $createUpdateLog = true;
+                }
+                if($currentVetoStatus != $newSongVeto) {
+                    $this->SongModel->UpdateSongVetoStatus($songId, $newSongVeto);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " VETO";
+                    $createUpdateLog = true;
+                }
 
                 //create a log
                 $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty z ".($data['playlistId'] === "search" ? "wyszukiwarki" : "tierlisty"));
@@ -355,6 +403,12 @@ class Playlist extends CI_Controller {
                 $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currSongTitle . ":<br><br>" . $localResultMessage) : "";
                 $resultMessage .= $finalResultMessage;
             }
+            //finalise the result message
+            $data['resultMessage'] = $resultMessage . "</pre>";
+            //create a log
+            $where = $data['playlistId'] === "search" ? "z wyszukiwarki" : "z tierlisty";
+            $logMessage = "Zapisano oceny ".$where.", wprowadzono następujące zmiany:<br>" . $data['resultMessage'];
+            $this->LogModel->CreateLog('playlist', $data['playlistId'], $logMessage);
         }
         else
         {
@@ -364,7 +418,6 @@ class Playlist extends CI_Controller {
             $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
         }
 
-        $data['resultMessage'] = $resultMessage . "</pre>";
         $this->load->view('templates/main', $data);
     }
 
@@ -508,7 +561,7 @@ class Playlist extends CI_Controller {
             $resultMessage = "<pre>";
 
             //process each song separately
-			for ($i = 0; $i < count($_POST)-1; $i+=14)
+			for ($i = 0; $i < count($_POST)-1; $i+=20)
 			{
                 //create a variable for the song's update message
                 $localResultMessage = "";
@@ -527,6 +580,12 @@ class Playlist extends CI_Controller {
 				$newSongNoGrade = $_POST["songNoGrade-".$i+11];
 				$newSongUber = $_POST["songUber-".$i+12];
 				$newSongBelow = $_POST["songBelow-".$i+13];
+				$newSongBelTen = $_POST["songBelTen-".$i+14];
+				$newSongBelNine = $_POST["songBelNine-".$i+15];
+				$newSongBelEight = $_POST["songBelEight-".$i+16];
+				$newSongBelFour = $_POST["songBelFour-".$i+17];
+				$newSongDuoTen = $_POST["songDuoTen-".$i+18];
+				$newSongVeto = $_POST["songVeto-".$i+19];
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
                 $ratingsValid = false;
@@ -562,6 +621,12 @@ class Playlist extends CI_Controller {
 						$currentNoGradeStatus = $songGrades->SongNoGrade;
 						$currentUberStatus = $songGrades->SongUber;
 						$currentBelowStatus = $songGrades->SongBelow;
+						$currentBelTenStatus = $songGrades->SongBelTen;
+						$currentBelNineStatus = $songGrades->SongBelNine;
+						$currentBelEightStatus = $songGrades->SongBelEight;
+						$currentBelFourStatus = $songGrades->SongBelFour;
+						$currentDuoTenStatus = $songGrades->SongDuoTen;
+						$currentVetoStatus = $songGrades->SongVeto;
 						break;
 					}
 				}
@@ -645,6 +710,42 @@ class Playlist extends CI_Controller {
                     $this->SongModel->UpdateSongBelowStatus($songId, $newSongBelow);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 7";
+                    $createUpdateLog = true;
+                }
+                if($currentBelTenStatus != $newSongBelTen) {
+                    $this->SongModel->UpdateSongBelTenStatus($songId, $newSongBelTen);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 10";
+                    $createUpdateLog = true;
+                }
+                if($currentBelNineStatus != $newSongBelNine) {
+                    $this->SongModel->UpdateSongBelNineStatus($songId, $newSongBelNine);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 9";
+                    $createUpdateLog = true;
+                }
+                if($currentBelEightStatus != $newSongBelEight) {
+                    $this->SongModel->UpdateSongBelEightStatus($songId, $newSongBelEight);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 8";
+                    $createUpdateLog = true;
+                }
+                if($currentBelFourStatus != $newSongBelFour) {
+                    $this->SongModel->UpdateSongBelFourStatus($songId, $newSongBelFour);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 4";
+                    $createUpdateLog = true;
+                }
+                if($currentDuoTenStatus != $newSongDuoTen) {
+                    $this->SongModel->UpdateSongDuoTenStatus($songId, $newSongDuoTen);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . ' "10"';
+                    $createUpdateLog = true;
+                }
+                if($currentVetoStatus != $newSongVeto) {
+                    $this->SongModel->UpdateSongVetoStatus($songId, $newSongVeto);
+                    $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                    $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " VETO";
                     $createUpdateLog = true;
                 }
 

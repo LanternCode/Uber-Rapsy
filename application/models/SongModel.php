@@ -336,6 +336,96 @@ class SongModel extends CI_Model
     }
 
     /**
+     * Updated the SongBelTen property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongBelTen  song BelTen status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongBelTenStatus(int $songId, int $newSongBelTen): bool
+    {
+        $sql = "UPDATE song SET SongBelTen = $newSongBelTen WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongBelNine property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongBelNine  song BelNine status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongBelNineStatus(int $songId, int $newSongBelNine): bool
+    {
+        $sql = "UPDATE song SET SongBelNine = $newSongBelNine WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongBelEight property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongBelEight  song BelEight status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongBelEightStatus(int $songId, int $newSongBelEight): bool
+    {
+        $sql = "UPDATE song SET SongBelEight = $newSongBelEight WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongBelFour property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongBelFour  song BelFour status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongBelFourStatus(int $songId, int $newSongBelFour): bool
+    {
+        $sql = "UPDATE song SET SongBelFour = $newSongBelFour WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongDuoTen property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongDuoTen  song DuoTen status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongDuoTenStatus(int $songId, int $newSongDuoTen): bool
+    {
+        $sql = "UPDATE song SET SongDuoTen = $newSongDuoTen WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Updated the SongVeto property of a song
+     *
+     * @param int $songId  id of the song to update
+     * @param int $newSongVeto  song VETO status
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateSongVetoStatus(int $songId, int $newSongVeto): bool
+    {
+        $sql = "UPDATE song SET SongVeto = $newSongVeto WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
      * Inserts a new song review into the database
      *
      * @param array $songReview  review to be inserted
