@@ -508,6 +508,7 @@ class Playlist extends CI_Controller {
             $data['avgOverall'] = $ratedCount > 0 ? $avgOverall/$ratedCount : 0;
             $data['avgAdam'] = $ratedCount > 0 ? $avgAdam/$ratedCount : 0;
             $data['avgChurchie'] = $ratedCount > 0 ? $avgChurchie/$ratedCount : 0;
+            $data['ratedCount'] = $ratedCount;
 		}
 		else
 		{

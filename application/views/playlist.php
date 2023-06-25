@@ -32,9 +32,9 @@
 	<?php if(count($songs) > 0):
         $i = 0; ?>
         <h3>Liczba nut: <?=count($songs)?></h3>
-        <h4>Średnia Ocen Playlisty: <?=$avgOverall?></h4>
-        <h4>Średnia Ocen (Adam): <?=$avgAdam?></h4>
-        <h4>Średnia Ocen (Kościelny): <?=$avgChurchie?></h4>
+        <h4>Średnia Ocen Playlisty: <?=number_format($avgOverall, 2)?> (<?=$ratedCount?>)</h4>
+        <h4>Średnia Ocen (Adam): <?=number_format($avgAdam, 2)?></h4>
+        <h4>Średnia Ocen (Kościelny): <?=number_format($avgChurchie, 2)?></h4>
 		<?php foreach($songs as $song): ?>
             <div class="videoContainer">
 				<img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft" />
