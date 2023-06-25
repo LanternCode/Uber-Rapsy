@@ -25,5 +25,23 @@
         <option value="0" <?=$playlist->ListActive === "0" ? "selected" : ''?>>Prywatna</option>
     </select><br /><br />
 
+    <label>Widoczność przycisków:</label><br>
+    <label><input type="checkbox" <?=$playlist->btnRehearsal ? "checked" : ""?> name="btnRehearsal"> Do ponownego odsłuchu</label><br>
+    <label><input type="checkbox" <?=$playlist->btnBelowFour ? "checked" : ""?> name="btnBelowFour"> < 4</label><br>
+    <label><input type="checkbox" <?=$playlist->btnBelowSeven ? "checked" : ""?> name="btnBelowSeven"> < 7</label><br>
+    <label><input type="checkbox" <?=$playlist->btnBelowEight ? "checked" : ""?> name="btnBelowEight"> < 8</label><br>
+    <label><input type="checkbox" <?=$playlist->btnBelowNine ? "checked" : ""?> name="btnBelowNine"> < 9</label><br>
+    <label><input type="checkbox" <?=$playlist->btnBelowTen ? "checked" : ""?> name="btnBelowTen"> < 10</label><br>
+    <label><input type="checkbox" <?=$playlist->btnDistinction ? "checked" : ""?> name="btnDistinction"> Wyróżnienie</label><br>
+    <label><input type="checkbox" <?=$playlist->btnDuoTen ? "checked" : ""?> name="btnDuoTen"> "10"</label><br>
+    <label><input type="checkbox" <?=$playlist->btnMemorial ? "checked" : ""?> name="btnMemorial"> 10*</label><br>
+    <label><input type="checkbox" <?=$playlist->btnUber ? "checked" : ""?> name="btnUber"> Uber</label><br>
+    <label><input type="checkbox" <?=$playlist->btnTop ? "checked" : ""?> name="btnTop"> X15</label><br>
+    <label><input type="checkbox" <?=$playlist->btnXD ? "checked" : ""?> name="btnXD"> XD</label><br>
+    <label><input type="checkbox" <?=$playlist->btnDiscomfort ? "checked" : ""?> name="btnDiscomfort"> Strefa Dyskomfortu</label><br>
+    <label><input type="checkbox" <?=$playlist->btnNotRap ? "checked" : ""?> name="btnNotRap"> To nie rapsik</label><br>
+    <label><input type="checkbox" <?=$playlist->btnNoGrade ? "checked" : ""?> name="btnNoGrade"> Nie oceniam</label><br>
+    <label><input type="checkbox" <?=$playlist->btnVeto ? "checked" : ""?> name="btnVeto"> VETO</label><br><br>
+
     <input type="submit" name="playlistFormSubmitted" value="Zapisz" />
 </form>

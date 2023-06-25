@@ -444,6 +444,7 @@ class Playlist extends CI_Controller {
             $data['ListIntegrated'] = $this->PlaylistModel->GetPlaylistIntegratedById($data['ListId']);
             $data['ListUrl'] = $this->PlaylistModel->GetListUrlById($data['ListId']);
             $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
+            $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
 			$data['title'] = $data['ListName']." | Playlista Uber Rapsy";
 
 			//There are 3 available choices: filter by grade (tierlist), search by title, display all
