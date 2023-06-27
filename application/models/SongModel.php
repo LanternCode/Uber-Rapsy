@@ -76,6 +76,19 @@ class SongModel extends CI_Model
     }
 
     /**
+     * Inserts a new song into the database based on the complete song array
+     *
+     * @param array $queryData  song to be inserted
+     * @return int new song's id
+     */
+    function InsertSongFromArray(array $queryData = []): int
+    {
+        if($this->db->insert('song', $queryData))
+            return $this->db->conn_id->insert_id;
+        else return false;
+    }
+
+    /**
      * Update a song with scores added by the reviewers.
      *
      * @param int $songId  id of the song to update

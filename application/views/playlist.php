@@ -57,9 +57,9 @@
                         <label>Średnia:</label>
                         <input type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
                     </h5>
-						<?php  //only 1 list means there is nowhere to move the song to
+						<?php  //only 1 list means there is nowhere to move or copy the song to
 						if(count($lists) > 1 && $reviewer): ?>
-							<h5 class="dataContainer--gradeContainer">
+							<h5 class="dataContainer--gradeContainer" hidden>
                                 <label>Przenieś do:</label>
 								<select name="<?="nwPlistId-".$i+3?>">
 									<option value="0">Nie przenoś</option>
@@ -71,9 +71,24 @@
 									endforeach; ?>
 								</select>
 							</h5>
+                            <h5 class="dataContainer--gradeContainer">
+                                <label>Kopiuj do:</label>
+                                <select name="<?="copyPlistId-".$i+20?>">
+                                    <option value="0">Nie kopiuj</option>
+                                    <?php foreach($lists as $list):
+                                        //Do not show the current list in the options
+                                        if($list->ListId !== $ListId):?>
+                                            <option value="<?=$list->ListId?>"><?=$list->ListName?></option>
+                                        <?php endif;
+                                    endforeach; ?>
+                                </select>
+                            </h5>
 						<?php else: ?>
                             <select style="display:none;" name="<?="playlistId-".$song->SongId?>">
                                 <option value="0">Nie przenoś</option>
+                            </select>
+                            <select style="display:none;" name="<?="copyPlistId-".$i+20?>">
+                                <option value="0">Nie kopiuj</option>
                             </select>
                         <?php endif;?>
                     <label <?=$playlist->btnRehearsal ? '' : 'hidden'?>><input type="hidden" name="<?="songRehearsal-".$i+4?>" value="<?=$song->SongRehearsal?>"><input type="checkbox" <?=$song->SongRehearsal ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Do ponownego odsłuchu</label>
@@ -95,7 +110,7 @@
 				</div>
 			</div>
 		<?php
-        $i += 20;
+        $i += 21;
         endforeach;?>
 	<?php else: ?>
 		<h3>Ta playlista jest pusta mordo, nowy sezon już wkrótce!</h3>

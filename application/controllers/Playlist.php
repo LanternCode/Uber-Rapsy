@@ -349,7 +349,7 @@ class Playlist extends CI_Controller {
             $resultMessage = "<pre>";
 
             //process each song separately
-            for ($i = 0; $i < count($_POST)-1; $i+=20)
+            for ($i = 0; $i < count($_POST)-1; $i+=21)
             {
                 //create a variable for the song's update message
                 $localResultMessage = "";
@@ -374,6 +374,7 @@ class Playlist extends CI_Controller {
                 $newSongBelFour = $_POST["songBelFour-".$i+17];
                 $newSongDuoTen = $_POST["songDuoTen-".$i+18];
                 $newSongVeto = $_POST["songVeto-".$i+19];
+                $copyToPlaylist = $_POST["copyPlistId-".$i+20];
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
                 $ratingsValid = false;
@@ -588,7 +589,7 @@ class Playlist extends CI_Controller {
             $resultMessage = "<pre>";
 
             //process each song separately
-			for ($i = 0; $i < count($_POST)-1; $i+=20)
+			for ($i = 0; $i < count($_POST)-1; $i+=21)
 			{
                 //create a variable for the song's update message
                 $localResultMessage = "";
@@ -613,6 +614,7 @@ class Playlist extends CI_Controller {
 				$newSongBelFour = $_POST["songBelFour-".$i+17];
 				$newSongDuoTen = $_POST["songDuoTen-".$i+18];
 				$newSongVeto = $_POST["songVeto-".$i+19];
+                $copyToPlaylist = $_POST["copyPlistId-".$i+20];
 
                 //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
                 $ratingsValid = false;
@@ -776,17 +778,51 @@ class Playlist extends CI_Controller {
                     $createUpdateLog = true;
                 }
 
-                //create a log if changes were made
+                //Create a log if changes were made
                 if($createUpdateLog)
                     $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty");
 
-                //check if there is any need to move songs between playlists
-                if($newPlaylistId != $data['playlistId'] && $newPlaylistId != 0)
+                //Copy the song to a different playlist
+                $copyActive = $copyToPlaylist && ($copyToPlaylist !== $data['playlistId']);
+                if($copyActive) {
+                    //Get the exact copy of the song (after updates!) and change the playlist id
+                    $thisSong = $this->SongModel->GetSongById($songId);
+                    $thisSong->ListId = $copyToPlaylist;
+                    $thisSong->SongId = 0;
+                    $thisSong = (array) $thisSong;
+                    //For some reason 0 and false are treated differently when inserting with CI
+                    $thisSong['SongRehearsal'] = !($thisSong['SongRehearsal'] == 0);
+                    $thisSong['SongDistinction'] = !($thisSong['SongDistinction'] == 0);
+                    $thisSong['SongMemorial'] = !($thisSong['SongMemorial'] == 0);
+                    $thisSong['SongXD'] = !($thisSong['SongXD'] == 0);
+                    $thisSong['SongNotRap'] = !($thisSong['SongNotRap'] == 0);
+                    $thisSong['SongDiscomfort'] = !($thisSong['SongDiscomfort'] == 0);
+                    $thisSong['SongTop'] = !($thisSong['SongTop'] == 0);
+                    $thisSong['SongNoGrade'] = !($thisSong['SongNoGrade'] == 0);
+                    $thisSong['SongUber'] = !($thisSong['SongUber'] == 0);
+                    $thisSong['SongBelow'] = !($thisSong['SongBelow'] == 0);
+                    $thisSong['SongBelTen'] = !($thisSong['SongBelTen'] == 0);
+                    $thisSong['SongBelNine'] = !($thisSong['SongBelNine'] == 0);
+                    $thisSong['SongBelEight'] = !($thisSong['SongBelEight'] == 0);
+                    $thisSong['SongBelFour'] = !($thisSong['SongBelFour'] == 0);
+                    $thisSong['SongDuoTen'] = !($thisSong['SongDuoTen'] == 0);
+                    $thisSong['SongVeto'] = !($thisSong['SongVeto'] == 0);
+                    //Insert the copy into the database
+                    $songCopyId = $this->SongModel->InsertSongFromArray($thisSong);
+                    //Add a log explaining where the song came from
+                    $sourceName = $this->PlaylistModel->GetPlaylistNameById($data['playlistId']);
+                    $targetName = $this->PlaylistModel->GetPlaylistNameById($thisSong['ListId']);
+                    $this->LogModel->CreateLog("song", $songCopyId, "Nuta skopiowana z playlisty ".$sourceName." do ".$targetName);
+                }
+
+                //Check if there is any need to move songs between playlists
+                /* $moveActive = $newPlaylistId != $data['playlistId'] && $newPlaylistId != 0;
+                if($moveActive || $copyActive)
                 {
-                    //only proceed when the library was successfully included
+                    //Only proceed when the library was successfully included
                     if($libraryIncluded)
                     {
-                        //validate the access token required for an api call
+                        //Validate the access token required for an api call
                         $tokenExpired = $this->validateAuthToken($client);
 
                         //Perform the api call or refresh the auth token
@@ -799,9 +835,11 @@ class Playlist extends CI_Controller {
                         }
                         else
                         {
-                            //Get old and new playlist data for moving
+                            //Get current and new playlist data for moving and copying
                             $oldPlaylistDetails = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
                             $newPlaylistDetails = $this->PlaylistModel->FetchPlaylistById($newPlaylistId);
+                            $copyPlaylistDetails = $this->PlaylistModel->FetchPlaylistById($copyToPlaylist);
+                            $copyPlaylistIntegrated = $copyPlaylistDetails->ListIntegrated;
                             $newSongPlaylistItemsId = '';
 
                             //Define service object for making API requests.
@@ -817,7 +855,7 @@ class Playlist extends CI_Controller {
                             //Fetch the song URL and PlaylistItemId from the database using the local id
                             $songDetails = $this->SongModel->GetSongDetailsForMoving($songId);
 
-                            //With a large enough number, last position available will be taken
+                            //Set the resources
                             $playlistItemSnippet->setPosition(0);
                             $resourceId = new Google_Service_YouTube_ResourceId();
                             $resourceId->setKind('youtube#video');
@@ -827,18 +865,18 @@ class Playlist extends CI_Controller {
 
                             if(!$oldPlaylistDetails->ListIntegrated && $newPlaylistDetails->ListIntegrated)
                             {
-                                //this playlist is local and target playlist is integrated with yt so add the song to the integrated playlist
+                                //This playlist is local and target playlist is integrated with yt so add the song to the integrated playlist
                                 $response = $service->playlistItems->insert('snippet', $playlistItem);
-                                //new PlaylistItemsId is generated, so we need to capture it to update it in the db
+                                //New PlaylistItemsId is generated, so we need to capture it to update it in the db
                                 $newSongPlaylistItemsId = $response->id;
-                                //create a log for the playlist
+                                //Create a log for the playlist
                                 $this->LogModel->CreateLog("playlist", $newPlaylistDetails->ListId, "Nuta dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
                             }
                             else if($oldPlaylistDetails->ListIntegrated && !$newPlaylistDetails->ListIntegrated)
                             {
-                                //this playlist is integrated with yt and target playlist is local so delete the song from the integrated playlist
+                                //This playlist is integrated with yt and target playlist is local so delete the song from the integrated playlist
                                 $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
-                                //create a log for the playlist
+                                //Create a log for the playlist
                                 $this->LogModel->CreateLog("playlist", $oldPlaylistDetails->ListId, "Nuta usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
                             }
                             else if ($oldPlaylistDetails->ListIntegrated && $newPlaylistDetails->ListIntegrated)
@@ -881,7 +919,7 @@ class Playlist extends CI_Controller {
                         $data['title'] = "Wystąpił Błąd!";
                         $data['errorMessage'] = "Nie znaleziono biblioteki google!";
                     }
-                }
+                }*/
                 //Save the result message and pass it to the report
                 $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currSongTitle . ":<br><br>" . $localResultMessage) : "";
                 $resultMessage .= $finalResultMessage;
