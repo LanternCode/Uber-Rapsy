@@ -194,18 +194,18 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Opens the playlist quick edit page and processes the form.
+     * Opens the playlist edit page and processes the form.
      *
      * @return void
      */
-    public function quickEdit()
+    public function edit()
     {
         $userAuthenticated = $this->authenticateUser();
 
         if($userAuthenticated)
         {
             $data = [];
-            $data['body']  = 'playlist/quickEdit';
+            $data['body']  = 'playlist/edit';
             $data['title'] = "Uber Rapsy | Edytuj playlistę!";
             $data['ListId'] = isset( $_GET['id'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['id'] ) ) : 0;
 
@@ -526,11 +526,14 @@ class Playlist extends CI_Controller {
             }
             //finalise the result message
             $data['resultMessage'] = $resultMessage . "</pre>";
+            //submit a report
+            $newReportId = $this->LogModel->SubmitReport($data['resultMessage']);
             //create a log
             $where = $data['playlistId'] === "search" ? "z wyszukiwarki" : "z tierlisty";
-            $logMessage = "Zapisano oceny ".$where.", wprowadzono następujące zmiany:<br>" . $data['resultMessage'];
+            $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
+            $logMessage = "Zapisano oceny ".$where.$reportSuccessful;
             if(is_numeric($data['playlistId']))
-                $this->LogModel->CreateLog('playlist', $data['playlistId'], $logMessage);
+                $this->LogModel->CreateLog('playlist', $data['playlistId'], $logMessage, $newReportId);
         }
         else
         {
@@ -879,15 +882,18 @@ class Playlist extends CI_Controller {
                         $data['errorMessage'] = "Nie znaleziono biblioteki google!";
                     }
                 }
-                //save the result message and pass it to the report
+                //Save the result message and pass it to the report
                 $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currSongTitle . ":<br><br>" . $localResultMessage) : "";
                 $resultMessage .= $finalResultMessage;
 			}
-            //finalise the result message
+            //Finalise the result message
             $data['resultMessage'] = $resultMessage . "</pre>";
-            //create a log
-            $logMessage = "Zapisano oceny na playliście, wprowadzono następujące zmiany:<br>" . $data['resultMessage'];
-            $this->LogModel->CreateLog('playlist', $data['playlistId'], $logMessage);
+            //Submit a report
+            $newReportId = $this->LogModel->SubmitReport($data['resultMessage']);
+            //Create a log
+            $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
+            $logMessage = "Zapisano oceny na playliście".$reportSuccessful;
+            $this->LogModel->CreateLog('playlist', $data['playlistId'], $logMessage, $newReportId);
 		}
 		else
         {

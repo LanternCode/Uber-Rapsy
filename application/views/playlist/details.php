@@ -11,7 +11,7 @@
 <p>Playlista zintegrowana: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?> <a href="<?=base_url('playlist/integrate?id='.$playlist->ListId)?>">(Zmień status integracji)</a></p><br>
 <p>Playlista publiczna: <?=$playlist->ListActive === "1" ? "Tak" : "Nie"?></p><br><br>
 
-<a href="<?=base_url('playlist/quickEdit?id='.$playlist->ListId)?>">Edytuj Playlistę</a><br><br>
+<a href="<?=base_url('playlist/edit?id='.$playlist->ListId)?>">Edytuj Playlistę</a><br><br>
 <a href="<?=base_url('playlist/hidePlaylist?id='.$playlist->ListId)?>"><?=$playlist->ListActive === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br><br>
 <a href="<?=base_url('playlist/deleteLocal?id='.$playlist->ListId)?>">Usuń Playlistę</a><br><br>
 <a href="<?=base_url('playlist/showLog?id='.$playlist->ListId)?>">Pokaż ostatnie zmiany</a><br><br>

@@ -8,13 +8,14 @@ $route['downloadSongs'] = 'Playlist/downloadSongs';
 $route['loginYoutube'] = 'YoutubeIntegration';
 $route['apitestPlaylist'] = 'YoutubeIntegration/result';
 $route['newToken'] = 'YoutubeIntegration/generate';
+$route['displayReport'] = 'Log/displayReport';
 
 $route['playlistDashboard'] = 'Playlist/dashboard';
 $route['playlist/newPlaylist'] = 'Playlist/newPlaylist';
 $route['playlist/addPlaylist'] = 'Playlist/addPlaylist';
 $route['playlist/addLocal'] = 'Playlist/addLocal';
 $route['playlist/details'] = 'Playlist/details';
-$route['playlist/quickEdit'] = 'Playlist/quickEdit';
+$route['playlist/edit'] = 'Playlist/edit';
 $route['playlist/hidePlaylist'] = 'Playlist/hidePlaylist';
 $route['playlist/deleteLocal'] = 'Playlist/deleteLocal';
 $route['playlist/delSong'] = 'Playlist/delSong';

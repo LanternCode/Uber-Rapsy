@@ -11,6 +11,7 @@ class Welcome extends CI_Controller {
 	{
         parent::__construct();
         $this->load->model('PlaylistModel');
+        $this->load->model('LogModel');
     }
 
 	public function index()
@@ -32,6 +33,10 @@ class Welcome extends CI_Controller {
 
         $data['body']  = 'test';
         $data['title'] = "Testing!";
+
+        //$newReportId = $this->LogModel->SubmitReport("Hello");
+        //print_r($newReportId);
+        //die();
 
         $this->load->view( 'templates/main', $data );
     }

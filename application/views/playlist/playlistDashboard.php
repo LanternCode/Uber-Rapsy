@@ -19,7 +19,7 @@
         <tr>
             <td><a href="<?=base_url('playlist?ListId='.$playlist->ListId)?>">--></a></td>
             <td><?=$playlist->ListName?></td>
-            <td><a href="<?=base_url('playlist/quickEdit?id='.$playlist->ListId)?>">Edytuj</a></td>
+            <td><a href="<?=base_url('playlist/edit?id='.$playlist->ListId)?>">Edytuj</a></td>
             <td><?=$playlist->ListActive === "1" ? "Publiczna" : "Ukryta"?></td>
             <td><a href="<?=base_url('playlist/details?id='.$playlist->ListId)?>">Szczegóły</a></td>
         </tr>
