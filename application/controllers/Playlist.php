@@ -20,7 +20,6 @@ class Playlist extends CI_Controller {
         parent::__construct();
         $this->load->model('PlaylistModel');
 		$this->load->model('SongModel');
-		$this->load->helper('cookie');
     }
 
     /**
@@ -104,8 +103,8 @@ class Playlist extends CI_Controller {
             foreach($data['songs'] as $song)
             {
                 //Display values without decimals at the end if the decimals are only 0
-                if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
-                if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
+                if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
+                if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
                 $avgOverall += ($song->SongGradeAdam + $song->SongGradeChurchie) / 2;
                 $avgAdam += $song->SongGradeAdam;
                 $avgChurchie += $song->SongGradeChurchie;
@@ -384,7 +383,7 @@ class Playlist extends CI_Controller {
                 $newChurchieRating = str_replace(',', '.', $newChurchieRating);
                 if(strlen($newAdamRating) > 0 && strlen($newChurchieRating) > 0)
                 {
-                    if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && $this->InRange($newAdamRating, 0, 15) && $this->InRange($newChurchieRating, 0, 15))
+                    if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15))
                     {
                         if(fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0)
                         {
@@ -661,7 +660,7 @@ class Playlist extends CI_Controller {
                 $newChurchieRating = str_replace(',', '.', $newChurchieRating);
 				if(strlen($newAdamRating) > 0 && strlen($newChurchieRating) > 0)
 				{
-					if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && $this->InRange($newAdamRating, 0, 15) && $this->InRange($newChurchieRating, 0, 15))
+					if(is_numeric($newAdamRating) && is_numeric($newChurchieRating) && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15))
 	                {
 	                    if(fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0)
 	                    {
@@ -865,7 +864,7 @@ class Playlist extends CI_Controller {
                     if($client !== false)
                     {
                         //Validate the access token required for an api call
-                        $tokenExpired = $this->validateAuthToken($client);
+                        $tokenExpired = $this->SecurityModel->validateAuthToken($client);
 
                         //Perform the api call or refresh the auth token
                         if ($tokenExpired)
@@ -1164,7 +1163,7 @@ class Playlist extends CI_Controller {
             if($client !== false)
             {
                 //Validate the access token required for an api call
-                $tokenExpired = $this->validateAuthToken($client);
+                $tokenExpired = $this->SecurityModel->validateAuthToken($client);
 
                 if($tokenExpired)
                 {
@@ -1499,78 +1498,6 @@ class Playlist extends CI_Controller {
             $this->load->view( 'templates/main', $data );
         }
         else redirect('logout');
-    }
-
-    /**
-     * Validates the google oauth2 token.
-     *
-     * @return bool true if token is valid, false if expired.
-     */
-    function validateAuthToken($client): bool
-    {
-        //get the currently saved token from the cookie
-        $accessToken = get_cookie("UberRapsyToken");
-        //Check if the cookie contained the token
-        $token_expired = false;
-        if (!is_null($accessToken)) {
-            try {
-                //If yes, check if it is valid and not expired
-                $client->setAccessToken($accessToken);
-                $token_expired = $client->isAccessTokenExpired();
-            } catch (Exception $e) {
-                //exception raised means the format is invalid
-                $token_expired = true;
-            }
-        } else {
-            //cookie did not exist or returned null
-            $token_expired = true;
-        }
-
-        //if the token expired, fetch the refresh token and attempt a refresh
-        if($token_expired)
-        {
-            //first fetch the refresh token from api/refresh_token.txt
-            if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
-                //get a new token
-                $client->refreshToken($refresh_token);
-                //save the new token
-                $accessToken = $client->getAccessToken();
-                //run JSON encode to store the token in a cookie
-                $accessToken = json_encode($accessToken);
-                //delete the old cookie with the expired token
-                delete_cookie("UberRapsyToken");
-                //set a new cookie with the new token
-                set_cookie("UberRapsyToken", $accessToken, 86400);
-                //set token_expired to false and proceed
-                $token_expired = false;
-            }
-        }
-
-        return $token_expired;
-    }
-
-    /**
-     * Trims trailing zeroes from a given number.
-     *
-     * @param float $nbr number to trim
-     * @return float trimmed number
-     */
-    function TrimTrailingZeroes(float $nbr): float
-    {
-        return str_contains($nbr, '.') ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
-    }
-
-    /**
-     * Returns whether a number is in a given range or not
-     *
-     * @param float $value number to check
-     * @param float $min lower boundary of the range
-     * @param float $max upper boundary of the range
-     * @return bool true if number is in range, false if not
-     */
-    function InRange(float $value, float $min, float $max): bool
-    {
-        return ($value >= $min && $value <= $max);
     }
 
 }

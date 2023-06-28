@@ -181,8 +181,8 @@ class Song extends CI_Controller
             //Fill the playlist name array (1 entry per song)
             $data['songPlaylistNames'][] = $this->PlaylistModel->GetPlaylistNameById($song->ListId);
             //Display values without decimals at the end if the decimals are only 0
-            if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->TrimTrailingZeroes($song->SongGradeAdam);
-            if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->TrimTrailingZeroes($song->SongGradeChurchie);
+            if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
+            if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
             //Get song button information
             $data['playlist'][] = $this->PlaylistModel->FetchPlaylistById($song->ListId);
         }
@@ -190,14 +190,4 @@ class Song extends CI_Controller
         $this->load->view( 'templates/customNav', $data );
     }
 
-    /**
-     * Trims trailing zeroes from a given number.
-     *
-     * @param float $nbr number to trim
-     * @return float trimmed number
-     */
-    function TrimTrailingZeroes(float $nbr): float
-    {
-        return str_contains($nbr, '.') ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
-    }
 }

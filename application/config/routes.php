@@ -4,6 +4,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['playlist'] = 'Playlist/playlist';
 $route['updateGrades'] = 'Playlist/update';
 $route['downloadSongs'] = 'Playlist/downloadSongs';
+$route['updateSelection'] = 'Playlist/updateSelection';
 
 $route['loginYoutube'] = 'YoutubeIntegration';
 $route['apitestPlaylist'] = 'YoutubeIntegration/result';
@@ -21,7 +22,6 @@ $route['playlist/deleteLocal'] = 'Playlist/deleteLocal';
 $route['playlist/delSong'] = 'Playlist/delSong';
 $route['playlist/integrate'] = 'Playlist/integrate';
 $route['playlist/showLog'] = 'Playlist/showLog';
-$route['updateSelection'] = 'Playlist/updateSelection';
 
 $route['song/rev'] = 'Song/reviewSong';
 $route['song/showLog'] = 'Song/showLog';
