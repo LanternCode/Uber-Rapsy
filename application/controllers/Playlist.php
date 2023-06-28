@@ -20,7 +20,6 @@ class Playlist extends CI_Controller {
         parent::__construct();
         $this->load->model('PlaylistModel');
 		$this->load->model('SongModel');
-        $this->load->model('LogModel');
 		$this->load->helper('cookie');
     }
 
@@ -136,7 +135,7 @@ class Playlist extends CI_Controller {
      */
     public function dashboard()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -157,7 +156,7 @@ class Playlist extends CI_Controller {
      */
     public function details()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -200,7 +199,7 @@ class Playlist extends CI_Controller {
      */
     public function edit()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -280,7 +279,7 @@ class Playlist extends CI_Controller {
      */
     public function hidePlaylist()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -327,7 +326,7 @@ class Playlist extends CI_Controller {
     {
         $data = [];
         $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         //Check if this request comes from a valid playlist
         if($data['playlistId'] === "invalid")
@@ -556,9 +555,9 @@ class Playlist extends CI_Controller {
 	{
 		$data = [];
         $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
-        //include google library
+        //Include google library
         $libraryIncluded = true;
         try {
             $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
@@ -582,18 +581,21 @@ class Playlist extends CI_Controller {
 			$data['body']  = 'update';
             $data['title'] = "Oceny Zapisane!";
 
-			//fetch all ratings for the playlist
+            //Fetch the playlist to access its settings
+            $playlist = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
+
+			//Fetch all ratings for the playlist
 			$songsGrades = $this->SongModel->GetSongsFromList($data['playlistId']);
 
-            //create a string to store the update report in
+            //Create a string to store the update report in
             $resultMessage = "<pre>";
 
-            //process each song separately
+            //Process each song separately
 			for ($i = 0; $i < count($_POST)-1; $i+=21)
 			{
-                //create a variable for the song's update message
+                //Create a variable for the song's update message
                 $localResultMessage = "";
-				//save the new data to a temp variable
+				//Save the input data to a temp variable
 				$songId = $_POST["songId-".$i];
 				$newAdamRating = $_POST["nwGradeA-".$i+1];
 				$newChurchieRating = $_POST["nwGradeC-".$i+2];
@@ -616,7 +618,7 @@ class Playlist extends CI_Controller {
 				$newSongVeto = $_POST["songVeto-".$i+19];
                 $copyToPlaylist = $_POST["copyPlistId-".$i+20];
 
-                //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
+                //Ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
                 $ratingsValid = false;
                 $newAdamRating = str_replace(',', '.', $newAdamRating);
                 $newChurchieRating = str_replace(',', '.', $newChurchieRating);
@@ -631,7 +633,7 @@ class Playlist extends CI_Controller {
 	                }
 				}
 
-				//establish the current details
+				//Establish the current details
                 $currSongTitle = "";
 				foreach($songsGrades as $songGrades)
 				{
@@ -660,12 +662,12 @@ class Playlist extends CI_Controller {
 					}
 				}
 
-				//set update flags
+				//Set update flags
 				$adamGradeUpdated = !($currentAdamRating == $newAdamRating);
 				$churchieGradeUpdated = !($currentChurchieRating == $newChurchieRating);
                 $createUpdateLog = false;
 
-				//update scores
+				//Update scores
                 if(($adamGradeUpdated || $churchieGradeUpdated) && $ratingsValid) {
                     $this->SongModel->UpdateSongWithScores($songId, $adamGradeUpdated, $newAdamRating, $churchieGradeUpdated, $newChurchieRating);
                     if($adamGradeUpdated && $churchieGradeUpdated) {
@@ -680,98 +682,98 @@ class Playlist extends CI_Controller {
                     $createUpdateLog = true;
                 }
 
-                //update the song checkbox properties
-                if($currentRehearsalStatus != $newSongRehearsal)  {
+                //Update the song checkbox properties if they are enabled
+                if($currentRehearsalStatus != $newSongRehearsal && $playlist->btnRehearsal)  {
                     $this->SongModel->UpdateSongRehearsalStatus($songId, $newSongRehearsal);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongRehearsal ? "Zaznaczono" : "Odznaczono") . " ponowny odsłuch";
                     $createUpdateLog = true;
                 }
-                if($currentDistinctionStatus != $newSongDistinction) {
+                if($currentDistinctionStatus != $newSongDistinction && $playlist->btnDistinction) {
                     $this->SongModel->UpdateSongDistinctionStatus($songId, $newSongDistinction);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongDistinction ? "Zaznaczono" : "Odznaczono") . " wyróżnienie";
                     $createUpdateLog = true;
                 }
-                if($currentMemorialStatus != $newSongMemorial) {
+                if($currentMemorialStatus != $newSongMemorial && $playlist->btnMemorial) {
                     $this->SongModel->UpdateSongMemorialStatus($songId, $newSongMemorial);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongMemorial ? "Zaznaczono" : "Odznaczono") . " 10*";
                     $createUpdateLog = true;
                 }
-                if($currentXDStatus != $newSongXD) {
+                if($currentXDStatus != $newSongXD && $playlist->btnXD) {
                     $this->SongModel->UpdateSongXDStatus($songId, $newSongXD);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongXD ? "Zaznaczono" : "Odznaczono") . " XD";
                     $createUpdateLog = true;
                 }
-				if($currentNotRapStatus != $newSongNotRap) {
+				if($currentNotRapStatus != $newSongNotRap && $playlist->btnNotRap) {
                     $this->SongModel->UpdateSongNotRapStatus($songId, $newSongNotRap);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongNotRap ? "Zaznaczono" : "Odznaczono") . " to nie rapsik";
                     $createUpdateLog = true;
                 }
-				if($currentDiscomfortStatus != $newSongDiscomfort) {
+				if($currentDiscomfortStatus != $newSongDiscomfort && $playlist->btnDiscomfort) {
                     $this->SongModel->UpdateSongDiscomfortStatus($songId, $newSongDiscomfort);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongDiscomfort ? "Zaznaczono" : "Odznaczono") . " strefa dyskomfortu";
                     $createUpdateLog = true;
                 }
-				if($currentTopStatus != $newSongTop) {
+				if($currentTopStatus != $newSongTop && $playlist->btnTop) {
                     $this->SongModel->UpdateSongTopStatus($songId, $newSongTop);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongTop ? "Zaznaczono" : "Odznaczono") . " X15";
                     $createUpdateLog = true;
                 }
-				if($currentNoGradeStatus != $newSongNoGrade) {
+				if($currentNoGradeStatus != $newSongNoGrade && $playlist->btnNoGrade) {
                     $this->SongModel->UpdateSongNoGradeStatus($songId, $newSongNoGrade);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongNoGrade ? "Zaznaczono" : "Odznaczono") . " nie oceniam";
                     $createUpdateLog = true;
                 }
-				if($currentUberStatus != $newSongUber) {
+				if($currentUberStatus != $newSongUber && $playlist->btnUber) {
                     $this->SongModel->UpdateSongUberStatus($songId, $newSongUber);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongUber ? "Zaznaczono" : "Odznaczono") . " Uber";
                     $createUpdateLog = true;
                 }
-				if($currentBelowStatus != $newSongBelow) {
+				if($currentBelowStatus != $newSongBelow && $playlist->btnBelowSeven) {
                     $this->SongModel->UpdateSongBelowStatus($songId, $newSongBelow);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 7";
                     $createUpdateLog = true;
                 }
-                if($currentBelTenStatus != $newSongBelTen) {
+                if($currentBelTenStatus != $newSongBelTen && $playlist->btnBelowTen) {
                     $this->SongModel->UpdateSongBelTenStatus($songId, $newSongBelTen);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 10";
                     $createUpdateLog = true;
                 }
-                if($currentBelNineStatus != $newSongBelNine) {
+                if($currentBelNineStatus != $newSongBelNine && $playlist->btnBelowNine) {
                     $this->SongModel->UpdateSongBelNineStatus($songId, $newSongBelNine);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 9";
                     $createUpdateLog = true;
                 }
-                if($currentBelEightStatus != $newSongBelEight) {
+                if($currentBelEightStatus != $newSongBelEight && $playlist->btnBelowEight) {
                     $this->SongModel->UpdateSongBelEightStatus($songId, $newSongBelEight);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 8";
                     $createUpdateLog = true;
                 }
-                if($currentBelFourStatus != $newSongBelFour) {
+                if($currentBelFourStatus != $newSongBelFour && $playlist->btnBelowFour) {
                     $this->SongModel->UpdateSongBelFourStatus($songId, $newSongBelFour);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 4";
                     $createUpdateLog = true;
                 }
-                if($currentDuoTenStatus != $newSongDuoTen) {
+                if($currentDuoTenStatus != $newSongDuoTen && $playlist->btnDuoTen) {
                     $this->SongModel->UpdateSongDuoTenStatus($songId, $newSongDuoTen);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . ' "10"';
                     $createUpdateLog = true;
                 }
-                if($currentVetoStatus != $newSongVeto) {
+                if($currentVetoStatus != $newSongVeto && $playlist->btnVeto) {
                     $this->SongModel->UpdateSongVetoStatus($songId, $newSongVeto);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " VETO";
@@ -953,7 +955,7 @@ class Playlist extends CI_Controller {
 	{
 		//id of the list to reload
 		$listId = isset( $_GET['ListId'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['ListId'] ) ) : 0;
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
 		//declare default variables
 		$data = array(
@@ -1091,7 +1093,7 @@ class Playlist extends CI_Controller {
      */
 	public function newPlaylist()
 	{
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -1112,7 +1114,7 @@ class Playlist extends CI_Controller {
     public function addPlaylist()
     {
         $data = [];
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -1218,7 +1220,7 @@ class Playlist extends CI_Controller {
      */
     public function addLocal()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -1276,7 +1278,7 @@ class Playlist extends CI_Controller {
      */
     public function deleteLocal()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -1321,7 +1323,7 @@ class Playlist extends CI_Controller {
      */
     public function delSong()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -1370,7 +1372,7 @@ class Playlist extends CI_Controller {
      */
     public function integrate()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -1434,7 +1436,7 @@ class Playlist extends CI_Controller {
      */
     public function showLog()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -1467,23 +1469,6 @@ class Playlist extends CI_Controller {
             $this->load->view( 'templates/main', $data );
         }
         else redirect('logout');
-    }
-
-    /**
-     * Checks whether the user is logged in and has the appropriate role.
-     *
-     * @return boolean     true if authenticated, false if not
-     */
-    function authenticateUser(): bool
-    {
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
-        $userRole = $_SESSION['userRole'] ?? 0;
-
-        if($userLoggedIn === 1 && $userRole === 'reviewer')
-        {
-            return true;
-        }
-        else return false;
     }
 
     /**

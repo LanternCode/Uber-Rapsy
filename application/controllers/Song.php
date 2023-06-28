@@ -18,10 +18,8 @@ class Song extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('LogModel');
         $this->load->model('SongModel');
         $this->load->model('PlaylistModel');
-        //$this->load->helper('cookie');
     }
 
     /**
@@ -126,7 +124,7 @@ class Song extends CI_Controller
      */
     public function showLog()
     {
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
 
         if($userAuthenticated)
         {
@@ -201,22 +199,4 @@ class Song extends CI_Controller
     {
         return str_contains($nbr, '.') ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
     }
-
-    /**
-     * Checks whether the user is logged in and has the appropriate role.
-     *
-     * @return boolean     true if authenticated, false if not
-     */
-    function authenticateUser(): bool
-    {
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
-        $userRole = $_SESSION['userRole'] ?? 0;
-
-        if($userLoggedIn === 1 && $userRole === 'reviewer')
-        {
-            return true;
-        }
-        else return false;
-    }
-
 }

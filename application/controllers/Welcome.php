@@ -11,7 +11,6 @@ class Welcome extends CI_Controller {
 	{
         parent::__construct();
         $this->load->model('PlaylistModel');
-        $this->load->model('LogModel');
     }
 
 	public function index()

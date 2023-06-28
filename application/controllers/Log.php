@@ -10,7 +10,6 @@ class Log extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('LogModel');
     }
 
     /**
@@ -24,7 +23,7 @@ class Log extends CI_Controller
         $data['body'] = 'showReport';
         $data['title'] = "Uber Rapsy | Widok Raportu";
 
-        $userAuthenticated = $this->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
         if($userAuthenticated) {
             $reportId = isset($_GET['repId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['repId'])) : 0;
             if($reportId) {
@@ -41,20 +40,4 @@ class Log extends CI_Controller
         $this->load->view('templates/customNav', $data);
     }
 
-    /**
-     * Checks whether the user is logged in and has the appropriate role.
-     *
-     * @return boolean     true if authenticated, false if not
-     */
-    function authenticateUser(): bool
-    {
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
-        $userRole = $_SESSION['userRole'] ?? 0;
-
-        if($userLoggedIn === 1 && $userRole === 'reviewer')
-        {
-            return true;
-        }
-        else return false;
-    }
 }
