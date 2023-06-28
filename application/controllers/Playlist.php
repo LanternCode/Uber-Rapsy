@@ -557,18 +557,6 @@ class Playlist extends CI_Controller {
         $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
         $userAuthenticated = $this->SecurityModel->authenticateUser();
 
-        //Include google library
-        $libraryIncluded = true;
-        try {
-            $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
-            require_once $myPath . 'vendor/autoload.php';
-            $client = new Google\Client();
-            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-        } catch(Exception $e) {
-            //The library or the client could not be initiated
-            $libraryIncluded = false;
-        }
-
 		//Check if this request comes from a valid playlist
         if($data['playlistId'] === "invalid")
         {
@@ -821,8 +809,11 @@ class Playlist extends CI_Controller {
                 /* $moveActive = $newPlaylistId != $data['playlistId'] && $newPlaylistId != 0;
                 if($moveActive || $copyActive)
                 {
+                    //Include google library
+                    $client = $this->SecurityModel->initialiseLibrary();
+
                     //Only proceed when the library was successfully included
-                    if($libraryIncluded)
+                    if($client !== false)
                     {
                         //Validate the access token required for an api call
                         $tokenExpired = $this->validateAuthToken($client);
@@ -883,31 +874,31 @@ class Playlist extends CI_Controller {
                             }
                             else if ($oldPlaylistDetails->ListIntegrated && $newPlaylistDetails->ListIntegrated)
                             {
-                                //both playlists are integrated with yt so add the song to the new playlist
+                                //Both playlists are integrated with yt so add the song to the new playlist
                                 $response = $service->playlistItems->insert('snippet', $playlistItem);
-                                //create a log of the song being added in the playlist's record
+                                //Create a log of the song being added in the playlist's record
                                 $this->LogModel->CreateLog("playlist", $newPlaylistDetails->ListId, "Nuta dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
                                 //New PlaylistItemsId is generated, so we need to capture it to update it in the db
                                 $newSongPlaylistItemsId = $response->id;
-                                //both playlists are integrated with yt so delete the song from the old playlist
+                                //Both playlists are integrated with yt so delete the song from the old playlist
                                 $response = $service->playlistItems->delete($songDetails->SongPlaylistItemsId);
-                                //create a log of this deletion in the playlist's record
+                                //Create a log of this deletion in the playlist's record
                                 $this->LogModel->CreateLog("playlist", $oldPlaylistDetails->ListId, "Nuta usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
                             }
 
-                            //based on the target playlist status, the update is different
+                            //Based on the target playlist status, the update is different
                             if(!$newPlaylistDetails->ListIntegrated)
                             {
-                                //target playlist is local - move the song in the local database and create a log for the song
+                                //Target playlist is local - move the song in the local database and create a log for the song
                                 $this->SongModel->UpdateLocalSongPlaylist($songId, $newPlaylistId);
                             }
                             else
                             {
-                                //target playlist is integrated
+                                //Target playlist is integrated
                                 $this->SongModel->UpdateIntegratedSongPlaylist($songId, $newPlaylistId, $newSongPlaylistItemsId);
                             }
 
-                            //log the move in the particular song's record
+                            //Log the move in the particular song's record
                             $this->LogModel->CreateLog("song", $songId, "Nuta przeniesiona z playlisty ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
 
                             $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
@@ -916,7 +907,7 @@ class Playlist extends CI_Controller {
                     }
                     else
                     {
-                        //could not load the youtube api
+                        //Could not load the youtube api
                         $data['body']  = 'invalidAction';
                         $data['title'] = "Wystąpił Błąd!";
                         $data['errorMessage'] = "Nie znaleziono biblioteki google!";
@@ -1118,20 +1109,10 @@ class Playlist extends CI_Controller {
 
         if($userAuthenticated)
         {
-            $client = '';
-            //include google library
-            $library_included = true;
-            try {
-                $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
-                require_once $myPath . 'vendor/autoload.php';
-                $client = new Google\Client();
-                $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-            } catch(Exception $e) {
-                //The library or the client could not be initiated
-                $library_included = false;
-            }
+            //Include google library
+            $client = $this->SecurityModel->initialiseLibrary();
 
-            if($library_included)
+            if($client !== false)
             {
                 //validate the access token required for an api call
                 $tokenExpired = $this->validateAuthToken($client);
@@ -1202,7 +1183,7 @@ class Playlist extends CI_Controller {
             }
             else
             {
-                //could not load the library
+                //Could not load the library
                 $data['body']  = 'invalidAction';
                 $data['title'] = "Wystąpił Błąd!";
                 $data['errorMessage'] = "Nie znaleziono biblioteki google!";

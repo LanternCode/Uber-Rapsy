@@ -44,20 +44,11 @@ class YoutubeIntegration extends CI_Controller {
 
         if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
         {
-            //include google library
-            $library_included = true;
-            try {
-                $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
-                require_once $myPath . 'vendor/autoload.php';
-                $client = new Google\Client();
-                $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-            } catch(Exception $e) {
-                //The library or the client could not be initiated
-                $library_included = false;
-            }
+            //Include google library
+            $client = $this->SecurityModel->initialiseLibrary();
 
             //only proceed when the library was successfully included
-            if($library_included)
+            if($client !== false)
             {
                 $client->addScope(Google_Service_Youtube::YOUTUBE);
                 $client->setRedirectUri('http://localhost/Dev/Uber-Rapsy/apitestPlaylist');
@@ -74,7 +65,7 @@ class YoutubeIntegration extends CI_Controller {
             }
             else
             {
-                //could not load the library
+                //Could not load the library
                 $data['errorMessage'] = "Nie znaleziono biblioteki google!";
             }
         }
@@ -95,28 +86,18 @@ class YoutubeIntegration extends CI_Controller {
 
 		if($authCode != 0)
 		{
-            //include google library
-            $library_included = true;
-            try {
-                $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
-                require_once $myPath . 'vendor/autoload.php';
-                $client = new Google\Client();
-                $client->setAuthConfig($myPath . 'application/api/client_secret.json');
-            } catch(Exception $e) {
-                //The library or the client could not be initiated
-                $library_included = false;
-            }
+            //Include google library
+            $client = $this->SecurityModel->initialiseLibrary();
 
-            //only proceed when the library was successfully included
-            if($library_included)
+            if($client !== false)
             {
-                // Exchange authorization code for an access token.
+                //Exchange authorization code for an access token.
                 $data['accessToken'] = $client->fetchAccessTokenWithAuthCode($authCode);
                 $client->setAccessToken($data['accessToken']);
             }
             else
             {
-                //could not load the library
+                //Could not load the library
                 $data['body']  = 'invalidAction';
                 $data['title'] = "Wystąpił Błąd!";
                 $data['errorMessage'] = "Nie znaleziono biblioteki google!";

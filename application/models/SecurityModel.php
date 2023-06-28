@@ -37,4 +37,24 @@ class SecurityModel extends CI_Model
         else return false;
     }
 
+    /**
+     * The function tries to load the Google library and initialise the client.
+     * If successful, the client is returned. Otherwise - false.
+     *
+     * @return false|\Google\Client
+     */
+    function initialiseLibrary(): \Google\Client|bool
+    {
+        try {
+            $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
+            require_once $myPath . 'vendor/autoload.php';
+            $client = new Google\Client();
+            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
+            return $client;
+        } catch(Exception $e) {
+            //The library or the client could not be initiated
+            return false;
+        }
+    }
+
 }
