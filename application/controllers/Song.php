@@ -172,6 +172,7 @@ class Song extends CI_Controller
         $data['reviewer'] = isset($_SESSION['userRole']) ? ($_SESSION['userRole'] == "reviewer" ? true : false) : false;
         $data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
         $data['songs'] = $this->SongModel->GetSongsFromSearch($data['Search']);
+        $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
         $data['songPlaylistNames'] = [];
         $data['playlist'] = [];
 

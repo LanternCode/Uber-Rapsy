@@ -23,7 +23,7 @@
 				<img src="<?=$song->SongThumbnailURL?>" width="" height="" alt="thumbnail" class="songThumbnailLeft" />
 				<div class="dataContainer">
                     <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
-                    <h4>Z playlisty: <?=$songPlaylistNames[$i/20]?></h4>
+                    <h4>Z playlisty: <?=$songPlaylistNames[$i/21]?></h4>
                     <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
                     <h4 class="dataContainer--gradeContainer">
                         <label>Adam:</label>
@@ -41,6 +41,25 @@
                         <label>Średnia:</label>
                         <input type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
                     </h5>
+                    <?php  //only 1 list means there is nowhere to move or copy the song to
+                    if(count($lists) > 1 && $reviewer): ?>
+                        <h5 class="dataContainer--gradeContainer">
+                            <label>Kopiuj do:</label>
+                            <select name="<?="copyPlistId-".$i+20?>">
+                                <option value="0">Nie kopiuj</option>
+                                <?php foreach($lists as $list):
+                                    //Do not show the current list in the options
+                                    if($list->ListId !== $ListId):?>
+                                        <option value="<?=$list->ListId?>"><?=$list->ListName?></option>
+                                    <?php endif;
+                                endforeach; ?>
+                            </select>
+                        </h5>
+                    <?php else: ?>
+                        <select style="display:none;" name="<?="copyPlistId-".$i+20?>">
+                            <option value="0">Nie kopiuj</option>
+                        </select>
+                    <?php endif;?>
                     <input type="hidden" name="<?="nwPlistId-".$i+3?>" value="0">
                     <label <?=$playlist[$key]->btnRehearsal ? '' : 'hidden'?>><input type="hidden" name="<?="songRehearsal-".$i+4?>" value="<?=$song->SongRehearsal?>"><input type="checkbox" <?=$song->SongRehearsal ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Do ponownego odsłuchu</label>
                     <label <?=$playlist[$key]->btnBelowFour ? '' : 'hidden'?>><input type="hidden" name="<?="songBelFour-".$i+17?>" value="<?=$song->SongBelFour?>"><input type="checkbox" <?=$song->SongBelFour ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 4</label>
@@ -61,7 +80,7 @@
 				</div>
 			</div>
 		<?php
-        $i += 20;
+        $i += 21;
         endforeach;?>
             <input type="hidden" name="playlistId" value="search"/>
         </form>

@@ -340,17 +340,20 @@ class Playlist extends CI_Controller {
             $data['body']  = 'update';
             $data['title'] = "Oceny Zapisane!";
 
-            //create a log
-            if($data['playlistId'] !== "search")
+            if($data['playlistId'] !== "search") {
+                //Create a log
                 $this->LogModel->CreateLog('playlist', $data['playlistId'], "Zapisano oceny na playliście");
+                //Fetch the playlist to access its settings
+                $playlist = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
+            }
 
-            //create a string to store the update report in
+            //Create a string to store the update report in
             $resultMessage = "<pre>";
 
-            //process each song separately
+            //Process each song separately
             for ($i = 0; $i < count($_POST)-1; $i+=21)
             {
-                //create a variable for the song's update message
+                //Create a variable for the song's update message
                 $localResultMessage = "";
                 //save the new data to a temp variable
                 $songId = $_POST["songId-".$i];
@@ -375,7 +378,7 @@ class Playlist extends CI_Controller {
                 $newSongVeto = $_POST["songVeto-".$i+19];
                 $copyToPlaylist = $_POST["copyPlistId-".$i+20];
 
-                //ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
+                //Ensure the ratings are valid numerical values (full or .5) and are in the correct range (0-15) and format (separated with dots and not commas)
                 $ratingsValid = false;
                 $newAdamRating = str_replace(',', '.', $newAdamRating);
                 $newChurchieRating = str_replace(',', '.', $newChurchieRating);
@@ -390,8 +393,8 @@ class Playlist extends CI_Controller {
                     }
                 }
 
-                //establish the current details
-                $currentSong = $this->SongModel->GetSongById($_POST["songId-".$i]);
+                //Establish the current details
+                $currentSong = $this->SongModel->GetSongById($songId);
                 $currSongTitle = $currentSong->SongTitle;
                 $currentAdamRating = $currentSong->SongGradeAdam;
                 $currentChurchieRating = $currentSong->SongGradeChurchie;
@@ -412,11 +415,12 @@ class Playlist extends CI_Controller {
                 $currentDuoTenStatus = $currentSong->SongDuoTen;
                 $currentVetoStatus = $currentSong->SongVeto;
 
-                //set update flags
+                //Set update flags
                 $adamGradeUpdated = !($currentAdamRating == $newAdamRating);
                 $churchieGradeUpdated = !($currentChurchieRating == $newChurchieRating);
+                $createUpdateLog = false;
 
-                //update scores
+                //Update scores
                 if($adamGradeUpdated || $churchieGradeUpdated && $ratingsValid) {
                     $this->SongModel->UpdateSongWithScores($songId, $adamGradeUpdated, $newAdamRating, $churchieGradeUpdated, $newChurchieRating);
                     if($adamGradeUpdated && $churchieGradeUpdated) {
@@ -427,108 +431,153 @@ class Playlist extends CI_Controller {
                         $localResultMessage .= "\tOcena Adama: " . $currentAdamRating . " -> " . $newAdamRating;
                     else
                         $localResultMessage .= "\tOcena Kościelnego: " . $currentChurchieRating . " -> " . $newChurchieRating;
+
+                    $createUpdateLog = true;
                 }
 
-                //update the song checkbox properties
-                if($currentRehearsalStatus != $newSongRehearsal)  {
+                //Update the song checkbox properties if they are enabled
+                if($currentRehearsalStatus != $newSongRehearsal && isset($playlist->btnRehearsal) && $playlist->btnRehearsal)  {
                     $this->SongModel->UpdateSongRehearsalStatus($songId, $newSongRehearsal);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongRehearsal ? "Zaznaczono" : "Odznaczono") . " ponowny odsłuch";
+                    $createUpdateLog = true;
                 }
-                if($currentDistinctionStatus != $newSongDistinction) {
+                if($currentDistinctionStatus != $newSongDistinction && isset($playlist->btnDistinction) && $playlist->btnDistinction) {
                     $this->SongModel->UpdateSongDistinctionStatus($songId, $newSongDistinction);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongDistinction ? "Zaznaczono" : "Odznaczono") . " wyróżnienie";
+                    $createUpdateLog = true;
                 }
-                if($currentMemorialStatus != $newSongMemorial) {
+                if($currentMemorialStatus != $newSongMemorial && isset($playlist->btnMemorial) && $playlist->btnMemorial) {
                     $this->SongModel->UpdateSongMemorialStatus($songId, $newSongMemorial);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongMemorial ? "Zaznaczono" : "Odznaczono") . " 10*";
+                    $createUpdateLog = true;
                 }
-                if($currentXDStatus != $newSongXD) {
+                if($currentXDStatus != $newSongXD && isset($playlist->btnXD) && $playlist->btnXD) {
                     $this->SongModel->UpdateSongXDStatus($songId, $newSongXD);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongXD ? "Zaznaczono" : "Odznaczono") . " XD";
+                    $createUpdateLog = true;
                 }
-                if($currentNotRapStatus != $newSongNotRap) {
+                if($currentNotRapStatus != $newSongNotRap && isset($playlist->btnNotRap) && $playlist->btnNotRap) {
                     $this->SongModel->UpdateSongNotRapStatus($songId, $newSongNotRap);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongNotRap ? "Zaznaczono" : "Odznaczono") . " to nie rapsik";
+                    $createUpdateLog = true;
                 }
-                if($currentDiscomfortStatus != $newSongDiscomfort) {
+                if($currentDiscomfortStatus != $newSongDiscomfort && isset($playlist->btnDiscomfort) && $playlist->btnDiscomfort) {
                     $this->SongModel->UpdateSongDiscomfortStatus($songId, $newSongDiscomfort);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongDiscomfort ? "Zaznaczono" : "Odznaczono") . " strefa dyskomfortu";
+                    $createUpdateLog = true;
                 }
-                if($currentTopStatus != $newSongTop) {
+                if($currentTopStatus != $newSongTop && isset($playlist->btnTop) && $playlist->btnTop) {
                     $this->SongModel->UpdateSongTopStatus($songId, $newSongTop);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongTop ? "Zaznaczono" : "Odznaczono") . " X15";
+                    $createUpdateLog = true;
                 }
-                if($currentNoGradeStatus != $newSongNoGrade) {
+                if($currentNoGradeStatus != $newSongNoGrade && isset($playlist->btnNoGrade) && $playlist->btnNoGrade) {
                     $this->SongModel->UpdateSongNoGradeStatus($songId, $newSongNoGrade);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongNoGrade ? "Zaznaczono" : "Odznaczono") . " nie oceniam";
+                    $createUpdateLog = true;
                 }
-                if($currentUberStatus != $newSongUber) {
+                if($currentUberStatus != $newSongUber && isset($playlist->btnUber) && $playlist->btnUber) {
                     $this->SongModel->UpdateSongUberStatus($songId, $newSongUber);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongUber ? "Zaznaczono" : "Odznaczono") . " Uber";
+                    $createUpdateLog = true;
                 }
-                if($currentBelowStatus != $newSongBelow) {
+                if($currentBelowStatus != $newSongBelow && isset($playlist->btnBelowSeven) && $playlist->btnBelowSeven) {
                     $this->SongModel->UpdateSongBelowStatus($songId, $newSongBelow);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 7";
+                    $createUpdateLog = true;
                 }
-                if($currentBelTenStatus != $newSongBelTen) {
+                if($currentBelTenStatus != $newSongBelTen && isset($playlist->btnBelowTen) && $playlist->btnBelowTen) {
                     $this->SongModel->UpdateSongBelTenStatus($songId, $newSongBelTen);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 10";
                     $createUpdateLog = true;
                 }
-                if($currentBelNineStatus != $newSongBelNine) {
+                if($currentBelNineStatus != $newSongBelNine && isset($playlist->btnBelowNine) && $playlist->btnBelowNine) {
                     $this->SongModel->UpdateSongBelNineStatus($songId, $newSongBelNine);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 9";
                     $createUpdateLog = true;
                 }
-                if($currentBelEightStatus != $newSongBelEight) {
+                if($currentBelEightStatus != $newSongBelEight && isset($playlist->btnBelowEight) && $playlist->btnBelowEight) {
                     $this->SongModel->UpdateSongBelEightStatus($songId, $newSongBelEight);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 8";
                     $createUpdateLog = true;
                 }
-                if($currentBelFourStatus != $newSongBelFour) {
+                if($currentBelFourStatus != $newSongBelFour && isset($playlist->btnBelowFour) && $playlist->btnBelowFour) {
                     $this->SongModel->UpdateSongBelFourStatus($songId, $newSongBelFour);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " < 4";
                     $createUpdateLog = true;
                 }
-                if($currentDuoTenStatus != $newSongDuoTen) {
+                if($currentDuoTenStatus != $newSongDuoTen && isset($playlist->btnDuoTen) && $playlist->btnDuoTen) {
                     $this->SongModel->UpdateSongDuoTenStatus($songId, $newSongDuoTen);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . ' "10"';
                     $createUpdateLog = true;
                 }
-                if($currentVetoStatus != $newSongVeto) {
+                if($currentVetoStatus != $newSongVeto && isset($playlist->btnVeto) && $playlist->btnVeto) {
                     $this->SongModel->UpdateSongVetoStatus($songId, $newSongVeto);
                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                     $localResultMessage .= ($newSongBelow ? "Zaznaczono" : "Odznaczono") . " VETO";
                     $createUpdateLog = true;
                 }
 
-                //create a log
-                $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty z ".($data['playlistId'] === "search" ? "wyszukiwarki" : "tierlisty"));
+                //Create a log if changes were made
+                if($createUpdateLog)
+                    $this->LogModel->CreateLog('song', $songId, "Zapisano oceny nuty z ".($data['playlistId'] === "search" ? "wyszukiwarki" : "tierlisty"));
 
-                //save the result message and pass it to the report
+                //Save the result message and pass it to the report
                 $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currSongTitle . ":<br><br>" . $localResultMessage) : "";
                 $resultMessage .= $finalResultMessage;
+
+                //Copy the song to a different playlist
+                if($copyToPlaylist) {
+                    //Get the exact copy of the song (after updates!) and change the playlist id
+                    $thisSong = $this->SongModel->GetSongById($songId);
+                    $thisSong->ListId = $copyToPlaylist;
+                    $thisSong->SongId = 0;
+                    $thisSong = (array) $thisSong;
+                    //For some reason 0 and false are treated differently when inserting with CI
+                    $thisSong['SongRehearsal'] = !($thisSong['SongRehearsal'] == 0);
+                    $thisSong['SongDistinction'] = !($thisSong['SongDistinction'] == 0);
+                    $thisSong['SongMemorial'] = !($thisSong['SongMemorial'] == 0);
+                    $thisSong['SongXD'] = !($thisSong['SongXD'] == 0);
+                    $thisSong['SongNotRap'] = !($thisSong['SongNotRap'] == 0);
+                    $thisSong['SongDiscomfort'] = !($thisSong['SongDiscomfort'] == 0);
+                    $thisSong['SongTop'] = !($thisSong['SongTop'] == 0);
+                    $thisSong['SongNoGrade'] = !($thisSong['SongNoGrade'] == 0);
+                    $thisSong['SongUber'] = !($thisSong['SongUber'] == 0);
+                    $thisSong['SongBelow'] = !($thisSong['SongBelow'] == 0);
+                    $thisSong['SongBelTen'] = !($thisSong['SongBelTen'] == 0);
+                    $thisSong['SongBelNine'] = !($thisSong['SongBelNine'] == 0);
+                    $thisSong['SongBelEight'] = !($thisSong['SongBelEight'] == 0);
+                    $thisSong['SongBelFour'] = !($thisSong['SongBelFour'] == 0);
+                    $thisSong['SongDuoTen'] = !($thisSong['SongDuoTen'] == 0);
+                    $thisSong['SongVeto'] = !($thisSong['SongVeto'] == 0);
+                    //Insert the copy into the database
+                    $songCopyId = $this->SongModel->InsertSongFromArray($thisSong);
+                    //Add a log explaining where the song came from
+                    $sourceName = $data['playlistId'] === "search" ? "wyszukiwarki" : "playlisty ".$this->PlaylistModel->GetPlaylistNameById($data['playlistId']);
+                    $targetName = $this->PlaylistModel->GetPlaylistNameById($thisSong['ListId']);
+                    $this->LogModel->CreateLog("song", $songCopyId, "Nuta skopiowana z ".$sourceName." do ".$targetName);
+                }
             }
-            //finalise the result message
+            //Finalise the result message
             $data['resultMessage'] = $resultMessage . "</pre>";
-            //submit a report
+            //Submit a report
             $newReportId = $this->LogModel->SubmitReport($data['resultMessage']);
-            //create a log
+            //Create a log
             $where = $data['playlistId'] === "search" ? "z wyszukiwarki" : "z tierlisty";
             $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
             $logMessage = "Zapisano oceny ".$where.$reportSuccessful;
@@ -1114,12 +1163,12 @@ class Playlist extends CI_Controller {
 
             if($client !== false)
             {
-                //validate the access token required for an api call
+                //Validate the access token required for an api call
                 $tokenExpired = $this->validateAuthToken($client);
 
                 if($tokenExpired)
                 {
-                    //refresh token not found
+                    //Refresh token not found
                     $data['body']  = 'invalidAction';
                     $data['title'] = "Błąd autoryzacji tokenu!";
                     $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
@@ -1136,16 +1185,16 @@ class Playlist extends CI_Controller {
                         'resultMessage' => ''
                     );
 
-                    //validate the form
+                    //Validate the form
                     if($data['title'] != "" && $data['description'] != "" && in_array($data['visibility'], ["public", "unlisted", "private"]) )
                     {
-                        //update the description new-line characters
+                        //Update the description new-line characters
                         $data['description'] = trim(str_replace(["\r\n", "\r"], "\n", $data['description']));
 
-                        // Define service object for making API requests.
+                        //Define service object for making API requests.
                         $service = new Google_Service_YouTube($client);
 
-                        // Define the $playlist object, which will be uploaded as the request body.
+                        //Define the $playlist object, which will be uploaded as the request body.
                         $playlist = new Google_Service_YouTube_Playlist();
 
                         // Add 'snippet' object to the $playlist object.
@@ -1155,24 +1204,24 @@ class Playlist extends CI_Controller {
                         $playlistSnippet->setTitle($data['title']);
                         $playlist->setSnippet($playlistSnippet);
 
-                        // Add 'status' object to the $playlist object.
+                        //Add 'status' object to the $playlist object.
                         $playlistStatus = new Google_Service_YouTube_PlaylistStatus();
                         $playlistStatus->setPrivacyStatus($data['visibility']);
                         $playlist->setStatus($playlistStatus);
 
-                        //save the api call response
+                        //Save the api call response
                         $response = $service->playlists->insert('snippet, status', $playlist);
 
-                        //get the unique id of a playlist from the response
+                        //Get the unique id of a playlist from the response
                         $data['link'] = $response->id;
 
-                        //save the playlist into the database
+                        //Save the playlist into the database
                         $this->PlaylistModel->InsertPlaylist($data);
 
-                        //fetch the local id of the newly created playlist
+                        //Fetch the local id of the newly created playlist
                         $listId = $this->PlaylistModel->GetListIdByUrl($data['link']);
 
-                        //create a log
+                        //Create a log
                         $this->LogModel->CreateLog('playlist', $listId, "Stworzono zintegrowaną playlistę");
 
                         $data['resultMessage'] = "Playlista zapisana!";
