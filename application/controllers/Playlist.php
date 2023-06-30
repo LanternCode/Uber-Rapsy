@@ -575,7 +575,7 @@ class Playlist extends CI_Controller {
             //Finalise the result message
             $data['resultMessage'] = $resultMessage . "</pre>";
             //Submit a report
-            $newReportId = $this->LogModel->SubmitReport($data['resultMessage']);
+            $newReportId = $this->LogModel->SubmitReport(htmlspecialchars($data['resultMessage']));
             //Create a log
             $where = $data['playlistId'] === "search" ? "z wyszukiwarki" : "z tierlisty";
             $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
@@ -968,7 +968,7 @@ class Playlist extends CI_Controller {
             //Finalise the result message
             $data['resultMessage'] = $resultMessage . "</pre>";
             //Submit a report
-            $newReportId = $this->LogModel->SubmitReport($data['resultMessage']);
+            $newReportId = $this->LogModel->SubmitReport(htmlspecialchars($data['resultMessage']));
             //Create a log
             $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
             $logMessage = "Zapisano oceny na playliście".$reportSuccessful;
@@ -1008,19 +1008,19 @@ class Playlist extends CI_Controller {
 		//Check if the user is allowed to do this action
         if($userAuthenticated)
         {
-            //parameters for the api call
+            //Parameters for the api call
             $host = "https://youtube.googleapis.com/youtube/v3/playlistItems";
             $part = "snippet";
             $maxResults = 50; //50 is the most you can get on one page
             $playlistId = $this->PlaylistModel->GetListUrlById($listId);
 
-            //create a log
+            //Create a log
             $this->LogModel->CreateLog('playlist', $listId, "Załadowano nowe nuty na playlistę");
 
-            //fetch the api key from the api_key file
+            //Fetch the api key from the api_key file
             if($apiKey = file_get_contents("application/api/api_key.txt"))
             {
-                //load songs for the first time
+                //Load songs for the first time
                 if($playlistId != "")
                 {
 					$url = $host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.urlencode($playlistId).'&key='.urlencode($apiKey);
@@ -1029,25 +1029,25 @@ class Playlist extends CI_Controller {
                     array_push($data['songsJsonArray'], $downloadedSongs);
                 }
 
-                //how many songs total - returns 0 if null
+                //How many songs total - returns 0 if null
                 $allResults = $downloadedSongs['pageInfo']['totalResults'] ?? 0;
 
                 if($allResults > 0)
                 {
-                    //keep loading songs until all are loaded
+                    //Keep loading songs until all are loaded
                     for($scannedResults = isset($downloadedSongs['pageInfo']['resultsPerPage']) ? $downloadedSongs['pageInfo']['resultsPerPage'] : 150000; $scannedResults < $allResults; $scannedResults += $downloadedSongs['pageInfo']['resultsPerPage'])
                     {
-                        //get the token of the next page
+                        //Get the token of the next page
                         $pageToken = $downloadedSongs['nextPageToken'];
-                        //perform the api call
+                        //Perform the api call
                         $nextCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&pageToken='.$pageToken.'&playlistId='.urlencode($playlistId).'&key='.urlencode($apiKey));
-                        //decode the result from json to array
+                        //Decode the result from json to array
                         $downloadedSongs = json_decode($nextCall, true);
-                        //save the songs into the array
+                        //Save the songs into the array
                         array_push($data['songsJsonArray'], $downloadedSongs);
                     }
 
-                    //get all songs that are already in the list, only urls
+                    //Get all songs that are already in the list, only urls
                     $songURLs = $this->SongModel->GetURLsOfAllSongsInList($listId);
                     $songURLsArray = [];
                     foreach($songURLs as $songURL)
@@ -1055,41 +1055,41 @@ class Playlist extends CI_Controller {
                         array_push($songURLsArray, $songURL->SongURL);
                     }
 
-                    //perform the reloading process
-                    //the main array is composed of parsed data arrays
+                    //Perform the reloading process
+                    //The main array is composed of parsed data arrays
                     foreach($data['songsJsonArray'] as $songarrays)
                     {
-                        //each of these arrays contains a list of songs
+                        //Each of these arrays contains a list of songs
                         foreach($songarrays as $songlist)
                         {
-                            //some data is not in an array and is unnecessary for this process
+                            //Some data is not in an array and is unnecessary for this process
                             if(is_array($songlist))
                             {
-                                //each song is an array itself
+                                //Each song is an array itself
                                 foreach($songlist as $song)
                                 {
-                                    //data that is not a song array can be dropped
+                                    //Data that is not a song array can be dropped
                                     if(is_array($song))
                                     {
-                                        //get all required data to save a song in the database
+                                        //Get all required data to save a song in the database
                                         $songURL = $song['snippet']['resourceId']['videoId'];
 										$songPublic = isset($song['snippet']['thumbnails']['medium']['url']) ? true : false;
                                         $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
                                         $songTitle = mysqli_real_escape_string( $this->db->conn_id, $song['snippet']['title'] );
                                         $songPlaylistItemsId = $song['id'];
 
-                                        //if something goes wrong any incorrect entries will be discarded
+                                        //If something goes wrong any incorrect entries will be discarded
                                         if(isset($songURL) && isset($songThumbnailURL) && isset($songTitle) && isset($songPlaylistItemsId))
                                         {
-                                            //check if the song already exists in the database
+                                            //Check if the song already exists in the database
                                             if(in_array($songURL, $songURLsArray))
                                             {
                                                 echo $songTitle . " - ⏸<br />";
-                                            } //attempt to insert the song to the database
+                                            } //Attempt to insert the song to the database
                                             else if($songPublic && $this->SongModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId))
                                             {
                                                 echo $songTitle . " - ✔<br />";
-                                            } //if insertion failed
+                                            } //If insertion failed
                                             else
                                             {
                                                 echo $songURL . " is private - ❌<br />";

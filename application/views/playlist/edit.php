@@ -4,7 +4,7 @@
 
 <h4>Edytuj Playlistę:</h4>
 
-<form method="post" action="<?=base_url('playlist/quickEdit?id='.$playlist->ListId)?>">
+<form method="post" action="<?=base_url('playlist/edit?id='.$playlist->ListId)?>">
     <label>Nazwa Playlisty:</label><br />
     <input type="text" name="playlistName" value="<?=$playlist->ListName?>" /><br /><br />
 

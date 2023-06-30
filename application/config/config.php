@@ -1,6 +1,9 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+//Self-imposed
+ini_set("memory_limit","256M");
+
 /*
 |--------------------------------------------------------------------------
 | Base Site URL
