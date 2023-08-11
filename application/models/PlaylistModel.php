@@ -85,9 +85,8 @@ class PlaylistModel extends CI_Model
         $link = $data['link'];
         $title = $data['title'];
         $desc = $data['description'];
-        $visibility = $data['visibility'];
 
-        $sql = "INSERT INTO list(`ListURL`, `ListName`, `ListDesc`, `ListIntegrated`, `ListActive`) VALUES ('$link', '$title', '$desc', true, '$visibility')";
+        $sql = "INSERT INTO list(`ListURL`, `ListName`, `ListDesc`, `ListIntegrated`, `ListActive`) VALUES ('$link', '$title', '$desc', true, true)";
         if($this->db->simple_query($sql)) return true;
         else return false;
     }
@@ -181,6 +180,7 @@ class PlaylistModel extends CI_Model
     function GetPlaylistIntegratedById(int $playlistId): bool
     {
         $sql = "SELECT ListIntegrated FROM list WHERE ListId = $playlistId";
+
         if(isset($this->db->query($sql)->row()->ListIntegrated))
         {
             return $this->db->query($sql)->row()->ListIntegrated;

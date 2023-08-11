@@ -59,7 +59,7 @@
                     </h5>
 						<?php  //only 1 list means there is nowhere to move or copy the song to
 						if(count($lists) > 1 && $reviewer): ?>
-							<h5 class="dataContainer--gradeContainer" hidden>
+							<h5 class="dataContainer--gradeContainer">
                                 <label>Przenieś do:</label>
 								<select name="<?="nwPlistId-".$i+3?>">
 									<option value="0">Nie przenoś</option>

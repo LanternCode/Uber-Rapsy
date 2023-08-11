@@ -89,24 +89,63 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Update a song with scores added by the reviewers.
+     * Update song scores added by the reviewers.
      *
      * @param int $songId  id of the song to update
-     * @param bool $updateAdam flag is true if adam's grade has changed
      * @param float|string $gradeAdam  grade added by Adam
-     * @param bool $updateChurchie flag is true if churchie's grade has changed
      * @param float|string $gradeKoscielny  grade added by Koscielny
-     * @return boolean           true if query worked, false if it failed
+     * @return boolean           true if query worked, false otherwise
      */
-    function UpdateSongWithScores(int $songId, bool $updateAdam, mixed $gradeAdam, bool $updateChurchie, mixed $gradeKoscielny): bool
+    function UpdateSongScores(int $songId, mixed $gradeAdam, mixed $gradeKoscielny): bool
     {
-        $updateQuery = $updateAdam ? "SongGradeAdam = '$gradeAdam'" : "";
-        $updateQuery .= ($updateAdam && $updateChurchie) ? ", " : "";
-        $updateQuery .= $updateChurchie ? "SongGradeChurchie = '$gradeKoscielny'" : "";
-        $sql = "UPDATE song SET ".$updateQuery." WHERE SongId = $songId";
+        $sql = "UPDATE song SET SongGradeAdam = '$gradeAdam', SongGradeChurchie = '$gradeKoscielny' WHERE SongId = $songId";
 
         if($this->db->simple_query($sql)) return true;
         else return false;
+    }
+
+    /**
+     * There are a lot of checkboxes for each song entry, and this function makes it possible
+     * to update any one of them.
+     *
+     * @param $songId int the id of the song to update
+     * @param $propertyName string the name of the checkbox property to update
+     * @param $propertyValue bool the value to update the property to
+     * @return bool
+     */
+    function UpdateSongCheckboxProperty(int $songId, string $propertyName, bool $propertyValue): bool
+    {
+        $propertyValue = $propertyValue != 1 ? 0 : 1;
+        $sql = "UPDATE song SET $propertyName = $propertyValue WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * The function takes a song by id and duplicates it to a given playlist
+     *
+     * @param $songId int id of the song to copy
+     * @param $playlistId int id of the playlist to copy the song to
+     * @return bool true if transaction successful, false otherwise
+     */
+    function CopySongToPlaylist(int $songId, int $playlistId): bool
+    {
+        $this->db->trans_begin();
+        $this->db->query('CREATE TEMPORARY TABLE tmp SELECT * from song WHERE SongId = '.$songId);
+        $this->db->query('ALTER TABLE tmp drop SongId;');
+        $this->db->query('UPDATE tmp SET ListId = '.$playlistId);
+        $this->db->query('INSERT INTO song SELECT 0,tmp.* FROM tmp;');
+        $this->db->query('DROP TABLE tmp;');
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return false;
+        }
+        else {
+            $this->db->trans_commit();
+            return true;
+        }
     }
 
     /**
@@ -122,6 +161,24 @@ class SongModel extends CI_Model
     function UpdateIntegratedSongPlaylist(int $songId, int $newPlaylistId, string $newSongPlaylistItemsId): bool
     {
         $sql = "UPDATE song SET ListId = $newPlaylistId, SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
+     * Update a copied song with the new PlaylistItemsId.
+     *
+     * An integrated song is copied to a playlist integrated with YT, and the ItemsId
+     * is required to later delete it from youtube (if required).
+     *
+     * @param int $songId  id of the song to update
+     * @param string $newSongPlaylistItemsId  unique YT PlaylistItemsId (API item)
+     * @return boolean           true if query worked, false if it failed
+     */
+    function UpdateCopiedSongItemsId(int $songId, string $newSongPlaylistItemsId): bool
+    {
+        $sql = "UPDATE song SET SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE SongId = $songId";
 
         if($this->db->simple_query($sql)) return true;
         else return false;
@@ -199,246 +256,6 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Updated the SongRehearsal property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongRehearsal  Song rehearsal status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongRehearsalStatus(int $songId, int $newSongRehearsal): bool
-    {
-        $sql = "UPDATE song SET SongRehearsal = $newSongRehearsal WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongDistinction property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongDistinction  song distinction status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongDistinctionStatus(int $songId, int $newSongDistinction): bool
-    {
-        $sql = "UPDATE song SET SongDistinction = $newSongDistinction WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongMemorial property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongMemorial  song memorial status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongMemorialStatus(int $songId, int $newSongMemorial): bool
-    {
-        $sql = "UPDATE song SET SongMemorial = $newSongMemorial WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongXD property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongXD  song XD status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongXDStatus(int $songId, int $newSongXD): bool
-    {
-        $sql = "UPDATE song SET SongXD = $newSongXD WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongNotRap property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongNotRap  song not rap status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongNotRapStatus(int $songId, int $newSongNotRap): bool
-    {
-        $sql = "UPDATE song SET SongNotRap = $newSongNotRap WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongDiscomfort property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongDiscomfort  song Discomfort status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongDiscomfortStatus(int $songId, int $newSongDiscomfort): bool
-    {
-        $sql = "UPDATE song SET SongDiscomfort = $newSongDiscomfort WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongTop property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongTop  song Top status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongTopStatus(int $songId, int $newSongTop): bool
-    {
-        $sql = "UPDATE song SET SongTop = $newSongTop WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongNoGrade property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongNoGrade  song no grade status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongNoGradeStatus(int $songId, int $newSongNoGrade): bool
-    {
-        $sql = "UPDATE song SET SongNoGrade = $newSongNoGrade WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongUber property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongUber  song uber status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongUberStatus(int $songId, int $newSongUber): bool
-    {
-        $sql = "UPDATE song SET SongUber = $newSongUber WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongBelow property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongBelow  song below status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongBelowStatus(int $songId, int $newSongBelow): bool
-    {
-        $sql = "UPDATE song SET SongBelow = $newSongBelow WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongBelTen property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongBelTen  song BelTen status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongBelTenStatus(int $songId, int $newSongBelTen): bool
-    {
-        $sql = "UPDATE song SET SongBelTen = $newSongBelTen WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongBelNine property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongBelNine  song BelNine status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongBelNineStatus(int $songId, int $newSongBelNine): bool
-    {
-        $sql = "UPDATE song SET SongBelNine = $newSongBelNine WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongBelEight property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongBelEight  song BelEight status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongBelEightStatus(int $songId, int $newSongBelEight): bool
-    {
-        $sql = "UPDATE song SET SongBelEight = $newSongBelEight WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongBelFour property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongBelFour  song BelFour status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongBelFourStatus(int $songId, int $newSongBelFour): bool
-    {
-        $sql = "UPDATE song SET SongBelFour = $newSongBelFour WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongDuoTen property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongDuoTen  song DuoTen status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongDuoTenStatus(int $songId, int $newSongDuoTen): bool
-    {
-        $sql = "UPDATE song SET SongDuoTen = $newSongDuoTen WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
-     * Updated the SongVeto property of a song
-     *
-     * @param int $songId  id of the song to update
-     * @param int $newSongVeto  song VETO status
-     * @return boolean           true if query worked, false if it failed
-     */
-    function UpdateSongVetoStatus(int $songId, int $newSongVeto): bool
-    {
-        $sql = "UPDATE song SET SongVeto = $newSongVeto WHERE SongId = $songId";
-
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
      * Inserts a new song review into the database
      *
      * @param array $songReview  review to be inserted
@@ -502,5 +319,24 @@ class SongModel extends CI_Model
                      AND SongDistinction = 0 AND SongMemorial = 0 AND SongXD = 0 AND SongNotRap = 0
                      AND SongDiscomfort = 0 AND SongTop = 0 AND SongNoGrade = 0 AND SongUber = 0 AND SongBelow = 0";
         return $this->db->query($sql)->result();
+    }
+
+    /**
+     * After a song is copied from a playlist to a playlist, we need to fetch it's ID in that playlist
+     * This is done by this function
+     *
+     * @param $songName string
+     * @param $playlistId int
+     * @return int
+     */
+    function GetSongIdByNameAndPlaylist($songName, $playlistId)
+    {
+        $sql = "SELECT SongId FROM song WHERE SongTitle = '$songName' AND ListId = $playlistId";
+
+        if(isset($this->db->query($sql)->row()->SongId))
+        {
+            return $this->db->query($sql)->row()->SongId;
+        }
+        else return 0;
     }
 }
