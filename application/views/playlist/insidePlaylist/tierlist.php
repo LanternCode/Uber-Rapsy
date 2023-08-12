@@ -9,11 +9,11 @@
     <select id="selectbox" class="optionsURL" onchange="javascript:location.href = this.value;">
         <option value="">Pokaż oceny:</option>
         <option value="<?=base_url("playlist?ListId=" . $ListId)?>">Wszystkie oceny</option>
-        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Adam")?>">Najlepsze: Adam</option>
-        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Churchie")?>">Najlepsze: Kościelny</option>
-        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Average")?>">Najlepsze: Średnia</option>
-        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Repeat")?>">Ponowny Odsłuch</option>
-        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Reviewer=Unrated")?>">Nieoceniona</option>
+        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Adam")?>">Najlepsze: Adam</option>
+        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Churchie")?>">Najlepsze: Kościelny</option>
+        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Average")?>">Najlepsze: Średnia</option>
+        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Repeat")?>">Ponowny Odsłuch</option>
+        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Unrated")?>">Nieoceniona</option>
     </select>
     <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
@@ -24,39 +24,39 @@
 </header>
 <form id="songsForm" method="post" action="<?=base_url('updateSelection')?>">
     <?php if(count($gradesToDisplay) == 1): ?>
-        <h3>Nie znaleziono żadnych ocen <?=$Operation == "Adam" ? "Adama" : ($Operation == "Average" ? "Średniej" : "Kościelnego")?> :/</h3>
+        <h3>Nie znaleziono żadnych ocen <?=$Filter == "Adam" ? "Adama" : ($Filter == "Average" ? "Średniej" : "Kościelnego")?> :/</h3>
     <?php else: ?>
-        <h2>Tierlista <?=$Operation == "Adam" ? "Adama" : ($Operation == "Average" ? "Średniej" : "Kościelnego")?></h2>
+        <h2>Tierlista <?=$Filter == "Adam" ? "Adama" : ($Filter == "Average" ? "Średniej" : "Kościelnego")?></h2>
         <?php $i = 0;
         for($j = 15; $j >= 1; $j -= 0.25):
             if(in_array($j, $gradesToDisplay)): ?>
                 <h4 class="gradeCategory">Ocena <?=$j?>:</h4>
                 <?php foreach($songs as $song):
-                    if(($Operation == "Adam" && $song->SongGradeAdam == $j) || ($Operation == "Churchie" && $song->SongGradeChurchie == $j) ||
-                        ($Operation == "Average" && bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2) == $j)): ?>
+                    if(($Filter == "Adam" && $song->SongGradeAdam == $j) || ($Filter == "Churchie" && $song->SongGradeChurchie == $j) ||
+                        ($Filter == "Average" && bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2) == $j)): ?>
                         <div class="videoContainer">
                             <img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft" />
                             <div class="dataContainer">
                                 <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
-                                <h3 class="songTitle"><a href="<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
+                                <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
                                 <h4 class="dataContainer--gradeContainer">
                                     <label>Adam:</label>
                                     <?=$song->SongGradeAdam ?? 'Nieoceniona'?> ->
                                     <input name="nwGradeA-<?=$i+1?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                                           value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?>/>
+                                           value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$Reviewer ? "" : "disabled" ?>/>
                                 </h4>
                                 <h4 class="dataContainer--gradeContainer">
                                     <label>Kościelny:</label>
                                     <?=$song->SongGradeChurchie ?? 'Nieoceniona'?> ->
                                     <input name="nwGradeC-<?=$i+2?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                                           value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?>/>
+                                           value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$Reviewer ? "" : "disabled" ?>/>
                                 </h4>
                                 <h5 class="dataContainer--gradeContainer">
                                     <label>Średnia:</label>
                                     <input type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
                                 </h5>
                                 <?php  //only 1 list means there is nowhere to move or copy the song to
-                                if(count($lists) > 1 && $reviewer): ?>
+                                if(count($lists) > 1 && $Reviewer): ?>
                                     <h5 class="dataContainer--gradeContainer">
                                         <label>Kopiuj do:</label>
                                         <select name="<?="copyPlistId-".$i+20?>">

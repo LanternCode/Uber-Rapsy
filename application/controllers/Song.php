@@ -159,35 +159,4 @@ class Song extends CI_Controller
         else redirect('logout');
     }
 
-    /**
-     * Filters all songs by the title and shows them in a playlist
-     *
-     * @return void
-     */
-    public function search()
-    {
-        $data = [];
-        $data['title'] = "Wyniki Wyszukiwania | Uber Rapsy";
-        $data['body'] = 'playlistSearch';
-        $data['reviewer'] = isset($_SESSION['userRole']) ? ($_SESSION['userRole'] == "reviewer" ? true : false) : false;
-        $data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
-        $data['songs'] = $this->SongModel->GetSongsFromSearch($data['Search']);
-        $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
-        $data['songPlaylistNames'] = [];
-        $data['playlist'] = [];
-
-        foreach($data['songs'] as $i => $song)
-        {
-            //Fill the playlist name array (1 entry per song)
-            $data['songPlaylistNames'][] = $this->PlaylistModel->GetPlaylistNameById($song->ListId);
-            //Display values without decimals at the end if the decimals are only 0
-            if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
-            if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
-            //Get song button information
-            $data['playlist'][] = $this->PlaylistModel->FetchPlaylistById($song->ListId);
-        }
-
-        $this->load->view( 'templates/customNav', $data );
-    }
-
 }

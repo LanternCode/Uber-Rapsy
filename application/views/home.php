@@ -9,9 +9,10 @@
     <?php else: ?>
         <a class="omniNav--Option" href="<?=base_url("login")?>">Zaloguj się</a>
     <?php endif; ?>
-    <form class="omniNav--Option optionsRight" method="get" action="<?=base_url("search")?>" target="_blank">
+    <form class="omniNav--Option optionsRight" method="get" action="<?=base_url("playlist")?>" target="_blank">
         <label class="optionsSearchLabel">Szukaj nuty</label>
-        <input type="text" placeholder="Rajaner" name="Search" />
+        <input type="text" placeholder="Rajaner" name="SearchQuery" />
+        <input type="hidden" value="true" name="GlobalSearch" />
         <input type="submit" value="Szukaj" />
     </form>
 </nav>

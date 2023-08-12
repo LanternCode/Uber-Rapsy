@@ -1,0 +1,1 @@
+Do you really want to execute "DELETE FROM song WHERE ListId NOT IN (SELECT ListId from list)"?

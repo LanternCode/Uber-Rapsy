@@ -23,108 +23,140 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Opens a playlist with the required filters and settings.
+     * This function is used to handle:
+     * Global search queries
+     * Local search queries
+     * Tierlists
+     * Playlists
+     *
+     * Whichever is queued is presented to the user. Playlists can
+     * use filters to give more specific results, see below.
+     *
      * The allowed filters are:
+     * repeat - only show songs with the repeat status true
+     * unrated - only show songs that are unrated
+     * adam - show a tierlist based on adam's scores, high to low
+     * churchie - show a tierlist based on kościelny's scores, high to low
+     * average - show a tierlist based on the average song score, high to low
+     * none - show the playlist as-is
      *
      * @return void
      */
     public function playlist()
     {
         $data = [];
+        $data['ListId'] = isset($_GET['ListId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['ListId'])) : 0;
+        $data['SearchQuery'] = isset($_GET['SearchQuery']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['SearchQuery'])) : 0;
+        $data['GlobalSearch'] = isset($_GET['GlobalSearch']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['GlobalSearch'])) : 0;
+        $data['Reviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] === "reviewer";
+        $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
+        $data['body'] = 'playlist/insidePlaylist/playlist';
 
-        $data['ListId'] = isset( $_GET['ListId'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['ListId'] ) ) : 0;
-        $data['Operation'] = isset( $_GET['Reviewer'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Reviewer'] ) ) : 0;
-        $data['Search'] = isset( $_GET['Search'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['Search'] ) ) : 0;
-        $data['reviewer'] = isset($_SESSION['userRole']) ? ($_SESSION['userRole'] == "reviewer" ? true : false) : false;
-        $data['gradesToDisplay'] = [];
-        $data['body'] = 'playlist';
-
-        //confirm the playlist exists
-        $data['ListName'] = is_numeric($data['ListId']) ? $this->PlaylistModel->GetPlaylistNameById($data['ListId']) : false;
-        if($data['ListName'])
-        {
-            $data['ListIntegrated'] = $this->PlaylistModel->GetPlaylistIntegratedById($data['ListId']);
-            $data['ListUrl'] = $this->PlaylistModel->GetListUrlById($data['ListId']);
-            $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
-            $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
-            $data['title'] = $data['ListName']." | Playlista Uber Rapsy";
-
-            //There are 3 available choices: filter by grade (tierlist), search by title, display all
-            if($data['Operation'])
+        //Handle global search if queued, otherwise check for valid playlist id
+        if($data['GlobalSearch'] !== 0 && $data['SearchQuery'] !== 0) {
+            $data['songPlaylistNames'] = [];
+            $data['playlist'] = [];
+            $data['body'] = 'playlist/insidePlaylist/playlistSearch';
+            $data['title'] = "Wyniki Wyszukiwania | Uber Rapsy";
+            $data['songs'] = $this->SongModel->GetSongsFromSearch($data['SearchQuery']);
+            foreach($data['songs'] as $i => $song)
             {
-                if($data['Operation'] == "Repeat")
-                {
-                    //Fetch songs with true repeat rehearsal status
-                    $data['songs'] = $this->SongModel->FilterByRepeat(true, $data['ListId']);
-                }
-                else if ($data['Operation'] == "Unrated")
-                {
-                    //Fetch unrated songs
-                    $data['songs'] = $this->SongModel->FilterUnrated($data['ListId']);
-                }
-                else
-                {
-                    $data['body'] = 'tierlist';
-                    $data['songs'] = $this->SongModel->GetTopSongsFromList($data['ListId'], $data['Operation']);
-
-                    foreach($data['songs'] as $song)
-                    {
-                        $gradeA = $song->SongGradeAdam;
-                        if($gradeA != NULL && !in_array($gradeA, $data['gradesToDisplay']) && $data['Operation'] == "Adam")
-                            array_push($data['gradesToDisplay'], $gradeA);
-
-                        $gradeB = $song->SongGradeChurchie;
-                        if($gradeB != NULL && !in_array($gradeB, $data['gradesToDisplay']) && $data['Operation'] == "Churchie")
-                            array_push($data['gradesToDisplay'], $gradeB);
-
-                        $gradeC = bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2);
-                        if($gradeC != NULL && !in_array($gradeC, $data['gradesToDisplay']) && $data['Operation'] == "Average")
-                            array_push($data['gradesToDisplay'], $gradeC);
-                    }
-                    rsort($data['gradesToDisplay']);
-                }
-            }
-            else if ($data['Search'])
-            {
-                $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId'], $data['Search']);
-            }
-            else
-            {
-                $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId']);
-            }
-
-            //Calculate the averages
-            $avgOverall = 0;
-            $avgAdam = 0;
-            $avgChurchie = 0;
-            $ratedCount = 0;
-            $ratedAdam = 0;
-            $ratedChurchie = 0;
-            foreach($data['songs'] as $song)
-            {
+                //Fill the playlist name array (1 entry per song)
+                $data['songPlaylistNames'][] = $this->PlaylistModel->GetPlaylistNameById($song->ListId);
                 //Display values without decimals at the end if the decimals are only 0
                 if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
                 if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
-                $avgOverall += ($song->SongGradeAdam + $song->SongGradeChurchie) / 2;
-                $avgAdam += $song->SongGradeAdam;
-                $avgChurchie += $song->SongGradeChurchie;
-                $ratedCount += $song->SongGradeAdam > 0 || $song->SongGradeChurchie > 0 ? 1 : 0;
-                $ratedAdam += $song->SongGradeAdam > 0 ? 1 : 0;
-                $ratedChurchie += $song->SongGradeChurchie > 0 ? 1 : 0;
+                //Get song button information
+                $data['playlist'][] = $this->PlaylistModel->FetchPlaylistById($song->ListId);
             }
-            $data['avgOverall'] = $ratedCount > 0 ? $avgOverall/$ratedCount : 0;
-            $data['avgAdam'] = $ratedAdam > 0 ? $avgAdam/$ratedAdam : 0;
-            $data['avgChurchie'] = $ratedChurchie > 0 ? $avgChurchie/$ratedChurchie : 0;
-            $data['ratedCount'] = $ratedCount;
         }
-        else
-        {
+        else if (is_numeric($data['ListId'])) {
+            //Fetch the playlist, queue for local search, then filters
+            $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
+            $data['ListName'] = $data['playlist']->ListName;
+            $data['ListUrl'] = $data['playlist']->ListUrl;
+            $data['title'] = $data['ListName']." | Playlista Uber Rapsy";
+
+            //Check if search was used
+            $data['Filter'] = isset($_GET['Filter']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['Filter'])) : "none";
+            $data['Filter'] = ($data['Filter'] === "none" && $data['SearchQuery'] !== 0) ? "Search" : $data['Filter'];
+
+            //Filter is in use, queue for the right filter or none to just fetch the playlist
+            switch($data['Filter']) {
+                case "Search": {
+                    //Local search was selected
+                    $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId'], $data['SearchQuery']);
+                    break;
+                }
+                case "Repeat": {
+                    $data['songs'] = $this->SongModel->FilterByRepeat(true, $data['ListId']);
+                    break;
+                }
+                case "Unrated": {
+                    $data['songs'] = $this->SongModel->FilterUnrated($data['ListId']);
+                    break;
+                }
+                case "Adam":
+                case "Churchie":
+                case "Average": {
+                    $data['gradesToDisplay'] = [];
+                    $data['body'] = 'playlist/insidePlaylist/tierlist';
+                    $data['songs'] = $this->SongModel->GetTopSongsFromList($data['ListId'], $data['Filter']);
+                    $propName = $data['Filter'] === "Adam" ? "SongGradeAdam" : ($data['Filter'] === "Churchie" ? "SongGradeChurchie" : "Average");
+                    foreach ($data['songs'] as $song) {
+                        //Display values without decimals at the end if the decimals are only 0
+                        if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
+                        if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
+                        $grade = $propName !== "Average" ? $song->$propName : bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie)/2, 1, 2);
+                        if(!in_array($grade, $data['gradesToDisplay']))
+                            $data['gradesToDisplay'][] = $grade;
+                    }
+                    rsort($data['gradesToDisplay']);
+                    break;
+                }
+                default:
+                case "none": {
+                    //No filter in use - just load the playlist
+                    $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId']);
+                    break;
+                }
+            }
+            //Calculate playlist averages for each reviewer and the overall average - not required in tierlists
+            if (!in_array($data['Filter'], ["Adam", "Churchie", "Average"])) {
+                $avgOverall = 0;
+                $avgAdam = 0;
+                $avgChurchie = 0;
+                $ratedCount = 0;
+                $ratedAdam = 0;
+                $ratedChurchie = 0;
+                foreach($data['songs'] as $song)
+                {
+                    //Display values without decimals at the end if the decimals are only 0
+                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
+                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
+                    $avgOverall += ($song->SongGradeAdam + $song->SongGradeChurchie) / 2;
+                    $avgAdam += $song->SongGradeAdam;
+                    $avgChurchie += $song->SongGradeChurchie;
+                    $ratedCount += $song->SongGradeAdam > 0 || $song->SongGradeChurchie > 0 ? 1 : 0;
+                    $ratedAdam += $song->SongGradeAdam > 0 ? 1 : 0;
+                    $ratedChurchie += $song->SongGradeChurchie > 0 ? 1 : 0;
+                }
+                $data['avgOverall'] = $ratedCount > 0 ? $avgOverall/$ratedCount : 0;
+                $data['avgAdam'] = $ratedAdam > 0 ? $avgAdam/$ratedAdam : 0;
+                $data['avgChurchie'] = $ratedChurchie > 0 ? $avgChurchie/$ratedChurchie : 0;
+                $data['ratedOverall'] = $ratedCount;
+                $data['ratedAdam'] = $ratedAdam;
+                $data['ratedChurchie'] = $ratedChurchie;
+                $data['ListIntegrated'] = $data['playlist']->ListIntegrated;
+            }
+        }
+        else {
             $data['body'] = 'invalidAction';
             $data['title'] = "Błąd akcji!";
             $data['errorMessage'] = "Wskazana playlista nie istnieje lub jest prywatna.";
         }
 
-        $this->load->view( 'templates/main', $data );
+        $this->load->view('templates/main', $data);
     }
 
     /**
@@ -135,7 +167,6 @@ class Playlist extends CI_Controller {
     public function dashboard()
     {
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-
         if($userAuthenticated)
         {
             $data = [];
@@ -156,7 +187,6 @@ class Playlist extends CI_Controller {
     public function details()
     {
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-
         if($userAuthenticated)
         {
             $data = [];

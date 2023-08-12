@@ -205,13 +205,13 @@ class SongModel extends CI_Model
      * Fetch songs of one reviewer, sorted by grade descending.
      *
      * @param int $listId  id of the list to fetch from
-     * @param string $operation  name of the reviewer
+     * @param string $filter  name of the reviewer
      * @return array           returns an array containing the songs found
      */
-    function GetTopSongsFromList(int $listId, string $operation): array
+    function GetTopSongsFromList(int $listId, string $filter): array
     {
-        $orderBy = $operation == "Adam" ? "SongGradeAdam" : ($operation == "Churchie" ? "SongGradeChurchie" : "((SongGradeAdam+SongGradeChurchie)/2)");
-        $sql = "SELECT * FROM song WHERE ListId = $listId ORDER BY $orderBy DESC";
+        $cond = $filter === "Adam" ? "SongGradeAdam" : ($filter === "Churchie" ? "SongGradeChurchie" : "(SongGradeAdam+SongGradeChurchie)/2");
+        $sql = "SELECT * FROM song WHERE ListId = $listId AND ".$cond." > 0 ORDER BY $cond DESC";
         return $this->db->query($sql)->result();
     }
 
