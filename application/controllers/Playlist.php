@@ -450,8 +450,10 @@ class Playlist extends CI_Controller {
                 $playlist = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
 
             //Process each song separately
-            for ($i = 0; $i < count($_POST)-1; $i+=21) {
-                if (true) {
+            for ($i = 0; $i < count($_POST)-1; $i+=22) {
+                //Only process songs that were actually updated
+                $songUpdated = isset($_POST["songUpdated-" . $i+21]) && $_POST["songUpdated-".$i+21];
+                if ($songUpdated) {
                     //Create a variable for the song's update message
                     $localResultMessage = "";
 
@@ -699,21 +701,21 @@ class Playlist extends CI_Controller {
                             $data['errorMessage'] = "Nie znaleziono biblioteki google!";
                         }
                     }
-                //Save the result message and pass it to the report
-                $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currentSong->SongTitle . ":<br><br>" . $localResultMessage) : "";
-                $resultMessage .= $finalResultMessage;
+                    //Save the result message and pass it to the report
+                    $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currentSong->SongTitle . ":<br><br>" . $localResultMessage) : "";
+                    $resultMessage .= $finalResultMessage;
                 }
-                //Finalise the result message
-                $data['resultMessage'] = $resultMessage . "</pre>";
-                //Submit a report
-                $newReportId = $this->LogModel->SubmitReport(htmlspecialchars($data['resultMessage']));
-                //Create a log
-                $where = $data['playlistId'] === "search" ? "z wyszukiwarki" : "z playlisty";
-                $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
-                $logMessage = "Zapisano oceny ".$where.$reportSuccessful;
-                if(is_numeric($data['playlistId']))
-                    $this->LogModel->CreateLog('playlist', $data['playlistId'], $logMessage, $newReportId);
             }
+            //Finalise the result message
+            $data['resultMessage'] = $resultMessage . "</pre>";
+            //Submit a report
+            $newReportId = $this->LogModel->SubmitReport(htmlspecialchars($data['resultMessage']));
+            //Create a log
+            $where = $data['playlistId'] === "search" ? "z wyszukiwarki" : "z playlisty";
+            $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
+            $logMessage = "Zapisano oceny ".$where.$reportSuccessful;
+            if(is_numeric($data['playlistId']))
+                $this->LogModel->CreateLog('playlist', $data['playlistId'], $logMessage, $newReportId);
         }
         else {
             //The user is not allowed to update anything in the system
