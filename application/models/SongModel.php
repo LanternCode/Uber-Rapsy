@@ -185,6 +185,21 @@ class SongModel extends CI_Model
     }
 
     /**
+     * This function updates the reviewers' song comment
+     *
+     * @param int $songId
+     * @param string $songComment
+     * @return bool
+     */
+    function UpdateSongComment(int $songId, string $songComment): bool
+    {
+        $sql = "UPDATE song SET SongComment = '$songComment' WHERE SongId = $songId";
+
+        if($this->db->simple_query($sql)) return true;
+        else return false;
+    }
+
+    /**
      * Update a moved song with the new PlaylistId.
      *
      * A local song is in a playlist not integrated with a YT playlist

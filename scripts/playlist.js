@@ -29,10 +29,11 @@ function updateAverage(event)
  * @function toggleUpdate
  * @param event
  */
-function toggleUpdate(event)
+function toggleUpdate(event, isSelectBox = false)
 {
     //Find the hidden input that holds the update boolean
-    let elem = event.parentElement.parentElement.lastElementChild;
+    let elem = isSelectBox ? event.parentElement.lastElementChild : event.parentElement.parentElement.lastElementChild;
+
     //If the bool is false, set it to true
     if(elem.value == 0)
         elem.value = 1;
@@ -48,6 +49,7 @@ function getPlaylistName(average)
 const gradeBoxes = document.querySelectorAll(".gradeInput");
 const selectBoxes = document.querySelectorAll(".selectBox");
 const buttonBoxes = document.querySelectorAll(".buttonBox");
+const commentBoxes = document.querySelectorAll(".commentBox");
 
 for (let i = 0; i < gradeBoxes.length; ++i) {
     gradeBoxes[i].addEventListener('input', () => {updateAverage(gradeBoxes[i])});
@@ -60,4 +62,8 @@ for (let i = 0; i < selectBoxes.length; ++i) {
 
 for (let i = 0; i < buttonBoxes.length; ++i) {
     buttonBoxes[i].addEventListener('change', () => {toggleUpdate(buttonBoxes[i])});
+}
+
+for (let i = 0; i < commentBoxes.length; ++i) {
+    commentBoxes[i].addEventListener('input', () => {toggleUpdate(commentBoxes[i], true)});
 }

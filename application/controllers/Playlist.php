@@ -61,8 +61,6 @@ class Playlist extends CI_Controller {
             $data['songs'] = $this->SongModel->GetSongsFromSearch($data['SearchQuery']);
             foreach($data['songs'] as $i => $song)
             {
-                //Fill the playlist name array (1 entry per song)
-                $data['songPlaylistNames'][] = $this->PlaylistModel->GetPlaylistNameById($song->ListId);
                 //Display values without decimals at the end if the decimals are only 0
                 if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
                 if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
@@ -187,30 +185,25 @@ class Playlist extends CI_Controller {
     public function details()
     {
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-        if($userAuthenticated)
-        {
+        if($userAuthenticated) {
             $data = [];
             $data['body']  = 'playlist/details';
             $data['title'] = "Uber Rapsy | Zarządzaj playlistą!";
             $data['ListId'] = isset( $_GET['id'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['id'] ) ) : 0;
 
-            if($data['ListId'] && is_numeric($data['ListId']))
-            {
+            if($data['ListId'] && is_numeric($data['ListId'])) {
                 $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
 
-                if($data['playlist'] === false)
-                {
+                if($data['playlist'] === false) {
                     $data['body']  = 'invalidAction';
                     $data['title'] = "Błąd akcji!";
                     $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
                 }
-                else
-                {
+                else {
                     $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId']);
                 }
             }
-            else
-            {
+            else {
                 $data['body']  = 'invalidAction';
                 $data['title'] = "Błąd akcji!";
                 $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
@@ -377,6 +370,7 @@ class Playlist extends CI_Controller {
         $flags['SongBelFour'] = $currentSong->SongBelFour != $formInput['SongBelFour'];
         $flags['SongDuoTen'] = $currentSong->SongDuoTen != $formInput['SongDuoTen'];
         $flags['SongVeto'] = $currentSong->SongVeto != $formInput['SongVeto'];
+        $flags['SongComment'] = $currentSong->SongComment != $formInput['SongComment'];
 
         //If any of the flags is set (true), add it to the list
         if(in_array(true, $flags, true)) {
@@ -388,6 +382,9 @@ class Playlist extends CI_Controller {
             return $triggeredFlags;
         }
         else return [];
+
+        print_r($triggeredFlags);
+        die();
     }
 
     /**
@@ -450,7 +447,7 @@ class Playlist extends CI_Controller {
                 $playlist = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
 
             //Process each song separately
-            for ($i = 0; $i < count($_POST)-1; $i+=22) {
+            for ($i = 0; $i < count($_POST)-1; $i+=23) {
                 //Only process songs that were actually updated
                 $songUpdated = isset($_POST["songUpdated-" . $i+21]) && $_POST["songUpdated-".$i+21];
                 if ($songUpdated) {
@@ -479,6 +476,7 @@ class Playlist extends CI_Controller {
                     $formInput['SongVeto'] = $_POST["songVeto-" . $i + 19];
                     $formInput['newPlaylistId'] = $_POST["nwPlistId-" . $i + 3];
                     $formInput['copyToPlaylist'] = $_POST["copyPlistId-" . $i + 20];
+                    $formInput['SongComment'] = $_POST["songComment-" . $i + 22];
 
                     //Fetch the song-to-update
                     $currentSong = $this->SongModel->GetSongById($formInput['songId']);
@@ -492,10 +490,11 @@ class Playlist extends CI_Controller {
                     //Fetch the song properties that need to be updated by comparing the input data with the song data
                     $elementsToUpdate = $this->FlagSongDataToUpdate($currentSong, $formInput);
 
-                    //Update song grades
+                    //Update song grades and the comment
                     $createUpdateLog = false;
                     $adamGradeUpdated = in_array("SongGradeAdam", $elementsToUpdate);
                     $churchieGradeUpdated = in_array("SongGradeChurchie", $elementsToUpdate);
+                    $commentUpdated = in_array("SongComment", $elementsToUpdate);
                     if ($adamGradeUpdated || $churchieGradeUpdated) {
                         $newAdamRating = str_replace(',', '.', $formInput['SongGradeAdam']);
                         $newChurchieRating = str_replace(',', '.', $formInput['SongGradeChurchie']);
@@ -520,10 +519,23 @@ class Playlist extends CI_Controller {
                             $createUpdateLog = true;
                         }
                     }
+                    if($commentUpdated) {
+                        $commentSaved = $this->SongModel->UpdateSongComment($currentSong->SongId, $formInput['SongComment']);
+                        if (!$commentSaved) {
+                            //Fatal Error - if comment was not saved, note this and continue to the next song.
+                            $resultMessage .= "<br><br>\tNie udało się zapisać komentarza do utworu ".$currentSong->SongTitle."<br><br>";
+                            continue;
+                        }
+                        else {
+                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                            $localResultMessage .= "Komentarz: " . $currentSong->SongComment . " -> " . $formInput['SongComment'];
+                            $createUpdateLog = true;
+                        }
+                    }
 
                     //Update Song Checkbox Properties
                     foreach ($elementsToUpdate as $prop) {
-                        if (!in_array($prop, ["SongGradeAdam", "SongGradeChurchie"])) {
+                        if (!in_array($prop, ["SongGradeAdam", "SongGradeChurchie", "SongComment"])) {
                             $propertyDisplayName = $this->GetPropertyDisplayName($prop);
                             $updateSuccess = $this->SongModel->UpdateSongCheckboxProperty($currentSong->SongId, $prop, $formInput[$prop]);
                             $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
