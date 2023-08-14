@@ -382,9 +382,6 @@ class Playlist extends CI_Controller {
             return $triggeredFlags;
         }
         else return [];
-
-        print_r($triggeredFlags);
-        die();
     }
 
     /**
@@ -745,11 +742,7 @@ class Playlist extends CI_Controller {
      */
 	public function downloadSongs()
 	{
-		//id of the list to reload
 		$listId = isset( $_GET['ListId'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['ListId'] ) ) : 0;
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
-
-		//declare default variables
 		$data = array(
 			'body' => 'downloadSongs',
 			'title' => 'Aktualizacja listy!',
@@ -759,6 +752,7 @@ class Playlist extends CI_Controller {
 		);
 
 		//Check if the user is allowed to do this action
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
         if($userAuthenticated)
         {
             //Parameters for the api call
@@ -779,7 +773,7 @@ class Playlist extends CI_Controller {
 					$url = $host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.urlencode($playlistId).'&key='.urlencode($apiKey);
                     $firstCall = file_get_contents($url);
                     $downloadedSongs = json_decode($firstCall, true);
-                    array_push($data['songsJsonArray'], $downloadedSongs);
+                    $data['songsJsonArray'][] = $downloadedSongs;
                 }
 
                 //How many songs total - returns 0 if null
@@ -788,7 +782,9 @@ class Playlist extends CI_Controller {
                 if($allResults > 0)
                 {
                     //Keep loading songs until all are loaded
-                    for($scannedResults = isset($downloadedSongs['pageInfo']['resultsPerPage']) ? $downloadedSongs['pageInfo']['resultsPerPage'] : 150000; $scannedResults < $allResults; $scannedResults += $downloadedSongs['pageInfo']['resultsPerPage'])
+                    for($scannedResults = $downloadedSongs['pageInfo']['resultsPerPage'] ?? 150000;
+                        $scannedResults < $allResults;
+                        $scannedResults += $downloadedSongs['pageInfo']['resultsPerPage'])
                     {
                         //Get the token of the next page
                         $pageToken = $downloadedSongs['nextPageToken'];
@@ -797,7 +793,7 @@ class Playlist extends CI_Controller {
                         //Decode the result from json to array
                         $downloadedSongs = json_decode($nextCall, true);
                         //Save the songs into the array
-                        array_push($data['songsJsonArray'], $downloadedSongs);
+                        $data['songsJsonArray'][] = $downloadedSongs;
                     }
 
                     //Get all songs that are already in the list, only urls
@@ -805,7 +801,7 @@ class Playlist extends CI_Controller {
                     $songURLsArray = [];
                     foreach($songURLs as $songURL)
                     {
-                        array_push($songURLsArray, $songURL->SongURL);
+                        $songURLsArray[] = $songURL->SongURL;
                     }
 
                     //Perform the reloading process
@@ -826,7 +822,7 @@ class Playlist extends CI_Controller {
                                     {
                                         //Get all required data to save a song in the database
                                         $songURL = $song['snippet']['resourceId']['videoId'];
-										$songPublic = isset($song['snippet']['thumbnails']['medium']['url']) ? true : false;
+										$songPublic = isset($song['snippet']['thumbnails']['medium']['url']);
                                         $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
                                         $songTitle = mysqli_real_escape_string( $this->db->conn_id, $song['snippet']['title'] );
                                         $songPlaylistItemsId = $song['id'];

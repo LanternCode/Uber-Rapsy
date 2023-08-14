@@ -1,3 +1,7 @@
 DELETE FROM song WHERE ListId NOT IN (SELECT ListId from list)
 
 ALTER TABLE `song` ADD `SongComment` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci NOT NULL AFTER `SongGradeChurchie`;
+
+ALTER TABLE `song` CHANGE `SongTitle` `SongTitle` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;
+
+ALTER TABLE `song` CHANGE `SongComment` `SongComment` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;
