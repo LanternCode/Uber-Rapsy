@@ -332,7 +332,10 @@ class SongModel extends CI_Model
     {
         $sql = "SELECT * FROM song WHERE SongGradeAdam = 0 AND SongGradeChurchie = 0 AND ListId = $listId
                      AND SongDistinction = 0 AND SongMemorial = 0 AND SongXD = 0 AND SongNotRap = 0
-                     AND SongDiscomfort = 0 AND SongTop = 0 AND SongNoGrade = 0 AND SongUber = 0 AND SongBelow = 0";
+                     AND SongDiscomfort = 0 AND SongTop = 0 AND SongNoGrade = 0 AND SongUber = 0 AND SongBelow = 0
+                     AND SongBelTen = 0 AND SongBelNine = 0 AND SongBelEight = 0 AND SongBelFour = 0
+                     AND SongDuoTen = 0 AND SongVeto = 0 AND SongBelHalfSeven = 0 AND SongBelHalfEight = 0
+                     AND SongBelHalfNine = 0 AND SongRehearsal = 0";
         return $this->db->query($sql)->result();
     }
 
