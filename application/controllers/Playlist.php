@@ -222,7 +222,6 @@ class Playlist extends CI_Controller {
     public function edit()
     {
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-
         if($userAuthenticated)
         {
             $data = [];
@@ -230,18 +229,15 @@ class Playlist extends CI_Controller {
             $data['title'] = "Uber Rapsy | Edytuj playlistę!";
             $data['ListId'] = isset( $_GET['id'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['id'] ) ) : 0;
 
-            if($data['ListId'] && is_numeric($data['ListId']))
-            {
+            if($data['ListId'] && is_numeric($data['ListId'])) {
                 $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
 
-                if($data['playlist'] === false)
-                {
+                if($data['playlist'] === false) {
                     $data['body']  = 'invalidAction';
                     $data['title'] = "Błąd akcji!";
                     $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
                 }
-                else if(isset($_POST['playlistFormSubmitted']))
-                {
+                else if(isset($_POST['playlistFormSubmitted'])) {
                     $queryData = [];
                     $queryData['ListId'] = $data['ListId'];
                     $queryData['ListUrl'] = isset($_POST['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistId'])) : "";
@@ -265,15 +261,16 @@ class Playlist extends CI_Controller {
                     $queryData['btnBelowFour'] = isset($_POST["btnBelowFour"]) ? 1 : 0;
                     $queryData['btnDuoTen'] = isset($_POST["btnDuoTen"]) ? 1 : 0;
                     $queryData['btnVeto'] = isset($_POST["btnVeto"]) ? 1 : 0;
+                    $queryData['btnBelowHalfSeven'] = isset($_POST["btnBelowHalfSeven"]) ? 1 : 0;
+                    $queryData['btnBelowHalfEight'] = isset($_POST["btnBelowHalfEight"]) ? 1 : 0;
+                    $queryData['btnBelowHalfNine'] = isset($_POST["btnBelowHalfNine"]) ? 1 : 0;
 
-                    if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
-                    {
+                    if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "") {
                         $this->PlaylistModel->UpdatePlaylist($queryData);
                         $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
                         $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
                     }
-                    else
-                    {
+                    else {
                         $data['resultMessage'] = "";
                         $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
@@ -282,8 +279,7 @@ class Playlist extends CI_Controller {
                     }
                 }
             }
-            else
-            {
+            else {
                 $data['body']  = 'invalidAction';
                 $data['title'] = "Błąd akcji!";
                 $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
@@ -371,6 +367,9 @@ class Playlist extends CI_Controller {
         $flags['SongDuoTen'] = $currentSong->SongDuoTen != $formInput['SongDuoTen'];
         $flags['SongVeto'] = $currentSong->SongVeto != $formInput['SongVeto'];
         $flags['SongComment'] = $currentSong->SongComment != $formInput['SongComment'];
+        $flags['SongBelHalfSeven'] = $currentSong->SongBelHalfSeven != $formInput['SongBelHalfSeven'];
+        $flags['SongBelHalfEight'] = $currentSong->SongBelHalfEight != $formInput['SongBelHalfEight'];
+        $flags['SongBelHalfNine'] = $currentSong->SongBelHalfNine != $formInput['SongBelHalfNine'];
 
         //If any of the flags is set (true), add it to the list
         if(in_array(true, $flags, true)) {
@@ -410,6 +409,9 @@ class Playlist extends CI_Controller {
             'SongBelFour' => "< 4",
             'SongDuoTen' => '"10"',
             'SongVeto' => "VETO",
+            'SongBelHalfSeven' => "< 7.5",
+            'SongBelHalfEight' => "< 8.5",
+            'SongBelHalfNine' => "< 9.5",
             default => ""
         };
     }
@@ -444,7 +446,7 @@ class Playlist extends CI_Controller {
                 $playlist = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
 
             //Process each song separately
-            for ($i = 0; $i < count($_POST)-1; $i+=23) {
+            for ($i = 0; $i < count($_POST)-1; $i+=26) {
                 //Only process songs that were actually updated
                 $songUpdated = isset($_POST["songUpdated-" . $i+21]) && $_POST["songUpdated-".$i+21];
                 if ($songUpdated) {
@@ -474,6 +476,9 @@ class Playlist extends CI_Controller {
                     $formInput['newPlaylistId'] = $_POST["nwPlistId-" . $i + 3];
                     $formInput['copyToPlaylist'] = $_POST["copyPlistId-" . $i + 20];
                     $formInput['SongComment'] = $_POST["songComment-" . $i + 22];
+                    $formInput['SongBelHalfSeven'] = $_POST["SongBelHalfSeven-" . $i + 23];
+                    $formInput['SongBelHalfEight'] = $_POST["SongBelHalfEight-" . $i + 24];
+                    $formInput['SongBelHalfNine'] = $_POST["SongBelHalfNine-" . $i + 25];
 
                     //Fetch the song-to-update
                     $currentSong = $this->SongModel->GetSongById($formInput['songId']);
@@ -558,7 +563,8 @@ class Playlist extends CI_Controller {
                             $newSongId = $this->SongModel->GetSongIdByNameAndPlaylist($currentSong->SongTitle, $formInput['copyToPlaylist']);
                             $sourceName = $data['playlistId'] === "search" ? "wyszukiwarki" : "playlisty " . $playlist->ListName;
                             $targetName = $this->PlaylistModel->GetPlaylistNameById($formInput['copyToPlaylist']);
-                            $localResultMessage .= "\tSkopiowano do: ".$targetName;
+                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                            $localResultMessage .= "Skopiowano do: ".$targetName;
                             $this->LogModel->CreateLog("song", $newSongId, "Nuta skopiowana z " . $sourceName . " do " . $targetName);
                         }
                         else {

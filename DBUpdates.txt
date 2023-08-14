@@ -5,3 +5,7 @@ ALTER TABLE `song` ADD `SongComment` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_
 ALTER TABLE `song` CHANGE `SongTitle` `SongTitle` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;
 
 ALTER TABLE `song` CHANGE `SongComment` `SongComment` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;
+
+ALTER TABLE `song` ADD `SongBelHalfSeven` BIT(1) NOT NULL DEFAULT b'0' AFTER `SongVeto`, ADD `SongBelHalfEight` BIT(1) NOT NULL DEFAULT b'0' AFTER `SongBelHalfSeven`, ADD `SongBelHalfNine` BIT(1) NOT NULL DEFAULT b'0' AFTER `SongBelHalfEight`;
+
+ALTER TABLE `list` ADD `btnBelowHalfSeven` BIT(1) NOT NULL DEFAULT b'0' AFTER `btnVeto`, ADD `btnBelowHalfEight` BIT(1) NOT NULL DEFAULT b'0' AFTER `btnBelowHalfSeven`, ADD `btnBelowHalfNine` BIT(1) NOT NULL DEFAULT b'0' AFTER `btnBelowHalfEight`;

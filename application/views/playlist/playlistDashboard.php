@@ -17,7 +17,7 @@
     </tr>
     <?php foreach($playlists as $playlist): ?>
         <tr>
-            <td><a href="<?=base_url('playlist?ListId='.$playlist->ListId)?>">--></a></td>
+            <td><a target="_blank" href="<?=base_url('playlist?ListId='.$playlist->ListId)?>">--></a></td>
             <td><?=$playlist->ListName?></td>
             <td><a href="<?=base_url('playlist/edit?id='.$playlist->ListId)?>">Edytuj</a></td>
             <td><?=$playlist->ListActive === "1" ? "Publiczna" : "Ukryta"?></td>

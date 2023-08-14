@@ -41,7 +41,10 @@
     <label><input type="checkbox" <?=$playlist->btnDiscomfort ? "checked" : ""?> name="btnDiscomfort"> Strefa Dyskomfortu</label><br>
     <label><input type="checkbox" <?=$playlist->btnNotRap ? "checked" : ""?> name="btnNotRap"> To nie rapsik</label><br>
     <label><input type="checkbox" <?=$playlist->btnNoGrade ? "checked" : ""?> name="btnNoGrade"> Nie oceniam</label><br>
-    <label><input type="checkbox" <?=$playlist->btnVeto ? "checked" : ""?> name="btnVeto"> VETO</label><br><br>
+    <label><input type="checkbox" <?=$playlist->btnVeto ? "checked" : ""?> name="btnVeto"> VETO</label><br>
+    <label><input type="checkbox" <?=$playlist->btnBelowHalfSeven ? "checked" : ""?> name="btnBelowHalfSeven"> < 7.5</label><br>
+    <label><input type="checkbox" <?=$playlist->btnBelowHalfEight ? "checked" : ""?> name="btnBelowHalfEight"> < 8.5</label><br>
+    <label><input type="checkbox" <?=$playlist->btnBelowHalfNine ? "checked" : ""?> name="btnBelowHalfNine"> < 9.5</label><br><br>
 
     <input type="submit" name="playlistFormSubmitted" value="Zapisz" />
 </form>

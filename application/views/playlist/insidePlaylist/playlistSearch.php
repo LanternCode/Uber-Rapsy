@@ -74,8 +74,11 @@
                     <label <?=$playlist[$key]->btnRehearsal ? '' : 'hidden'?>><input type="hidden" name="<?="songRehearsal-".$i+4?>" value="<?=$song->SongRehearsal?>"><input type="checkbox" class="buttonBox" <?=$song->SongRehearsal ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Do ponownego odsłuchu</label>
                     <label <?=$playlist[$key]->btnBelowFour ? '' : 'hidden'?>><input type="hidden" name="<?="songBelFour-".$i+17?>" value="<?=$song->SongBelFour?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelFour ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 4</label>
                     <label <?=$playlist[$key]->btnBelowSeven ? '' : 'hidden'?>><input type="hidden" name="<?="songBelow-".$i+13?>" value="<?=$song->SongBelow?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelow ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 7</label>
+                    <label <?=$playlist[$key]->btnBelowHalfSeven ? '' : 'hidden'?>><input type="hidden" name="<?="SongBelHalfSeven-".$i+23?>" value="<?=$song->SongBelHalfSeven?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelHalfSeven ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 7.5</label>
                     <label <?=$playlist[$key]->btnBelowEight ? '' : 'hidden'?>><input type="hidden" name="<?="songBelEight-".$i+16?>" value="<?=$song->SongBelEight?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelEight ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 8</label>
+                    <label <?=$playlist[$key]->btnBelowHalfEight ? '' : 'hidden'?>><input type="hidden" name="<?="SongBelHalfEight-".$i+24?>" value="<?=$song->SongBelHalfEight?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelHalfEight ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 8.5</label>
                     <label <?=$playlist[$key]->btnBelowNine ? '' : 'hidden'?>><input type="hidden" name="<?="songBelNine-".$i+15?>" value="<?=$song->SongBelNine?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelNine ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 9</label>
+                    <label <?=$playlist[$key]->btnBelowHalfNine ? '' : 'hidden'?>><input type="hidden" name="<?="SongBelHalfNine-".$i+25?>" value="<?=$song->SongBelHalfNine?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelHalfNine ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 9.5</label>
                     <label <?=$playlist[$key]->btnBelowTen ? '' : 'hidden'?>><input type="hidden" name="<?="songBelTen-".$i+14?>" value="<?=$song->SongBelTen?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelTen ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 10</label>
                     <label <?=$playlist[$key]->btnDistinction ? '' : 'hidden'?>><input type="hidden" name="<?="songDistinction-".$i+5?>" value="<?=$song->SongDistinction?>"><input type="checkbox" class="buttonBox" <?=$song->SongDistinction ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Wyróżnienie</label>
                     <label <?=$playlist[$key]->btnDuoTen ? '' : 'hidden'?>><input type="hidden" name="<?="songDuoTen-".$i+18?>" value="<?=$song->SongDuoTen?>"><input type="checkbox" class="buttonBox" <?=$song->SongDuoTen ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> "10"</label>
@@ -87,12 +90,12 @@
                     <label <?=$playlist[$key]->btnNotRap ? '' : 'hidden'?>><input type="hidden" name="<?="songNotRap-".$i+8?>" value="<?=$song->SongNotRap?>"><input type="checkbox" class="buttonBox" <?=$song->SongNotRap ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> To nie rapsik</label>
                     <label <?=$playlist[$key]->btnNoGrade ? '' : 'hidden'?>><input type="hidden" name="<?="songNoGrade-".$i+11?>" value="<?=$song->SongNoGrade?>"><input type="checkbox" class="buttonBox" <?=$song->SongNoGrade ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Nie oceniam</label>
                     <label <?=$playlist[$key]->btnVeto ? '' : 'hidden'?>><input type="hidden" name="<?="songVeto-".$i+19?>" value="<?=$song->SongVeto?>"><input type="checkbox" class="buttonBox" <?=$song->SongVeto ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> VETO</label>
-                    <textarea rows="8" cols="40" class="commentBox" name="songComment-<?=$i+22?>"><?=$song->SongComment?></textarea>
+                    <br><textarea rows="8" cols="40" class="commentBox" name="songComment-<?=$i+22?>"><?=$song->SongComment?></textarea>
                     <input type="hidden" name="songUpdated-<?=$i+21?>" value="0">
                 </div>
 			</div>
 		<?php
-        $i += 23;
+        $i += 26;
         endforeach;?>
             <input type="hidden" name="playlistId" value="search"/>
         </form>
