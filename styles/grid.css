@@ -5,7 +5,16 @@
     background-color: #ededed;
 }
 
-.videoContainer {
+*::-webkit-scrollbar {
+    display: none;
+}
+
+.blackBar {
+    background-color: black;
+    color: white;
+}
+
+.videoContainerBox {
     display: grid;
     grid-template-columns: 21vw 76vw;
     grid-template-rows: 100%;
@@ -16,11 +25,34 @@
         grid-column-end: 2;
     }
 
-    .dataContainer {
+    .dataContainerBox {
         text-align: left;
         grid-column-start: 2;
         grid-column-end: 3;
     }
+
+        .dataContainerBox--split {
+            display: grid;
+            grid-template-columns: 30% 70%;
+            grid-template-rows: 100%;
+        }
+
+            .dataContainerBox--split__left {
+                grid-column-start: 1;
+                grid-column-end: 2;
+                text-align: left;
+            }
+            .dataContainerBox--split__right {
+                text-align: left;
+                margin: auto;
+                grid-column-start: 2;
+                grid-column-end: 3;
+            }
+
+                .commentBox {
+                    width: 600px;
+                    height: 100px;
+                }
 
 .btnGrade {
     width: 17px;
@@ -28,7 +60,7 @@
 }
 
 .gradeInput {
-    width: 100px;
+    width: 100%;
 }
 
 .gradeInputNew {
@@ -41,20 +73,27 @@
 
 .dataContainer--gradeContainer {
     margin: 5px;
-    margin: 5px;
+    display: flex;
 }
+
+    .dataContainer--gradeContainer label {
+        width: 50%;
+    }
+
+    .selectBox {
+        width: 100%
+    }
 
 .optionsHeader {
     color: white;
     background-color: black;
     position: fixed;
-    top: 0;
-    width: 99vw;
-    height: 50px;
+    width: 100vw;
+    height: 54px;
 }
 
 .optionsURL {
-    display: inline;
+    display: inline-block;
     text-decoration: none;
     background-color: black;
     color: white;

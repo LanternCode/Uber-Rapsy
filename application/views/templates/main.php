@@ -10,16 +10,25 @@
 		<link rel="icon" href="<?=base_url( 'styles/icons/favicon.ico' )?>" type="image/x-icon">
 	</head>
 	<body>
-        <nav class="omniNav">
-            <a class="omniNav--Option" href="<?=base_url()?>">UberRapsy</a>
-            <p class="omniNav--Option">Status: <?=(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']
+        <header class="optionsHeader">
+            <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
+            <p class="optionsURL">Status: <?=(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']
                     && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer") ? "Recenzent" : "Gość"?></p>
             <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-                <a class="omniNav--Option" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
-                <a class="omniNav--Option" href="<?=base_url("logout")?>">Wyloguj się</a>
+                <a class="optionsURL" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
+                <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+            <?php else: ?>
+                <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>
             <?php endif; ?>
-        </nav>
+            <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>" target="_blank">
+                <label class="optionsSearchLabel">Szukaj nuty</label>
+                <input type="text" placeholder="Rajaner" name="SearchQuery" />
+                <input type="hidden" value="true" name="GlobalSearch" />
+                <input type="submit" value="Szukaj" />
+            </form>
+        </header>
 	    <main>
+            <br><br><br>
 	        <?php isset($body) ? $this->load->view($body) : redirect(base_url()); ?>
 	    </main>
 		<footer>

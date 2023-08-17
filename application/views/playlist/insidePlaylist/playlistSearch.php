@@ -12,6 +12,7 @@
         <input type="submit" value="Szukaj" />
     </form>
 </nav>
+<br><br><br>
 <h2>Wyniki wyszukiwania!</h2>
 	<?php if(count($songs) > 0): ?>
         <h3>Liczba nut: <?=count($songs)?></h3>
@@ -19,58 +20,65 @@
 		<?php
         $i = 0;
         foreach($songs as $key => $song):?>
-			<div class="videoContainer">
+			<div class="videoContainerBox">
 				<img src="<?=$song->SongThumbnailURL?>" width="" height="" alt="thumbnail" class="songThumbnailLeft" />
-				<div class="dataContainer">
+				<div class="dataContainerBox">
                     <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
                     <h4>Z playlisty: <?=$playlist[$key]->ListName?></h4>
                     <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
-                    <h4 class="dataContainer--gradeContainer">
-                        <label>Adam:</label>
-                        <?=$song->SongGradeAdam ?? 'Nieoceniona'?> ->
-                        <input name="nwGradeA-<?=$i+1?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                               value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$Reviewer ? "" : "disabled" ?>/>
-                    </h4>
-                    <h4 class="dataContainer--gradeContainer">
-                        <label>Kościelny:</label>
-                        <?=$song->SongGradeChurchie ?? 'Nieoceniona'?> ->
-                        <input name="nwGradeC-<?=$i+2?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                               value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$Reviewer ? "" : "disabled" ?>/>
-                    </h4>
-                    <h5 class="dataContainer--gradeContainer">
-                        <label>Średnia:</label>
-                        <input type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
-                    </h5>
-                    <?php  //only 1 list means there is nowhere to move or copy the song to
-                    if(count($lists) > 1 && $Reviewer): ?>
-                        <h5 class="dataContainer--gradeContainer">
-                            <label>Przenieś do:</label>
-                            <select name="<?="nwPlistId-".$i+3?>" class="selectBox">
-                                <option value="0">Nie przenoś</option>
-                                <?php foreach($lists as $list):
-                                    if($list->ListId !== $playlist[$key]->ListId):?>
-                                        <option value="<?=$list->ListId?>"><?=$list->ListName?></option>
-                                    <?php endif;
-                                endforeach; ?>
-                            </select>
-                        </h5>
-                        <h5 class="dataContainer--gradeContainer">
-                            <label>Kopiuj do:</label>
-                            <select name="<?="copyPlistId-".$i+20?>" class="selectBox">
-                                <option value="0">Nie kopiuj</option>
-                                <?php foreach($lists as $list):
-                                    if($list->ListId !== $playlist[$key]->ListId):?>
-                                        <option value="<?=$list->ListId?>"><?=$list->ListName?></option>
-                                    <?php endif;
-                                endforeach; ?>
-                            </select>
-                        </h5>
-                    <?php else: ?>
-                        <select style="display:none;" name="<?="copyPlistId-".$i+20?>">
-                            <option value="0">Nie kopiuj</option>
-                        </select>
-                    <?php endif;?>
-                    <input type="hidden" name="<?="nwPlistId-".$i+3?>" value="0">
+                    <div class="dataContainerBox--split">
+                        <div class="dataContainerBox--split__left">
+                            <h4 class="dataContainer--gradeContainer">
+                                <label>Adam: <?=$song->SongGradeAdam ?? 'Nieoceniona'?> -></label>
+                                <input name="nwGradeA-<?=$i+1?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
+                                       value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$Reviewer ? "" : "disabled" ?>/>
+                            </h4>
+                            <h4 class="dataContainer--gradeContainer">
+                                <label>Kościelny: <?=$song->SongGradeChurchie ?? 'Nieoceniona'?> -></label>
+                                <input name="nwGradeC-<?=$i+2?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
+                                       value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$Reviewer ? "" : "disabled" ?>/>
+                            </h4>
+                            <h5 class="dataContainer--gradeContainer">
+                                <label>Średnia:</label>
+                                <input class="gradeInput" type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
+                            </h5>
+                            <?php  //only 1 list means there is nowhere to move or copy the song to
+                            if(count($lists) > 1 && $Reviewer): ?>
+                                <h5 class="dataContainer--gradeContainer">
+                                    <label>Przenieś do:</label>
+                                    <select name="<?="nwPlistId-".$i+3?>" class="selectBox">
+                                        <option value="0">Nie przenoś</option>
+                                        <?php foreach($lists as $list):
+                                            if($list->ListId !== $playlist[$key]->ListId):?>
+                                                <option value="<?=$list->ListId?>"><?=$list->ListName?></option>
+                                            <?php endif;
+                                        endforeach; ?>
+                                    </select>
+                                </h5>
+                                <h5 class="dataContainer--gradeContainer">
+                                    <label>Kopiuj do:</label>
+                                    <select name="<?="copyPlistId-".$i+20?>" class="selectBox">
+                                        <option value="0">Nie kopiuj</option>
+                                        <?php foreach($lists as $list):
+                                            if($list->ListId !== $playlist[$key]->ListId):?>
+                                                <option value="<?=$list->ListId?>"><?=$list->ListName?></option>
+                                            <?php endif;
+                                        endforeach; ?>
+                                    </select>
+                                </h5>
+                            <?php else: ?>
+                                <select style="display:none;" name="<?="nwPlistId-".$i+3?>">
+                                    <option value="0">Nie przenoś</option>
+                                </select>
+                                <select style="display:none;" name="<?="copyPlistId-".$i+20?>">
+                                    <option value="0">Nie kopiuj</option>
+                                </select>
+                            <?php endif;?>
+                        </div>
+                        <div class="dataContainerBox--split__right">
+                            <textarea rows="8" cols="40" class="commentBox" name="songComment-<?=$i+22?>"><?=$song->SongComment?></textarea>
+                        </div>
+                    </div>
                     <label <?=$playlist[$key]->btnRehearsal ? '' : 'hidden'?>><input type="hidden" name="<?="songRehearsal-".$i+4?>" value="<?=$song->SongRehearsal?>"><input type="checkbox" class="buttonBox" <?=$song->SongRehearsal ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Do ponownego odsłuchu</label>
                     <label <?=$playlist[$key]->btnBelowFour ? '' : 'hidden'?>><input type="hidden" name="<?="songBelFour-".$i+17?>" value="<?=$song->SongBelFour?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelFour ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 4</label>
                     <label <?=$playlist[$key]->btnBelowSeven ? '' : 'hidden'?>><input type="hidden" name="<?="songBelow-".$i+13?>" value="<?=$song->SongBelow?>"><input type="checkbox" class="buttonBox" <?=$song->SongBelow ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> < 7</label>
@@ -90,7 +98,6 @@
                     <label <?=$playlist[$key]->btnNotRap ? '' : 'hidden'?>><input type="hidden" name="<?="songNotRap-".$i+8?>" value="<?=$song->SongNotRap?>"><input type="checkbox" class="buttonBox" <?=$song->SongNotRap ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> To nie rapsik</label>
                     <label <?=$playlist[$key]->btnNoGrade ? '' : 'hidden'?>><input type="hidden" name="<?="songNoGrade-".$i+11?>" value="<?=$song->SongNoGrade?>"><input type="checkbox" class="buttonBox" <?=$song->SongNoGrade ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> Nie oceniam</label>
                     <label <?=$playlist[$key]->btnVeto ? '' : 'hidden'?>><input type="hidden" name="<?="songVeto-".$i+19?>" value="<?=$song->SongVeto?>"><input type="checkbox" class="buttonBox" <?=$song->SongVeto ? "checked" : ""?> onclick="this.previousSibling.value=1-this.previousSibling.value"> VETO</label>
-                    <br><textarea rows="8" cols="40" class="commentBox" name="songComment-<?=$i+22?>"><?=$song->SongComment?></textarea>
                     <input type="hidden" name="songUpdated-<?=$i+21?>" value="0">
                 </div>
 			</div>

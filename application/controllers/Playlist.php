@@ -154,7 +154,7 @@ class Playlist extends CI_Controller {
             $data['errorMessage'] = "Wskazana playlista nie istnieje lub jest prywatna.";
         }
 
-        $this->load->view('templates/main', $data);
+        $this->load->view('templates/customNav', $data);
     }
 
     /**
