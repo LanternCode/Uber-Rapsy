@@ -6,9 +6,10 @@
     <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer" && count($songs) > 0): ?>
         <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
     <?php endif; ?>
-    <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist?GlobalSearch=true")?>">
+    <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
-        <input type="text" placeholder="Rajaner" name="Search" />
+        <input type="text" placeholder="Rajaner" name="SearchQuery" />
+        <input type="hidden" value="true" name="GlobalSearch" />
         <input type="submit" value="Szukaj" />
     </form>
 </nav>
