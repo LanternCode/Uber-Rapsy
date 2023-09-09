@@ -1,44 +1,62 @@
+/**
+ * When the grade of the song is changed, this function calculates
+ * the new average of two grades and updates the box to show the new average
+ *
+ * @function updateAverage
+ * @param event the html element where the grade is changed
+ * @return {void}
+ */
 function updateAverage(event)
 {
-    //find this event's index in the list of dataContainer children
+    //Find this event's index in the list of dataContainer children
     let childIndex = Array.prototype.indexOf.call(event.parentElement.parentElement.children, event.parentElement);
-    //establish the second rating's index
-    let indexToSelect = childIndex === 2 ? 3 : 2;
-    //save the new rating directly from the event
+    //Establish the second rating's index
+    let indexToSelect = childIndex === 1 ? 0 : 1;
+    //Save the new rating directly from the event
     let newRating = event.value;
-    //obtain the second rating based on the established index
+    //Obtain the second rating based on the established index
     let secondRating = event.parentElement.parentElement.children[indexToSelect].children[1].value;
-    //ensure the entered rating is within the 0-15 range
+    //Ensure the entered rating is within the 0-15 range
     if(newRating < 1 || newRating > 15)
     {
-        //incorrect value was passed, reset it
-        event.value = 0;
+        //If not, use 0 as the average placeholder
         newRating = 0;
     }
-    //find the dom element that has the average box
-    let avgElem = event.parentElement.parentElement.children[4].children[1];
-    //calculate the average
+    //Find the dom element that has the average box
+    let avgElem = event.parentElement.parentElement.children[2].children[1];
+    //Calculate the average
     let average = (parseFloat(newRating) + parseFloat(secondRating)) / 2;
-    //find the proposed playlist for this rating
+    //Find the proposed playlist for this rating
     let playlistName = getPlaylistName(average);
-    //update the average
+    //Update the average
     avgElem.value = average + " (" + playlistName + ")";
 }
 
 /**
+ * This functions updates a flag which is then used to determine which songs were updated
+ *
  * @function toggleUpdate
- * @param event
+ * @param event the html element calling the function
+ * @return {void}
  */
-function toggleUpdate(event, isSelectBox = false)
+function toggleUpdate(event)
 {
-    //Find the hidden input that holds the update boolean
-    let elem = isSelectBox ? event.parentElement.lastElementChild : event.parentElement.parentElement.lastElementChild;
+    //Find the hidden input that holds the update boolean - the last element child of the data container box
+    let elem = event.closest(".dataContainerBox").lastElementChild;
 
     //If the bool is false, set it to true
     if(elem.value == 0)
         elem.value = 1;
 }
 
+/**
+ * This function returns one of the predefined playlist names based on
+ * the song average of grades
+ *
+ * @function getPlaylistName
+ * @param {number} average the song average of grades
+ * @returns {string} the name of the playlist where the song could go
+ */
 function getPlaylistName(average)
 {
     if(average >= 9.5) return "X15";
@@ -65,5 +83,5 @@ for (let i = 0; i < buttonBoxes.length; ++i) {
 }
 
 for (let i = 0; i < commentBoxes.length; ++i) {
-    commentBoxes[i].addEventListener('input', () => {toggleUpdate(commentBoxes[i], true)});
+    commentBoxes[i].addEventListener('input', () => {toggleUpdate(commentBoxes[i])});
 }

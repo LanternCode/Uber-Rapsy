@@ -457,28 +457,28 @@ class Playlist extends CI_Controller {
                     $formInput['songId'] = $_POST["songId-" . $i];
                     $formInput['SongGradeAdam'] = $_POST["nwGradeA-" . $i + 1];
                     $formInput['SongGradeChurchie'] = $_POST["nwGradeC-" . $i + 2];
-                    $formInput['SongRehearsal'] = $_POST["songRehearsal-" . $i + 4];
-                    $formInput['SongDistinction'] = $_POST["songDistinction-" . $i + 5];
-                    $formInput['SongMemorial'] = $_POST["songMemorial-" . $i + 6];
-                    $formInput['SongXD'] = $_POST["songXD-" . $i + 7];
-                    $formInput['SongNotRap'] = $_POST["songNotRap-" . $i + 8];
-                    $formInput['SongDiscomfort'] = $_POST["songDiscomfort-" . $i + 9];
-                    $formInput['SongTop'] = $_POST["songTop-" . $i + 10];
-                    $formInput['SongNoGrade'] = $_POST["songNoGrade-" . $i + 11];
-                    $formInput['SongUber'] = $_POST["songUber-" . $i + 12];
-                    $formInput['SongBelow'] = $_POST["songBelow-" . $i + 13];
-                    $formInput['SongBelTen'] = $_POST["songBelTen-" . $i + 14];
-                    $formInput['SongBelNine'] = $_POST["songBelNine-" . $i + 15];
-                    $formInput['SongBelEight'] = $_POST["songBelEight-" . $i + 16];
-                    $formInput['SongBelFour'] = $_POST["songBelFour-" . $i + 17];
-                    $formInput['SongDuoTen'] = $_POST["songDuoTen-" . $i + 18];
-                    $formInput['SongVeto'] = $_POST["songVeto-" . $i + 19];
+                    $formInput['SongRehearsal'] = isset($_POST["songRehearsal-" . $i + 4]) && $_POST["songRehearsal-" . $i + 4] == "on" ? 1 : 0;
+                    $formInput['SongDistinction'] = isset($_POST["songDistinction-" . $i + 5]) && $_POST["songDistinction-" . $i + 5] == "on" ? 1 : 0;
+                    $formInput['SongMemorial'] = isset($_POST["songMemorial-" . $i + 6]) && $_POST["songMemorial-" . $i + 6] == "on" ? 1 : 0;
+                    $formInput['SongXD'] = isset($_POST["songXD-" . $i + 7]) && $_POST["songXD-" . $i + 7] == "on" ? 1 : 0;
+                    $formInput['SongNotRap'] = isset($_POST["songNotRap-" . $i + 8]) && $_POST["songNotRap-" . $i + 8] == "on" ? 1 : 0;
+                    $formInput['SongDiscomfort'] = isset($_POST["songDiscomfort-" . $i + 9]) && $_POST["songDiscomfort-" . $i + 9] == "on" ? 1 : 0;
+                    $formInput['SongTop'] = isset($_POST["songTop-" . $i + 10]) && $_POST["songTop-" . $i + 10] == "on" ? 1 : 0;
+                    $formInput['SongNoGrade'] = isset($_POST["songNoGrade-" . $i + 11]) && $_POST["songNoGrade-" . $i + 11] == "on" ? 1 : 0;
+                    $formInput['SongUber'] = isset($_POST["songUber-" . $i + 12]) && $_POST["songUber-" . $i + 12] == "on" ? 1 : 0;
+                    $formInput['SongBelow'] = isset($_POST["songBelow-" . $i + 13]) && $_POST["songBelow-" . $i + 13] == "on" ? 1 : 0;
+                    $formInput['SongBelTen'] = isset($_POST["songBelTen-" . $i + 14]) && $_POST["songBelTen-" . $i + 14] == "on" ? 1 : 0;
+                    $formInput['SongBelNine'] = isset($_POST["songBelNine-" . $i + 15]) && $_POST["songBelNine-" . $i + 15] == "on" ? 1 : 0;
+                    $formInput['SongBelEight'] = isset($_POST["songBelEight-" . $i + 16]) && $_POST["songBelEight-" . $i + 16] == "on" ? 1 : 0;
+                    $formInput['SongBelFour'] = isset($_POST["songBelFour-" . $i + 17]) && $_POST["songBelFour-" . $i + 17] == "on" ? 1 : 0;
+                    $formInput['SongDuoTen'] = isset($_POST["songDuoTen-" . $i + 18]) && $_POST["songDuoTen-" . $i + 18] == "on" ? 1 : 0;
+                    $formInput['SongVeto'] = isset($_POST["songVeto-" . $i + 19]) && $_POST["songVeto-" . $i + 19] == "on" ? 1 : 0;
                     $formInput['newPlaylistId'] = $_POST["nwPlistId-" . $i + 3];
                     $formInput['copyToPlaylist'] = $_POST["copyPlistId-" . $i + 20];
                     $formInput['SongComment'] = $_POST["songComment-" . $i + 22];
-                    $formInput['SongBelHalfSeven'] = $_POST["SongBelHalfSeven-" . $i + 23];
-                    $formInput['SongBelHalfEight'] = $_POST["SongBelHalfEight-" . $i + 24];
-                    $formInput['SongBelHalfNine'] = $_POST["SongBelHalfNine-" . $i + 25];
+                    $formInput['SongBelHalfSeven'] = isset($_POST["SongBelHalfSeven-" . $i + 23]) && $_POST["SongBelHalfSeven-" . $i + 23] == "on" ? 1 : 0;
+                    $formInput['SongBelHalfEight'] = isset($_POST["SongBelHalfEight-" . $i + 24]) && $_POST["SongBelHalfEight-" . $i + 24] == "on" ? 1 : 0;
+                    $formInput['SongBelHalfNine'] = isset($_POST["SongBelHalfNine-" . $i + 25]) && $_POST["SongBelHalfNine-" . $i + 25] == "on" ? 1 : 0;
 
                     //Fetch the song-to-update
                     $currentSong = $this->SongModel->GetSongById($formInput['songId']);
@@ -503,7 +503,7 @@ class Playlist extends CI_Controller {
                         //Ensure the ratings are valid decimal numbers (full or .5), are in the range "1-15" and are separated with dots and not commas
                         if (strlen($formInput['SongGradeAdam']) > 0 && strlen($formInput['SongGradeChurchie']) > 0
                             && is_numeric($formInput['SongGradeAdam']) && is_numeric($formInput['SongGradeChurchie'])
-                            && $this->UtilityModel->InRange($formInput['SongGradeAdam'], 0, 15) && $this->UtilityModel->InRange($formInput['SongGradeChurchie'], 0, 15)
+                            && $this->UtilityModel->InRange($formInput['SongGradeAdam'], 1, 15) && $this->UtilityModel->InRange($formInput['SongGradeChurchie'], 1, 15)
                             && fmod($formInput['SongGradeAdam'], 0.5) == 0 && fmod($formInput['SongGradeChurchie'], 0.5) == 0) {
                             $scoresSaved = $this->SongModel->UpdateSongScores($currentSong->SongId, $newAdamRating, $newChurchieRating);
                             if (!$scoresSaved) {
