@@ -38,7 +38,10 @@ class SongModel extends CI_Model
      */
     function GetSongsFromSearch(string $Search = "" ): array
     {
-        $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$Search%'";
+        if($this->SecurityModel->debuggingEnabled())
+            $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$Search%'";
+        else $sql = "SELECT * FROM song AS s JOIN list AS l ON s.ListId = l.ListId WHERE s.SongTitle LIKE '%$Search%' AND l.ListActive = true";
+
         return $this->db->query($sql)->result();
     }
 

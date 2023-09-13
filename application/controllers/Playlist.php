@@ -119,7 +119,7 @@ class Playlist extends CI_Controller {
                     break;
                 }
             }
-            //Calculate playlist averages for each reviewer and the overall average - not required in tierlists
+            //Calculate playlist averages for each reviewer and the overall average - not required for tierlists
             if (!in_array($data['Filter'], ["Adam", "Churchie", "Average"])) {
                 $avgOverall = 0;
                 $avgAdam = 0;
@@ -127,17 +127,19 @@ class Playlist extends CI_Controller {
                 $ratedCount = 0;
                 $ratedAdam = 0;
                 $ratedChurchie = 0;
-                foreach($data['songs'] as $song)
-                {
+                foreach($data['songs'] as $song) {
                     //Display values without decimals at the end if the decimals are only 0
                     if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
                     if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
-                    $avgOverall += ($song->SongGradeAdam + $song->SongGradeChurchie) / 2;
-                    $avgAdam += $song->SongGradeAdam;
-                    $avgChurchie += $song->SongGradeChurchie;
-                    $ratedCount += $song->SongGradeAdam > 0 || $song->SongGradeChurchie > 0 ? 1 : 0;
-                    $ratedAdam += $song->SongGradeAdam > 0 ? 1 : 0;
-                    $ratedChurchie += $song->SongGradeChurchie > 0 ? 1 : 0;
+                    //Do not include songs graded "10" in the average
+                    if(!$song->SongDuoTen) {
+                        $avgOverall += ($song->SongGradeAdam + $song->SongGradeChurchie) / 2;
+                        $avgAdam += $song->SongGradeAdam;
+                        $avgChurchie += $song->SongGradeChurchie;
+                        $ratedCount += $song->SongGradeAdam > 0 || $song->SongGradeChurchie > 0 ? 1 : 0;
+                        $ratedAdam += $song->SongGradeAdam > 0 ? 1 : 0;
+                        $ratedChurchie += $song->SongGradeChurchie > 0 ? 1 : 0;
+                    }
                 }
                 $data['avgOverall'] = $ratedCount > 0 ? $avgOverall/$ratedCount : 0;
                 $data['avgAdam'] = $ratedAdam > 0 ? $avgAdam/$ratedAdam : 0;

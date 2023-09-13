@@ -39,6 +39,20 @@ class SecurityModel extends CI_Model
     }
 
     /**
+     * Check if the user is in the debugging mode
+     *
+     * @return bool
+     */
+    function debuggingEnabled(): bool
+    {
+        $userCanDebug = $this->authenticateUser();
+        if($userCanDebug) {
+            return $_SESSION['debuggingEnabled'] ?? 0;
+        }
+        else return false;
+    }
+
+    /**
      * The function tries to load the Google library and initialise the client.
      * If successful, the client is returned. Otherwise - false.
      *
