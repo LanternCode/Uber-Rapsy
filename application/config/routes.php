@@ -20,6 +20,7 @@ $route['playlist/edit'] = 'Playlist/edit';
 $route['playlist/hidePlaylist'] = 'Playlist/hidePlaylist';
 $route['playlist/deleteLocal'] = 'Playlist/deleteLocal';
 $route['playlist/delSong'] = 'Playlist/delSong';
+$route['playlist/updateSongVisibility'] = 'Playlist/updateSongVisibility';
 $route['playlist/integrate'] = 'Playlist/integrate';
 $route['playlist/showLog'] = 'Playlist/showLog';
 

@@ -125,30 +125,23 @@ class Song extends CI_Controller
     public function showLog()
     {
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-
-        if($userAuthenticated)
-        {
+        if($userAuthenticated) {
             $data = [];
             $data['body']  = 'song/showLog';
             $data['title'] = "Uber Rapsy | Historia nuty";
             $data['songId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
 
-            if($data['songId'] && is_numeric($data['songId']))
-            {
+            if($data['songId'] && is_numeric($data['songId'])) {
                 $data['song'] = $this->SongModel->GetSongById($data['songId']);
                 $data['songLog'] = $this->LogModel->GetSongLog($data['songId']);
 
-                if($data['song'] === false)
-                {
+                if($data['song'] === false) {
                     $data['body']  = 'invalidAction';
                     $data['title'] = "Błąd akcji!";
                     $data['errorMessage'] = "Nie znaleziono nuty o podanym numerze id!";
                 }
-
-                $this->LogModel->CreateLog('song', $data['songId'], "Otworzono historię nuty");
             }
-            else
-            {
+            else {
                 $data['body']  = 'invalidAction';
                 $data['title'] = "Błąd akcji!";
                 $data['errorMessage'] = "Podano niepoprawny numer id nuty lub nie podano go wcale!";

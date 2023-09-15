@@ -16,6 +16,7 @@ class SongModel extends CI_Model
 
     /**
      * Fetch songs from a list filtering by title.
+     * Only visible songs are returned, that is, not manually hidden by the user.
      *
      * @param int $listId  id of the list to get songs from
      * @param string $Search  title filter
@@ -24,8 +25,21 @@ class SongModel extends CI_Model
     function GetSongsFromList(int $listId, string $Search = "" ): array
     {
         $searchQuery = " AND SongTitle LIKE '%$Search%'";
-        $sql = "SELECT * FROM song WHERE ListId = $listId";
+        $sql = "SELECT * FROM song WHERE ListId = $listId AND SongVisible = 1";
         if($Search != "") $sql = $sql . $searchQuery;
+
+        return $this->db->query($sql)->result();
+    }
+
+    /**
+     * Fetch all songs from a list, no matter their visibility settings.
+     *
+     * @param int $listId  id of the list to get songs from
+     * @return array      returns an array containing the songs found
+     */
+    function GetAllSongsFromList(int $listId): array
+    {
+        $sql = "SELECT * FROM song WHERE ListId = $listId";
 
         return $this->db->query($sql)->result();
     }
@@ -39,8 +53,8 @@ class SongModel extends CI_Model
     function GetSongsFromSearch(string $Search = "" ): array
     {
         if($this->SecurityModel->debuggingEnabled())
-            $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$Search%'";
-        else $sql = "SELECT * FROM song AS s JOIN list AS l ON s.ListId = l.ListId WHERE s.SongTitle LIKE '%$Search%' AND l.ListActive = true";
+            $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$Search%' AND SongVisible = 1";
+        else $sql = "SELECT * FROM song AS s JOIN list AS l ON s.ListId = l.ListId WHERE s.SongTitle LIKE '%$Search%' AND l.ListActive = true AND SongVisible = 1";
 
         return $this->db->query($sql)->result();
     }
@@ -229,7 +243,7 @@ class SongModel extends CI_Model
     function GetTopSongsFromList(int $listId, string $filter): array
     {
         $cond = $filter === "Adam" ? "SongGradeAdam" : ($filter === "Churchie" ? "SongGradeChurchie" : "(SongGradeAdam+SongGradeChurchie)/2");
-        $sql = "SELECT * FROM song WHERE ListId = $listId AND ".$cond." > 0 ORDER BY $cond DESC";
+        $sql = "SELECT * FROM song WHERE SongVisible = 1 AND ListId = $listId AND ".$cond." > 0 ORDER BY $cond DESC";
         return $this->db->query($sql)->result();
     }
 
@@ -262,14 +276,27 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Deletes a song from the database.
+     * Marks a song as deleted from a playlist.
      *
      * @param int $songId  id of the song to delete
      * @return void
      */
     function DeleteSong(int $songId)
     {
-        $sql = "DELETE FROM song WHERE SongId = $songId";
+        $sql = "UPDATE song SET SongDeleted = 1, SongVisible = 0 WHERE SongId = $songId";
+        $this->db->query($sql);
+    }
+
+    /**
+     * Marks a song as hidden from the playlist.
+     *
+     * @param int $songId  id of the song to hide
+     * @param bool $newVisibility  1 to make the song visible, 0 to hide it
+     * @return void
+     */
+    function UpdateSongVisibility(int $songId, bool $newVisibility)
+    {
+        $sql = "UPDATE song SET SongVisible = '$newVisibility' WHERE SongId = $songId";
         $this->db->query($sql);
     }
 
@@ -321,7 +348,7 @@ class SongModel extends CI_Model
      */
     function FilterByRepeat(bool $repeat, int $listId): Array
     {
-        $sql = "SELECT * FROM song WHERE SongRehearsal = $repeat AND ListId = $listId";
+        $sql = "SELECT * FROM song WHERE SongRehearsal = $repeat AND ListId = $listId AND SongVisible = 1";
         return $this->db->query($sql)->result();
     }
 
@@ -333,7 +360,7 @@ class SongModel extends CI_Model
      */
     function FilterUnrated(int $listId): Array
     {
-        $sql = "SELECT * FROM song WHERE SongGradeAdam = 0 AND SongGradeChurchie = 0 AND ListId = $listId
+        $sql = "SELECT * FROM song WHERE SongGradeAdam = 0 AND SongGradeChurchie = 0 AND ListId = $listId AND SongVisible = 1
                      AND SongDistinction = 0 AND SongMemorial = 0 AND SongXD = 0 AND SongNotRap = 0
                      AND SongDiscomfort = 0 AND SongTop = 0 AND SongNoGrade = 0 AND SongUber = 0 AND SongBelow = 0
                      AND SongBelTen = 0 AND SongBelNine = 0 AND SongBelEight = 0 AND SongBelFour = 0

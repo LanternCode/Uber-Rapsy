@@ -202,7 +202,7 @@ class Playlist extends CI_Controller {
                     $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
                 }
                 else {
-                    $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId']);
+                    $data['songs'] = $this->SongModel->GetAllSongsFromList($data['ListId']);
                 }
             }
             else {
@@ -1106,37 +1106,70 @@ class Playlist extends CI_Controller {
     public function delSong()
     {
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-
-        if($userAuthenticated)
-        {
+        if($userAuthenticated) {
             $data = [];
             $data['body']  = 'song/delSong';
             $data['title'] = "Uber Rapsy | Usuń piosenkę";
             $data['SongId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
             $data['DeleteSong'] = isset($_GET['delete']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['delete'])) : false;
 
-            if($data['SongId'] && is_numeric($data['SongId']))
-            {
+            if($data['SongId'] && is_numeric($data['SongId'])) {
                 $data['song'] = $this->SongModel->GetSongById($data['SongId']);
 
-                if($data['song'] === false)
-                {
+                if($data['song'] === false) {
                     $data['body']  = 'invalidAction';
                     $data['title'] = "Błąd akcji!";
                     $data['errorMessage'] = "Nie znaleziono piosenki o podanym numerze id!";
                 }
-                else if($data['DeleteSong'] === "true")
-                {
+                else if($data['DeleteSong'] === "true") {
+                    $this->LogModel->CreateLog('song', $data['SongId'], "Permanentnie usunięto nutę z plejki...");
+                    $this->LogModel->CreateLog('playlist', $data['song']->ListId, "Permanentnie usunięto nutę ".$data['song']->SongTitle." z plejki.");
                     $this->SongModel->DeleteSong($data['SongId']);
                     redirect('playlistDashboard');
                 }
                 else
-                {
                     $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['song']->ListId);
+            }
+            else {
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Błąd akcji!";
+                $data['errorMessage'] = "Podano niepoprawny numer id piosenki lub nie podano go wcale!";
+            }
+
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Allows the user to hide a song in a playlist.
+     *
+     * @return void
+     */
+    public function updateSongVisibility()
+    {
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        if($userAuthenticated) {
+            $data = [];
+            $data['SongId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
+
+            if($data['SongId'] && is_numeric($data['SongId'])) {
+                $data['song'] = $this->SongModel->GetSongById($data['SongId']);
+
+                if($data['song'] === false) {
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Błąd akcji!";
+                    $data['errorMessage'] = "Nie znaleziono piosenki o podanym numerze id!";
+                }
+                else {
+                    $currentVisibility = $data['song']->SongVisible;
+                    $newVisibility = $currentVisibility == 1 ? 0 : 1;
+                    $this->SongModel->UpdateSongVisibility($data['SongId'], $newVisibility);
+                    $this->LogModel->CreateLog('song', $data['SongId'], ($newVisibility ? "Upubliczniono" : "Ukryto") . " nutę na playliście");
+                    redirect('playlistDashboard');
                 }
             }
-            else
-            {
+            else {
                 $data['body']  = 'invalidAction';
                 $data['title'] = "Błąd akcji!";
                 $data['errorMessage'] = "Podano niepoprawny numer id piosenki lub nie podano go wcale!";
