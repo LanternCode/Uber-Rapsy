@@ -130,6 +130,19 @@ class PlaylistModel extends CI_Model
     }
 
     /**
+     * Update the playlist's Etag once it's gone out of date
+     *
+     * @param int $playlistId
+     * @param string $newEtag
+     * @return void
+     */
+    function UpdatePlaylistEtag(int $playlistId, string $newEtag): void
+    {
+        $sql = "UPDATE list SET ListEtag = '$newEtag' WHERE ListId = $playlistId";
+        $this->db->simple_query($sql);
+    }
+
+    /**
      * Updates ListActive with the value given.
      *
      * @param int $playlistActive value to update with

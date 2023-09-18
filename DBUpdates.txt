@@ -1,2 +1,0 @@
-ALTER TABLE `song` ADD `SongVisible` BIT(1) NOT NULL DEFAULT b'1' AFTER `SongTitle`, ADD `SongDeleted` BIT(1) NOT NULL DEFAULT b'0' AFTER `SongVisible`;
-
