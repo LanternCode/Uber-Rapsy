@@ -32,7 +32,7 @@ class LogModel extends CI_Model
         //ensure the entity type is legit
         $allowedTypes = ["playlist", "song", "user"];
         $validType = in_array($entityType, $allowedTypes);
-        $actionBy = $_SESSION['userId'];
+        $actionBy = $_SESSION['userId'] ?? 0;
 
         if($validType)
         {
