@@ -545,7 +545,7 @@ class Playlist extends CI_Controller {
                         //Ensure the ratings are valid decimal numbers (full or .5), are in the range "1-15" and are separated with dots and not commas
                         if (strlen($formInput['SongGradeAdam']) > 0 && strlen($formInput['SongGradeChurchie']) > 0
                             && is_numeric($formInput['SongGradeAdam']) && is_numeric($formInput['SongGradeChurchie'])
-                            && $this->UtilityModel->InRange($formInput['SongGradeAdam'], 1, 15) && $this->UtilityModel->InRange($formInput['SongGradeChurchie'], 1, 15)
+                            && $this->UtilityModel->InRange($formInput['SongGradeAdam'], 0, 15) && $this->UtilityModel->InRange($formInput['SongGradeChurchie'], 0, 15)
                             && fmod($formInput['SongGradeAdam'], 0.5) == 0 && fmod($formInput['SongGradeChurchie'], 0.5) == 0) {
                             $scoresSaved = $this->SongModel->UpdateSongScores($currentSong->SongId, $newAdamRating, $newChurchieRating);
                             if (!$scoresSaved) {
