@@ -232,4 +232,20 @@ class PlaylistModel extends CI_Model
         }
         else return 0;
     }
+
+    /**
+     * Fetches the precise number of songs in a playlist
+     *
+     * @param int $listId id of the playlist
+     * @return int
+     */
+    function GetPlaylistSongCount(int $listId): int
+    {
+        $sql = "SELECT COUNT(*) as songNumber FROM song WHERE ListId = $listId";
+        if(isset($this->db->query($sql)->row()->songNumber))
+        {
+            return $this->db->query($sql)->row()->songNumber;
+        }
+        else return 0;
+    }
 }

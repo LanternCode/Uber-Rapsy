@@ -484,11 +484,17 @@ class Playlist extends CI_Controller {
 
             //Fetch the playlist to access its settings
             $playlist = false;
-            if($data['playlistId'] !== "search")
+            if($data['playlistId'] !== "search") {
                 $playlist = $this->PlaylistModel->FetchPlaylistById($data['playlistId']);
+                $songCount = $this->PlaylistModel->GetPlaylistSongCount($playlist->ListId);
+            }
 
             //Process each song separately
-            for ($i = 0; $i < count($_POST)-1; $i+=26) {
+            $i = 0;
+            $data['processed'] = 0;
+            while (isset($_POST["songUpdated-" . $i+21])) {
+                $i += ($data['processed'] == 0) ? 0 : 26;
+                $data['processed'] += 1;
                 //Only process songs that were actually updated
                 $songUpdated = isset($_POST["songUpdated-" . $i+21]) && $_POST["songUpdated-".$i+21];
                 if ($songUpdated) {
@@ -539,14 +545,16 @@ class Playlist extends CI_Controller {
                     $adamGradeUpdated = in_array("SongGradeAdam", $elementsToUpdate);
                     $churchieGradeUpdated = in_array("SongGradeChurchie", $elementsToUpdate);
                     $commentUpdated = in_array("SongComment", $elementsToUpdate);
+
                     if ($adamGradeUpdated || $churchieGradeUpdated) {
                         $newAdamRating = str_replace(',', '.', $formInput['SongGradeAdam']);
                         $newChurchieRating = str_replace(',', '.', $formInput['SongGradeChurchie']);
+
                         //Ensure the ratings are valid decimal numbers (full or .5), are in the range "1-15" and are separated with dots and not commas
-                        if (strlen($formInput['SongGradeAdam']) > 0 && strlen($formInput['SongGradeChurchie']) > 0
-                            && is_numeric($formInput['SongGradeAdam']) && is_numeric($formInput['SongGradeChurchie'])
-                            && $this->UtilityModel->InRange($formInput['SongGradeAdam'], 0, 15) && $this->UtilityModel->InRange($formInput['SongGradeChurchie'], 0, 15)
-                            && fmod($formInput['SongGradeAdam'], 0.5) == 0 && fmod($formInput['SongGradeChurchie'], 0.5) == 0) {
+                        if (strlen($newAdamRating) > 0 && strlen($newChurchieRating) > 0
+                            && is_numeric($newAdamRating) && is_numeric($newChurchieRating)
+                            && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15)
+                            && fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0) {
                             $scoresSaved = $this->SongModel->UpdateSongScores($currentSong->SongId, $newAdamRating, $newChurchieRating);
                             if (!$scoresSaved) {
                                 //Fatal Error - if grades were not saved, note this and continue to the next song.

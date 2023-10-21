@@ -7,7 +7,7 @@
     <a href="<?=base_url()?>">Powrót do strony głównej</a>
 <?php endif; ?>
 <br><br><br>
-<h2>Wynik Zapisu:</h2>
+<h2>Wynik Zapisu (<?=$processed?> utworów trafiło do zapisu):</h2>
 <?=$resultMessage?>
 <br><br>
 
