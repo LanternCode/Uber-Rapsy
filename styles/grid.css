@@ -44,7 +44,8 @@
             }
             .dataContainerBox--split__right {
                 text-align: left;
-                margin: auto;
+                margin-top: auto;
+                margin-bottom: auto;
                 grid-column-start: 2;
                 grid-column-end: 3;
             }
@@ -249,4 +250,60 @@
     width: 180px;
     height: 25px;
     font-size: 1.2em;
+}
+
+.averagesBar {
+    display: grid;
+    grid-template-columns: 90% 10%;
+    background-color: black;
+}
+
+    .averagesBar--left {
+        grid-column-start: 1;
+        grid-column-end: 2;
+    }
+
+    .averagesBar--right {
+        grid-column-start: 2;
+        grid-column-end: 3;
+        margin: auto;
+    }
+
+        .settings_cog {
+            width: 60px;
+            height: 50px;
+            background-color: black;
+            cursor: pointer;
+        }
+
+        .closing_cog {
+            width: 60px;
+            height: 50px;
+            background-color: black;
+            cursor: pointer;
+        }
+
+.redirectsBox option {
+    background-color: black;
+}
+
+.menu {
+    position: fixed;
+    transform: translateX(1500%);
+    transition: transform 0.2s;
+    top: 54px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    background-color: black;
+    color: white;
+    list-style: none;
+    padding-top: 4rem;
+    max-width: 17vw;
+    text-align: center;
+}
+
+.showMenu {
+    transform: translateX(83vw);
 }

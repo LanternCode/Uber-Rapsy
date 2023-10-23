@@ -2,23 +2,24 @@
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
-    <a class="optionsURL" href="#songsForm">Góra Listy</a>
-    <p class="optionsURL">Zintegrowana: <?=$ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$ListUrl'>Tak</a>" : "Nie"?></p>
+    <a class="optionsURL" href="#topoftherap">Góra Listy</a>
     <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
         <?php if(count($songs) > 0): ?>
             <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
         <?php endif; ?>
-        <a class="optionsURL" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a>
-        <a class="optionsURL" href="<?=base_url('playlist/details?id='.$ListId)?>">Statystyki i Ustawienia</a>
     <?php endif; ?>
-    <select id="selectbox" class="optionsURL" onchange="javascript:location.href = this.value;">
+    <select class="optionsURL redirectsBox" onchange="javascript:location.href = this.value;">
         <option value="">Pokaż oceny:</option>
-        <option value="<?=base_url("playlist?ListId=" . $ListId)?>">Wszystkie oceny</option>
+        <option value="<?=base_url("playlist?ListId=" . $ListId)?>">Wszystkie Oceny</option>
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Adam")?>">Najlepsze: Adam</option>
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Churchie")?>">Najlepsze: Kościelny</option>
         <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Average")?>">Najlepsze: Średnia</option>
-        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Repeat")?>">Ponowny Odsłuch</option>
-        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Unrated")?>">Nieoceniona</option>
+        <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Unrated")?>">Nieocenione</option>
+        <?php foreach($CheckboxPropertiesDetails as $propDetails):
+            if ($playlist->{$propDetails[1]}): ?>
+                <option value="<?=base_url("playlist?ListId=" . $ListId . "&Filter=Checkbox&Prop=".$propDetails[0])?>"><?=$propDetails[2]?></option>
+            <?php endif; ?>
+        <?php endforeach; ?>
     </select>
     <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
@@ -27,15 +28,29 @@
         <input type="submit" value="Szukaj" />
     </form>
 </header>
-<br><br><br>
+<br id="topoftherap"><br><br>
 <div class="averagesBar">
-    <h2 class="blackBar">Przeglądasz playlistę <?=$ListName ?? "o nieznanej nazwie"?>!</h2>
-    <h3 class="blackBar">Liczba nut: <?=count($songs)?></h3>
-    <h4 class="blackBar">Średnia Ocen Playlisty: <?=number_format($avgOverall, 2)?> (<?=$ratedOverall?>)</h4>
-    <h4 class="blackBar">Średnia Ocen (Adam): <?=number_format($avgAdam, 2)?> (<?=$ratedAdam?>)</h4>
-    <h4 class="blackBar">Średnia Ocen (Kościelny): <?=number_format($avgChurchie, 2)?> (<?=$ratedChurchie?>)</h4>
+    <div class="averagesBar--left">
+        <h2 class="blackBar">Przeglądasz playlistę <?=$ListName ?? "o nieznanej nazwie"?>!</h2>
+        <h3 class="blackBar">Liczba nut: <?=count($songs)?></h3>
+        <h3 class="blackBar" title="Średnia ocen jest obliczana tylko gdy obu recenzentów oceniło utwór. Utwory na których zaznaczono przycisk ''10'' nie są brane pod uwagę.">Średnie ocen (?):</h3>
+        <h4 class="blackBar">Średnia Ocen Playlisty: <?=number_format($avgOverall, 2)?> (<?=$ratedOverall?>)</h4>
+        <h4 title="Średnia ocen na podstawie ocenionych utworów Kościelnego" class="blackBar">Średnia Ocen (Kościelny): <?=number_format($avgChurchie, 2)?> (<?=$ratedChurchie?>)</h4>
+        <h4 title="Średnia ocen na podstawie ocenionych utworów Adama" class="blackBar">Średnia Ocen (Adam): <?=number_format($avgAdam, 2)?> (<?=$ratedAdam?>)</h4>
+    </div>
+    <div class="averagesBar--right">
+        <img src="./styles/icons/bigger_cog.png" class="hamburger optionsRight settings_cog menuIcon">
+    </div>
 </div>
 <form id="songsForm" method="post" action="<?=base_url('updateGrades')?>">
+    <ul class="menu">
+        <img src="./styles/icons/bigger_cog.png" class="hamburger closing_cog menuIcon"><br><br><br>
+        <li class="optionsURL">Zintegrowana: <?=$ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$ListUrl'>Tak</a>" : "Nie"?></li><br>
+        <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
+            <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a></li><br>
+            <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url('playlist/details?id='.$ListId)?>">Statystyki i Ustawienia</a></li>
+        <?php endif; ?>
+    </ul>
 	<?php if(count($songs) > 0):
         $i = 0; ?>
 		<?php foreach($songs as $song): ?>
@@ -131,3 +146,4 @@
 </form>
 <span id="bottom"></span>
 <script type="text/javascript" src="<?=base_url( 'scripts/playlist.js' )?>"></script>
+<script type="text/javascript" src="<?=base_url( 'scripts/nav.js' )?>"></script>

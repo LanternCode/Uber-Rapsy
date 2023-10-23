@@ -153,4 +153,43 @@ class AccountModel extends CI_Model
         $sql = "UPDATE user SET passwordResetKey = NULL, password = '$newPass' WHERE id = $userId";
         $this->db->simple_query($sql);
     }
+
+    /**
+     * Fetches user data and compares the input password with the real password
+     * If the sign in is successful, a user session is set
+     *
+     * @param string $email
+     * @param string $password
+     * @return bool
+     */
+    function SignIn(string $email, string $password): bool
+    {
+        //Fetch the account and attempt to log in
+        $userData = $this->GetUserData($email);
+        $passwordToCompare = $userData->password ?? 0;
+        if ($passwordToCompare && password_verify($password, $passwordToCompare))
+        {
+            $_SESSION['userLoggedIn'] = 1;
+            $_SESSION['userRole'] = $userData->role;
+            $_SESSION['userId'] = $userData->id;
+            return true;
+        }
+        else return false;
+    }
+
+    /**
+     * If the login cookie exists, the function tries to sign the user in
+     * @return bool
+     */
+    function AutomaticSignIn(): bool
+    {
+        //Automatically call the Sign In function with the details saved in the cookie
+        $data['email'] = json_decode($_COOKIE["login"])->userEmail;
+        $data['password'] = json_decode($_COOKIE["login"])->userPassword;
+        if (isset($email) && $email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->SignIn($data['email'], $data['password']);
+        }
+        else return false;
+
+    }
 }

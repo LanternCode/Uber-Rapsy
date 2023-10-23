@@ -248,4 +248,19 @@ class PlaylistModel extends CI_Model
         }
         else return 0;
     }
+
+    /**
+     * There are a lot of checkboxes for each song entry, and this function makes it possible
+     * to filter songs in a given playlist by specifying the checked checkbox.
+     *
+     * @param $listId int the id of the list to fetch the songs from
+     * @param $propertyName string the name of the checkbox property to filter by
+     * @return array
+     */
+    function FilterSongsByCheckboxProperty(int $listId, string $propertyName): array
+    {
+        $sql = "SELECT * FROM song WHERE $propertyName = 1 AND ListId = $listId AND SongVisible = 1";
+
+        return $this->db->query($sql)->result();
+    }
 }

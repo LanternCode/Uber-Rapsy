@@ -10,6 +10,7 @@ class Welcome extends CI_Controller {
     {
         parent::__construct();
         $this->load->model('PlaylistModel');
+        $this->load->model('AccountModel');
     }
 
     /**
@@ -23,6 +24,12 @@ class Welcome extends CI_Controller {
             'body' => 'home',
             'title' => "Uber Rapsy | Portal do oceniania utworów rapowanych"
         );
+
+        //Try to sign the user in if their details are saved
+        if (isset($_COOKIE["login"])) {
+            $this->AccountModel->AutomaticSignIn();
+        }
+
 		$this->load->view( 'templates/main', $data );
 	}
 

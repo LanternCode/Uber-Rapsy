@@ -69,7 +69,7 @@ class Playlist extends CI_Controller {
             }
         }
         else if (is_numeric($data['ListId'])) {
-            //Fetch the playlist, queue for local search, then filters
+            //Fetch the playlist
             $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
             $data['ListName'] = $data['playlist']->ListName;
             $data['ListUrl'] = $data['playlist']->ListUrl;
@@ -79,6 +79,29 @@ class Playlist extends CI_Controller {
             $data['Filter'] = isset($_GET['Filter']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['Filter'])) : "none";
             $data['Filter'] = ($data['Filter'] === "none" && $data['SearchQuery'] !== 0) ? "Search" : $data['Filter'];
 
+            //Define various checkbox-related properties in one place - first the db name, then button name, then display name
+            $data['CheckboxPropertiesDetails'] = [
+                ['SongDistinction', 'btnDistinction', 'Wyróżnienie'],
+                ['SongMemorial', 'btnMemorial', '10*'],
+                ['SongXD', 'btnXD', 'XD'],
+                ['SongNotRap', 'btnNotRap', 'To Nie Rapsik'],
+                ['SongDiscomfort', 'btnDiscomfort', 'Strefa Dyskomfortu'],
+                ['SongTop', 'btnTop', 'X15'],
+                ['SongNoGrade', 'btnNoGrade', 'Nie Oceniam'],
+                ['SongUber', 'btnUber', 'Uber'],
+                ['SongBelow', 'btnBelowSeven', '< 7'],
+                ['SongBelTen', 'btnBelowTen', '< 10'],
+                ['SongBelNine', 'btnBelowNine', '< 9'],
+                ['SongBelEight', 'btnBelowEight', '< 8'],
+                ['SongBelFour', 'btnBelowFour', '< 4'],
+                ['SongDuoTen', 'btnDuoTen', '"10"'],
+                ['SongVeto', 'btnVeto', 'VETO'],
+                ['SongBelHalfSeven', 'btnBelowHalfSeven', '< 7.5'],
+                ['SongBelHalfEight', 'btnBelowHalfEight', '< 8.5'],
+                ['SongBelHalfNine', 'btnBelowHalfNine', '< 9.5'],
+                ['SongRehearsal', 'btnRehearsal', 'Ponowny Odsłuch']
+            ];
+
             //Filter is in use, queue for the right filter or none to just fetch the playlist
             switch($data['Filter']) {
                 case "Search": {
@@ -86,8 +109,15 @@ class Playlist extends CI_Controller {
                     $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId'], $data['SearchQuery']);
                     break;
                 }
-                case "Repeat": {
-                    $data['songs'] = $this->SongModel->FilterByRepeat(true, $data['ListId']);
+                case "Checkbox": {
+                    $checkboxProperty = isset($_GET['Prop']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['Prop'])) : "none";
+                    $data['songs'] = [];
+                    foreach($data['CheckboxPropertiesDetails'] as $CheckboxProperties) {
+                        if (in_array($checkboxProperty, $CheckboxProperties)) {
+                            $data['songs'] = $this->PlaylistModel->FilterSongsByCheckboxProperty($data['ListId'], $checkboxProperty);
+                        }
+                    }
+
                     break;
                 }
                 case "Unrated": {

@@ -2,31 +2,29 @@
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
-    <a class="optionsURL" href="#songsForm">Góra Listy</a>
+    <a class="optionsURL" href="#topoftherap">Góra Listy</a>
     <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer" && count($songs) > 0): ?>
         <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
     <?php endif; ?>
-    <select id="selectbox" class="optionsURL" onchange="javascript:location.href = this.value;">
+    <select class="optionsURL redirectsBox" onchange="javascript:location.href = this.value;">
         <option value="">Pokaż oceny:</option>
-        <option value="<?=base_url("playlist?ListId=".$ListId)?>">Wszystkie oceny</option>
+        <option value="<?=base_url("playlist?ListId=".$ListId)?>">Wszystkie Oceny</option>
         <option value="<?=base_url("playlist?ListId=".$ListId."&Filter=Adam")?>">Najlepsze: Adam</option>
         <option value="<?=base_url("playlist?ListId=".$ListId."&Filter=Churchie")?>">Najlepsze: Kościelny</option>
         <option value="<?=base_url("playlist?ListId=".$ListId."&Filter=Average")?>">Najlepsze: Średnia</option>
-        <option value="<?=base_url("playlist?ListId=".$ListId."&Filter=Repeat")?>">Ponowny Odsłuch</option>
-        <option value="<?=base_url("playlist?ListId=".$ListId."&Filter=Unrated")?>">Nieoceniona</option>
     </select>
-    <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>">
-        <label class="optionsSearchLabel">Szukaj nuty</label>
-        <input type="hidden" name="ListId" value="<?=$ListId?>" />
-        <input type="text" placeholder="Rajaner" name="Search" />
-        <input type="submit" value="Szukaj" />
-    </form>
 </header>
+<br id="topoftherap"><br><br>
+<div class="averagesBar">
+    <div class="averagesBar--left">
+        <h2 class="blackBar">Przeglądasz tierlistę <?=$Filter == "Adam" ? "Adama" : ($Filter == "Average" ? "średniej ocen" : "Kościelnego")?> plejki <?=$ListName ?? "o nieznanej nazwie"?>!</h2>
+        <h3 class="blackBar">Liczba ocenionych nut: <?=count($songs)?></h3>
+    </div>
+</div>
 <form id="songsForm" method="post" action="<?=base_url('updateSelection')?>">
     <?php if(count($gradesToDisplay) == 1): ?>
         <h3>Nie znaleziono żadnych ocen <?=$Filter == "Adam" ? "Adama" : ($Filter == "Average" ? "Średniej" : "Kościelnego")?> :/</h3>
     <?php else: ?>
-        <h2>Tierlista <?=$Filter == "Adam" ? "Adama" : ($Filter == "Average" ? "Średniej" : "Kościelnego")?></h2>
         <?php $i = 0;
         for($j = 15; $j >= 1; $j -= 0.25):
             if(in_array($j, $gradesToDisplay)): ?>

@@ -34,31 +34,30 @@ class Account extends CI_Controller
         $data['body'] = 'login';
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
 
-        if(!$userLoggedIn)
-        {
-            $data['email'] = isset($_POST['userEmail']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userEmail'])) : NULL;
-            $data['password'] = isset($_POST['userPassword']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userPassword'])) : NULL;
+        if (!$userLoggedIn) {
+            if (isset($_COOKIE["login"])) {
+                $email = json_decode($_COOKIE["login"])->userEmail;
+                $password = json_decode($_COOKIE["login"])->userPassword;
+            }
+            else {
+                $email = isset($_POST['userEmail']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userEmail'])) : NULL;
+                $password = isset($_POST['userPassword']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userPassword'])) : NULL;
+            }
 
-            if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL))
-            {
-                $userData = $this->AccountModel->GetUserData($data['email']);
-                $passwordToCompare = $userData->password ?? 0;
-                //TODO: Try cracking with just a password of 0
-
-                if ($passwordToCompare && password_verify($data['password'], $passwordToCompare))
-                {
-                    $_SESSION['userLoggedIn'] = 1;
-                    $_SESSION['userRole'] = $userData->role;
-                    $_SESSION['userId'] = $userData->id;
+            //Only attempt the login once the form is submitted or the cookie is set
+            if (isset($email) && $email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $loginSuccess = $this->AccountModel->SignIn($email, $password);
+                if($loginSuccess) {
+                    $loginSessionDetails = array(
+                        'userEmail' => $email,
+                        'userPassword' => $password
+                    );
+                    setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 7), "/");
                     redirect(base_url());
                 }
-                else
-                {
-                    $data['invalidCredentials'] = 1;
-                }
+                else $data['invalidCredentials'] = 1;
             }
         }
-
         $this->load->view('templates/main', $data);
     }
 
