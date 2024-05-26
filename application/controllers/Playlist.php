@@ -205,28 +205,47 @@ class Playlist extends CI_Controller {
      */
     function playlistEtagsMismatch(object $playlist): bool|string
     {
-        //Fetch the api key from the api_key file
-        if($apiKey = file_get_contents("application/api/api_key.txt"))
-        {
-            //Define the request address
-            $host = "https://youtube.googleapis.com/youtube/v3/playlists";
-            $part = "contentDetails";
-            $url = $host.'?part='.$part.'&id='.urlencode($playlist->ListUrl).'&key='.urlencode($apiKey);
+        //Include google library
+        $client = $this->SecurityModel->initialiseLibrary();
 
-            //Make an API call
-            $apiCall = file_get_contents($url);
-            $response = json_decode($apiCall, true);
+        //Only proceed when the library was successfully included
+        if($client !== false) {
+            //Validate the access token required for the api call
+            $tokenExpired = $this->SecurityModel->validateAuthToken($client);
 
-            //Fetch the etag if it was returned
-            $etag = $response['etag'] ?? 0;
-            if ($etag !== 0 && strlen($etag) > 1) {
-                //Compare the current Etag with the locally saved Etag
-                return $etag === $playlist->ListEtag ? false : $etag;
+            //Continue to the api call or refresh the auth token
+            if ($tokenExpired) {
+                $data['body'] = 'invalidAction';
+                $data['title'] = "Błąd autoryzacji tokenu!";
+                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
+                            Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
+            }
+            else {
+                //Define service object for making API requests.
+                $service = new Google_Service_YouTube($client);
+                $queryParams = [
+                    'id' => $playlist->ListUrl
+                ];
+
+                //Make the request
+                $response = $service->playlists->listPlaylists('contentDetails', $queryParams);
+
+                //Fetch the etag if it was returned
+                $etag = $response['etag'] ?? 0;
+                if ($etag !== 0 && strlen($etag) > 1) {
+                    //Compare the current Etag with the locally saved Etag
+                    return $etag === $playlist->ListEtag ? false : $etag;
+                }
             }
         }
+        else {
+            //Could not load the YouTube api
+            $data['body']  = 'invalidAction';
+            $data['title'] = "Wystąpił Błąd!";
+            $data['errorMessage'] = "Nie znaleziono biblioteki google!";
 
-        //API key or Etag not found - perform the full reload
-        return true;
+            $this->load->view( 'templates/main', $data );
+        }
     }
 
     /**
@@ -866,98 +885,108 @@ class Playlist extends CI_Controller {
      * @return bool|int|void|string
      */
     function RefreshPlaylist($listId) {
-        //Parameters for the api call
-        $host = "https://youtube.googleapis.com/youtube/v3/playlistItems";
-        $part = "snippet";
-        $maxResults = 50; //50 is the most you can get on one page
-        $playlistUrl = $this->PlaylistModel->GetListUrlById($listId);
+        //Include google library
+        $client = $this->SecurityModel->initialiseLibrary();
 
-        //Create a log
-        $this->LogModel->CreateLog('playlist', $listId, "Załadowano nowe nuty na playlistę");
+        //Only proceed when the library was successfully included
+        if($client !== false) {
+            //Validate the access token required for the api call
+            $tokenExpired = $this->SecurityModel->validateAuthToken($client);
 
-        //Fetch the api key from the api_key file
-        if($apiKey = file_get_contents("application/api/api_key.txt")) {
-            //Load songs for the first time
-            $songsJsonArray = [];
-            if($playlistUrl != "") {
-                $url = $host.'?part='.$part.'&maxResults='.$maxResults.'&playlistId='.urlencode($playlistUrl).'&key='.urlencode($apiKey);
-                $firstCall = @file_get_contents($url);
-                if ($firstCall === FALSE) {
+            //Continue to the api call or refresh the auth token
+            if ($tokenExpired) {
+                $data['body'] = 'invalidAction';
+                $data['title'] = "Błąd autoryzacji tokenu!";
+                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
+                            Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
+            }
+            else {
+                //Define service object for making API requests.
+                $service = new Google_Service_YouTube($client);
+                $queryParams = [
+                    'maxResults' => 50,
+                    'playlistId' => $this->PlaylistModel->GetListUrlById($listId)
+                ];
+
+                //Load songs for the first time
+                $songsJsonArray = [];
+                $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
+                $songsJsonArray[] = $response['items'];
+                if ($response === FALSE) {
                     return -2;
                 }
-                $downloadedSongs = json_decode($firstCall, true);
-                $songsJsonArray[] = $downloadedSongs;
-            }
 
-            //How many songs total - returns 0 if null
-            $allResults = $downloadedSongs['pageInfo']['totalResults'] ?? 0;
+                //How many songs total - returns 0 if null
+                $allResults = $response['pageInfo']['totalResults'] ?? 0;
 
-            if($allResults > 0) {
-                //Keep loading songs until all are loaded
-                for($scannedResults = $downloadedSongs['pageInfo']['resultsPerPage'] ?? 150000;
-                    $scannedResults < $allResults;
-                    $scannedResults += $downloadedSongs['pageInfo']['resultsPerPage'])
-                {
-                    //Get the token of the next page
-                    $pageToken = $downloadedSongs['nextPageToken'];
-                    //Perform the api call
-                    $nextCall = file_get_contents($host.'?part='.$part.'&maxResults='.$maxResults.'&pageToken='.$pageToken.'&playlistId='.urlencode($playlistUrl).'&key='.urlencode($apiKey));
-                    //Decode the result from json to array
-                    $downloadedSongs = json_decode($nextCall, true);
-                    //Save the songs into the array
-                    $songsJsonArray[] = $downloadedSongs;
-                }
+                //If results were returned, continue the process
+                if($allResults > 0) {
+                    //Keep loading songs until all are loaded
+                    for ($scannedResults = $response['pageInfo']['resultsPerPage'] ?? 150000;
+                         $scannedResults < $allResults;
+                         $scannedResults += $response['pageInfo']['resultsPerPage']) {
+                        //Get the token of the next page
+                        $pageToken = $response['nextPageToken'];
+                        //Perform the api call
+                        $queryParams = [
+                            'maxResults' => 50,
+                            'pageToken' => $pageToken,
+                            'playlistId' => $this->PlaylistModel->GetListUrlById($listId)
+                        ];
+                        $nextCall = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
+                        //Save the songs into the array
+                        $songsJsonArray[] = $nextCall['items'];
+                    }
 
-                //Get all songs that are already in the list, only urls
-                $songURLs = $this->SongModel->GetURLsOfAllSongsInList($listId);
-                $songURLsArray = [];
-                foreach($songURLs as $songURL) {
-                    $songURLsArray[] = $songURL->SongURL;
-                }
+                    //Get all songs that are already in the list, only urls
+                    $songURLs = $this->SongModel->GetURLsOfAllSongsInList($listId);
+                    $songURLsArray = [];
+                    foreach($songURLs as $songURL) {
+                        $songURLsArray[] = $songURL->SongURL;
+                    }
 
-                //Perform the reloading process - The main array is composed of parsed data arrays
-                $refreshReport = "";
-                foreach($songsJsonArray as $songarrays) {
-                    //Each of these arrays contains a list of songs
-                    foreach($songarrays as $songlist) {
-                        //Some data is not in an array and is unnecessary for this process
-                        if(is_array($songlist)) {
-                            //Each song is an array itself
-                            foreach($songlist as $song) {
-                                //Data that is not a song array can be dropped
-                                if(is_array($song)) {
-                                    //Get all required data to save a song in the database
-                                    $songURL = $song['snippet']['resourceId']['videoId'];
-                                    $songPublic = isset($song['snippet']['thumbnails']['medium']['url']);
-                                    $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
-                                    $songTitle = mysqli_real_escape_string($this->db->conn_id, $song['snippet']['title']);
-                                    $songPlaylistItemsId = $song['id'];
+                    //Perform the reloading process - The main array is composed of parsed song arrays
+                    $refreshReport = "";
+                    foreach($songsJsonArray as $songarrays) {
+                        //Each of these arrays contains a song object
+                        foreach($songarrays as $song) {
+                            //Get all required data to save a song in the database
+                            $songURL = $song['snippet']['resourceId']['videoId'];
+                            $songPublic = isset($song['snippet']['thumbnails']['medium']['url']);
+                            $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
+                            $songTitle = mysqli_real_escape_string($this->db->conn_id, $song['snippet']['title']);
+                            $songPlaylistItemsId = $song['id'];
 
-                                    //If something goes wrong any incorrect entries will be discarded
-                                    if(isset($songURL) && isset($songThumbnailURL) && strlen($songTitle) > 0 && isset($songPlaylistItemsId)) {
-                                        //Check if the song already exists in the database
-                                        if(in_array($songURL, $songURLsArray)) {
-                                            $refreshReport .= $songTitle . " - ⏸<br />";
-                                        }
-                                        else if($songPublic && $this->SongModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId)) {
-                                            //Attempt to insert the song to the database
-                                            $refreshReport .= $songTitle . " - ✔<br />";
-                                        }
-                                        else {
-                                            //If insertion failed
-                                            $refreshReport .= $songURL . " is private - ❌<br />";
-                                        }
-                                    }
+                            //If something goes wrong any incorrect entries will be discarded
+                            if(isset($songURL) && isset($songThumbnailURL) && strlen($songTitle) > 0 && isset($songPlaylistItemsId)) {
+                                //Check if the song already exists in the database
+                                if(in_array($songURL, $songURLsArray)) {
+                                    $refreshReport .= $songTitle . " - ⏸<br />";
+                                }
+                                else if($songPublic && $this->SongModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId)) {
+                                    //Attempt to insert the song to the database
+                                    $refreshReport .= $songTitle . " - ✔<br />";
+                                }
+                                else {
+                                    //If insertion failed
+                                    $refreshReport .= $songURL . " is private - ❌<br />";
                                 }
                             }
                         }
                     }
+                    return $refreshReport;
                 }
-                return $refreshReport;
+                else return false;
             }
-            else return false;
         }
-        else return -1;
+        else {
+            //Could not load the YouTube api
+            $data['body']  = 'invalidAction';
+            $data['title'] = "Wystąpił Błąd!";
+            $data['errorMessage'] = "Nie znaleziono biblioteki Google!";
+
+            $this->load->view( 'templates/main', $data );
+        }
     }
     
     /**
