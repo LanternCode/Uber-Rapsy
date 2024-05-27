@@ -148,9 +148,21 @@ class Playlist extends CI_Controller {
                     $playlistNeedsUpdate = $this->playlistEtagsMismatch($data['playlist']);
                     if($playlistNeedsUpdate !== false) {
                         //Fetch new songs and update the playlist
-                        $refreshReturnData = $this->RefreshPlaylist($data['ListId']);
-                        //Update the locally stored playlist Etag
-                        $this->PlaylistModel->UpdatePlaylistEtag($data['ListId'], $playlistNeedsUpdate);
+                        $refreshReturnCode = $this->RefreshPlaylist($data['ListId']);
+                        if($refreshReturnCode === true) {
+                            //Update the locally stored playlist Etag
+                            $this->PlaylistModel->UpdatePlaylistEtag($data['ListId'], $playlistNeedsUpdate);
+                        }
+                        else if($refreshReturnCode === -1) {
+                            //API key not found
+                            //$data['body']  = 'invalidAction';
+                            //$data['title'] = "Nie znaleziono klucza API!";
+                            //$data['errorMessage'] = "Nie znaleziono klucza API.";
+                        }
+                        else if ($refreshReturnCode === false || $refreshReturnCode === -2) {
+                            //Response returned empty (false) or response could not be reached (-2)
+                            //$data['success'] = false;
+                        }
                     }
                     //No filter in use - just load the playlist
                     $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId']);
@@ -859,7 +871,8 @@ class Playlist extends CI_Controller {
                 $data['title'] = "Nie znaleziono klucza API!";
                 $data['errorMessage'] = "Nie znaleziono klucza API.";
             }
-            else if ($refreshReturnCode === false) {
+            else if ($refreshReturnCode === false || $refreshReturnCode === -2) {
+                //Response returned empty (false) or response could not be reached (-2)
                 $data['success'] = false;
             }
         }
@@ -897,7 +910,7 @@ class Playlist extends CI_Controller {
             if ($tokenExpired) {
                 $data['body'] = 'invalidAction';
                 $data['title'] = "Błąd autoryzacji tokenu!";
-                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br>
+                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego się nie powiodło.</br>
                             Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
             }
             else {
@@ -946,7 +959,7 @@ class Playlist extends CI_Controller {
                     }
 
                     //Perform the reloading process - The main array is composed of parsed song arrays
-                    $refreshReport = "";
+                    $refreshReport = "<pre>";
                     foreach($songsJsonArray as $songarrays) {
                         //Each of these arrays contains a song object
                         foreach($songarrays as $song) {
@@ -974,7 +987,14 @@ class Playlist extends CI_Controller {
                             }
                         }
                     }
-                    return $refreshReport;
+                    //Songs were loaded correctly - Submit a report
+                    $refreshReport .= "</pre>";
+                    $newReportId = $this->LogModel->SubmitReport(htmlspecialchars($refreshReport));
+                    //Create a log
+                    $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
+                    $logMessage = "Załadowano nowe nuty na playlistę".$reportSuccessful;
+                    $this->LogModel->CreateLog('playlist', $listId, $logMessage, $newReportId);
+                    return true;
                 }
                 else return false;
             }
