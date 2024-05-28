@@ -1057,18 +1057,21 @@ class Playlist extends CI_Controller {
                 else {
                     $data = array(
                         'body' => 'playlist/addPlaylist',
-                        'title' => isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "",
-                        'description' => $_POST['playlistDesc'] ?? "",
-                        'visibility' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
                         'link' => '',
-                        'resultMessage' => ''
+                        'resultMessage' => '',
+                        'ListPrivacyStatus' => isset($_POST['playlistVisibilityYT']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibilityYT'])) : ""
+                    );
+
+                    $playlistData = array(
+                        'ListName' => isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "",
+                        'ListDesc' => $_POST['playlistDesc'] ?? "",
+                        'ListActive' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
                     );
 
                     //Validate the form
-                    if($data['title'] != "" && in_array($data['visibility'], ["public", "unlisted", "private"]) )
-                    {
+                    if($playlistData['ListName'] != "" && in_array($data['ListPrivacyStatus'], ["public", "unlisted", "private"]) ) {
                         //Update the description new-line characters
-                        $data['description'] = trim(str_replace(["\r\n", "\r"], "\n", $data['description']));
+                        $playlistData['ListDesc'] = trim(str_replace(["\r\n", "\r"], "\n", $playlistData['ListDesc']));
 
                         //Define service object for making API requests.
                         $service = new Google_Service_YouTube($client);
@@ -1079,26 +1082,26 @@ class Playlist extends CI_Controller {
                         //Add 'snippet' object to the $playlist object.
                         $playlistSnippet = new Google_Service_YouTube_PlaylistSnippet();
                         $playlistSnippet->setDefaultLanguage('en');
-                        $playlistSnippet->setDescription($data['description']);
-                        $playlistSnippet->setTitle($data['title']);
+                        $playlistSnippet->setDescription($playlistData['ListDesc']);
+                        $playlistSnippet->setTitle($playlistData['ListName']);
                         $playlist->setSnippet($playlistSnippet);
 
                         //Add 'status' object to the $playlist object.
                         $playlistStatus = new Google_Service_YouTube_PlaylistStatus();
-                        $playlistStatus->setPrivacyStatus($data['visibility']);
+                        $playlistStatus->setPrivacyStatus($data['ListPrivacyStatus']);
                         $playlist->setStatus($playlistStatus);
 
                         //Save the api call response
                         $response = $service->playlists->insert('snippet, status', $playlist);
 
                         //Get the unique id of a playlist from the response
-                        $data['link'] = $response->id;
+                        $playlistData['ListUrl'] = $response->id;
 
                         //Save the playlist into the database
-                        $this->PlaylistModel->InsertPlaylist($data);
+                        $this->PlaylistModel->InsertLocalPlaylist($playlistData);
 
                         //Fetch the local id of the newly created playlist
-                        $listId = $this->PlaylistModel->GetListIdByUrl($data['link']);
+                        $listId = $this->PlaylistModel->GetListIdByUrl($playlistData['ListUrl']);
 
                         //Create a log
                         $this->LogModel->CreateLog('playlist', $listId, "Stworzono zintegrowaną playlistę");

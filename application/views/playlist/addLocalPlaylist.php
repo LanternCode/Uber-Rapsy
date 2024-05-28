@@ -22,8 +22,8 @@
 
     <label>Status Playlisty:</label><br />
     <select name="playlistVisibility">
-        <option value="1">Publiczna</option>
-        <option value="0">Prywatna</option>
+        <option value="1">Publiczna - widoczna na stronie głównej</option>
+        <option value="0">Prywatna - widoczna tylko w panelu sterowania</option>
     </select><br /><br />
 
     <input type="submit" name="playlistFormSubmitted" value="Utwórz lokalną playlistę" />

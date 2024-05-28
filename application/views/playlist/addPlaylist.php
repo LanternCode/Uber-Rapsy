@@ -11,12 +11,18 @@
 	<br><br><label>Opis Playlisty:</label><br>
     <textarea name="playlistDesc" rows="10" cols="50"></textarea>
 
-    <br><br><label>Status Playlisty:</label>
-    <select name="playlistVisibility">
+    <br><br><label>Status Playlisty na YT:</label><br />
+    <select name="playlistVisibilityYT">
         <option value="public">Publiczna</option>
         <option value="unlisted">Niepubliczna</option>
         <option value="private">Prywatna</option>
-    </select>
+    </select><br /><br />
+
+    <label>Status Playlisty na Uber:</label><br />
+    <select name="playlistVisibility">
+        <option value="1">Publiczna - widoczna na stronie głównej</option>
+        <option value="0">Prywatna - widoczna tylko w panelu sterowania</option>
+    </select><br /><br />
 
 	<br><br><input type="submit" value="Dodaj playlistę na YT" />
 </form>

@@ -75,23 +75,6 @@ class PlaylistModel extends CI_Model
     }
 
     /**
-     * Inserts a new playlist into the database.
-     *
-     * @param array $data  details of the playlist to be inserted
-     * @return boolean     true if query worked, false if it failed
-     */
-    function InsertPlaylist(array $data = []): bool
-    {
-        $link = $data['link'];
-        $title = $data['title'];
-        $desc = $data['description'];
-
-        $sql = "INSERT INTO list(`ListURL`, `ListName`, `ListDesc`, `ListIntegrated`, `ListActive`) VALUES ('$link', '$title', '$desc', true, true)";
-        if($this->db->simple_query($sql)) return true;
-        else return false;
-    }
-
-    /**
      * Inserts a new local playlist into the database.
      *
      * @param array $queryData  playlist to be inserted

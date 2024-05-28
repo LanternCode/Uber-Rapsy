@@ -11,7 +11,7 @@
     <label>Opis Playlisty:</label><br />
     <input type="text" name="playlistDesc" value="<?=$playlist->ListDesc?>" /><br /><br />
 
-    <label>ID playlisty na YT: (Np: PLkIbfiOcITXoeEjCiGOlOYUUp7-FwbqPy)</label><br />
+    <label>Link do playlisty na YT:</label><br />
     <input type="text" name="playlistId" value="<?=$playlist->ListUrl?>" /><br /><br />
 
     <label>Data stworzenia na YT: (Format: 2021-09-16 16:13:50)</label><br />
@@ -21,8 +21,8 @@
 
     <label>Status Playlisty:</label><br />
     <select name="playlistVisibility">
-        <option value="1" <?=$playlist->ListActive === "1" ? "selected" : ''?>>Publiczna</option>
-        <option value="0" <?=$playlist->ListActive === "0" ? "selected" : ''?>>Prywatna</option>
+        <option value="1" <?=$playlist->ListActive === "1" ? "selected" : ''?>>Publiczna - widoczna na stronie głównej</option>
+        <option value="0" <?=$playlist->ListActive === "0" ? "selected" : ''?>>Prywatna - widoczna tylko w panelu sterowania</option>
     </select><br /><br />
 
     <label>Widoczność przycisków:</label><br>
