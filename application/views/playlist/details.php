@@ -1,16 +1,18 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
 
-<p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
-<p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br>
-
-<p>Link do playlisty: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>$playlist->ListName</a>" : "Playlista niezintegrowana"?></p></br>
+<h3>Informacje o playliście</h3><br>
 <p>Nazwa playlisty: <?=$playlist->ListName?></p><br>
 <p>Opis playlisty: <?=$playlist->ListDesc?></p><br>
 <p>Data dodania playlisty: <?=$playlist->ListCreatedAt?></p><br>
 <p>Playlista zintegrowana: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?> <a href="<?=base_url('playlist/integrate?id='.$playlist->ListId)?>">(Zmień status integracji)</a></p><br>
-<p>Playlista publiczna: <?=$playlist->ListActive === "1" ? "Tak" : "Nie"?></p><br><br>
+<p>Playlista publiczna: <?=$playlist->ListActive === "1" ? "Tak" : "Nie"?></p><br>
+<p>Link do playlisty na YT: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>$playlist->ListName</a>" : "Playlista niezintegrowana"?></p></br>
+<p>Link na Uber: <a target='_blank' href='<?=base_url('playlist?ListId='.$playlist->ListId)?>'><?=$playlist->ListName?></a></p></br>
+<p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
+<p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br><br>
 
+<h3>Zarządzaj playlistą</h3><br>
 <a href="<?=base_url('playlist/edit?id='.$playlist->ListId)?>">Edytuj Playlistę</a><br><br>
 <a href="<?=base_url('playlist/hidePlaylist?id='.$playlist->ListId)?>"><?=$playlist->ListActive === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br><br>
 <a href="<?=base_url('playlist/deleteLocal?id='.$playlist->ListId)?>">Usuń Playlistę</a><br><br>

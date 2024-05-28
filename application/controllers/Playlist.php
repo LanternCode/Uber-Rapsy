@@ -1065,6 +1065,7 @@ class Playlist extends CI_Controller {
                     $playlistData = array(
                         'ListName' => isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "",
                         'ListDesc' => $_POST['playlistDesc'] ?? "",
+                        'ListIntegrated' => 1,
                         'ListActive' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
                     );
 
