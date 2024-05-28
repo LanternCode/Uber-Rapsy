@@ -75,12 +75,12 @@ class PlaylistModel extends CI_Model
     }
 
     /**
-     * Inserts a new local playlist into the database.
+     * Inserts a new playlist into the database.
      *
      * @param array $queryData  playlist to be inserted
      * @return void
      */
-    function InsertLocalPlaylist(array $queryData = []): void
+    function InsertPlaylist(array $queryData = []): void
     {
         $this->db->insert('list', $queryData);
     }

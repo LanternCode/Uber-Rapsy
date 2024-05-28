@@ -68,9 +68,7 @@ class Playlist extends CI_Controller {
                 $data['playlist'][] = $this->PlaylistModel->FetchPlaylistById($song->ListId);
             }
         }
-        else if (is_numeric($data['ListId'])) {
-            //Fetch the playlist
-            $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
+        else if (is_numeric($data['ListId']) && $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId'])) {
             $data['ListName'] = $data['playlist']->ListName;
             $data['ListUrl'] = $data['playlist']->ListUrl;
             $data['title'] = $data['ListName']." | Playlista Uber Rapsy";
@@ -144,31 +142,36 @@ class Playlist extends CI_Controller {
                 }
                 default:
                 case "none": {
-                    //Based on the current playlist Etag check if an update is required
-                    $playlistNeedsUpdate = $this->playlistEtagsMismatch($data['playlist']);
-                    if($playlistNeedsUpdate !== false) {
-                        //Fetch new songs and update the playlist
-                        $refreshReturnCode = $this->RefreshPlaylist($data['ListId']);
-                        if($refreshReturnCode === true) {
-                            //Update the locally stored playlist Etag
-                            $this->PlaylistModel->UpdatePlaylistEtag($data['ListId'], $playlistNeedsUpdate);
-                        }
-                        else if($refreshReturnCode === -1) {
-                            //API key not found
-                            //$data['body']  = 'invalidAction';
-                            //$data['title'] = "Nie znaleziono klucza API!";
-                            //$data['errorMessage'] = "Nie znaleziono klucza API.";
-                        }
-                        else if ($refreshReturnCode === false || $refreshReturnCode === -2) {
-                            //Response returned empty (false) or response could not be reached (-2)
-                            //$data['success'] = false;
+                    //Check if the playlist has a YouTube link. If so, compare with the YT list and refresh
+                    if(!empty($data['playlist']->ListUrl)) {
+                        //Based on the current playlist Etag check if an update is required
+                        $playlistNeedsUpdate = $this->playlistEtagsMismatch($data['playlist']);
+                        if($playlistNeedsUpdate !== false) {
+                            //Fetch new songs and update the playlist
+                            $refreshReturnCode = $this->RefreshPlaylist($data['ListId']);
+                            if($refreshReturnCode === true) {
+                                //Update the locally stored playlist Etag
+                                $this->PlaylistModel->UpdatePlaylistEtag($data['ListId'], $playlistNeedsUpdate);
+                            }
+                            else if($refreshReturnCode === -1) {
+                                //API key not found
+                                $data['body']  = 'invalidAction';
+                                $data['title'] = "Nie znaleziono klucza API!";
+                                $data['errorMessage'] = "Nie znaleziono klucza API.";
+                            }
+                            else if ($refreshReturnCode === false || $refreshReturnCode === -2) {
+                                //Response returned empty (false) or response could not be reached (-2)
+                                $data['refreshSuccess'] = false;
+                            }
                         }
                     }
+
                     //No filter in use - just load the playlist
                     $data['songs'] = $this->SongModel->GetSongsFromList($data['ListId']);
                     break;
                 }
             }
+
             //Calculate playlist averages for each reviewer and the overall average - not required for tierlists
             if (!in_array($data['Filter'], ["Adam", "Churchie", "Average"])) {
                 $avgOverall = 0;
@@ -858,22 +861,32 @@ class Playlist extends CI_Controller {
 			'body' => 'downloadSongs',
 			'title' => 'Aktualizacja listy!',
 			'ListId' => $listId,
-			'success' => true
+			'refreshSuccess' => true
 		);
 
 		//Check if the user is allowed to do this action
         $userAuthenticated = $this->SecurityModel->authenticateUser();
         if($userAuthenticated) {
-            $refreshReturnCode = $this->RefreshPlaylist($data['ListId']);
-            if($refreshReturnCode === -1) {
-                //API key not found
-                $data['body']  = 'invalidAction';
-                $data['title'] = "Nie znaleziono klucza API!";
-                $data['errorMessage'] = "Nie znaleziono klucza API.";
+            //Check if the playlist has a YouTube link. If so, compare with the YT list and refresh
+            $playlistUrl = $this->PlaylistModel->GetListUrlById($data['ListId']);
+            if(!empty($playlistUrl)) {
+                $refreshReturnCode = $this->RefreshPlaylist($data['ListId']);
+                if($refreshReturnCode === -1) {
+                    //API key not found
+                    $data['body']  = 'invalidAction';
+                    $data['title'] = "Nie znaleziono klucza API!";
+                    $data['errorMessage'] = "Nie znaleziono klucza API.";
+                }
+                else if ($refreshReturnCode === false || $refreshReturnCode === -2) {
+                    //Response returned empty (false) or response could not be reached (-2)
+                    $data['refreshSuccess'] = false;
+                }
             }
-            else if ($refreshReturnCode === false || $refreshReturnCode === -2) {
-                //Response returned empty (false) or response could not be reached (-2)
-                $data['success'] = false;
+            else {
+                //Playlist has no YouTube URL
+                $data['body']  = 'invalidAction';
+                $data['title'] = "Nie znaleziono linku do playlisty na YT!";
+                $data['errorMessage'] = "Nie znaleziono linku do playlisty na YT.";
             }
         }
         else {
@@ -921,15 +934,20 @@ class Playlist extends CI_Controller {
                     'playlistId' => $this->PlaylistModel->GetListUrlById($listId)
                 ];
 
-                //Load songs for the first time
+                //Load songs for the first time. If the request fails, return -2
                 $songsJsonArray = [];
-                $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
-                $songsJsonArray[] = $response['items'];
-                if ($response === FALSE) {
-                    return -2;
+                try {
+                    $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
+                }
+                catch (Google_Service_Exception $e) {
+                    $errorType = json_decode($e->getMessage())->error->errors[0]->reason;
+                    if($errorType == "playlistNotFound") {
+                        return -2;
+                    }
                 }
 
-                //How many songs total - returns 0 if null
+                //How many songs total - assign 0 if null
+                $songsJsonArray[] = $response['items'];
                 $allResults = $response['pageInfo']['totalResults'] ?? 0;
 
                 //If results were returned, continue the process
@@ -946,10 +964,18 @@ class Playlist extends CI_Controller {
                             'pageToken' => $pageToken,
                             'playlistId' => $this->PlaylistModel->GetListUrlById($listId)
                         ];
+
+                        //TODO: Test S5
+//                        print_r("<pre>");
+//                        print_r($response);
+//                        print_r("</pre>");
+
                         $nextCall = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
                         //Save the songs into the array
                         $songsJsonArray[] = $nextCall['items'];
                     }
+
+                    die();
 
                     //Get all songs that are already in the list, only urls
                     $songURLs = $this->SongModel->GetURLsOfAllSongsInList($listId);
@@ -1099,7 +1125,7 @@ class Playlist extends CI_Controller {
                         $playlistData['ListUrl'] = $response->id;
 
                         //Save the playlist into the database
-                        $this->PlaylistModel->InsertLocalPlaylist($playlistData);
+                        $this->PlaylistModel->InsertPlaylist($playlistData);
 
                         //Fetch the local id of the newly created playlist
                         $listId = $this->PlaylistModel->GetListIdByUrl($playlistData['ListUrl']);
@@ -1162,7 +1188,7 @@ class Playlist extends CI_Controller {
 
                 if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
                 {
-                    $this->PlaylistModel->InsertLocalPlaylist($queryData);
+                    $this->PlaylistModel->InsertPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
 
                     //fetch the newly created playlist to obtain the id and create a log

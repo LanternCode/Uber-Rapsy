@@ -51,6 +51,13 @@
             <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url('playlist/details?id='.$ListId)?>">Statystyki i Ustawienia</a></li>
         <?php endif; ?>
     </ul>
+    <?php if(isset($refreshSuccess) && $refreshSuccess === false): ?>
+        <h2>Podano niepoprawny link do playlisty na YT!</h2>
+        <h3>W wolnej chwili przejdź do ustawień i zmień link na poprawny!</h3>
+        <h3>Jeśli usunięto playlistę albo chcesz pozbyć się tej wiadomości, usuń link w ustawieniach.</h3>
+        <h3>Playlista na YT musi być publiczna lub niepubliczna (ale nie prywatna) aby mogła zostać wczytana.</h3>
+        <h3>Poniżej podano znajdujące się już na liście utwory.</h3><br /><br />
+    <?php endif; ?>
 	<?php if(count($songs) > 0):
         $i = 0; ?>
 		<?php foreach($songs as $song): ?>
