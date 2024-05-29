@@ -965,17 +965,10 @@ class Playlist extends CI_Controller {
                             'playlistId' => $this->PlaylistModel->GetListUrlById($listId)
                         ];
 
-                        //TODO: Test S5
-//                        print_r("<pre>");
-//                        print_r($response);
-//                        print_r("</pre>");
-
-                        $nextCall = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
+                        $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
                         //Save the songs into the array
-                        $songsJsonArray[] = $nextCall['items'];
+                        $songsJsonArray[] = $response['items'];
                     }
-
-                    die();
 
                     //Get all songs that are already in the list, only urls
                     $songURLs = $this->SongModel->GetURLsOfAllSongsInList($listId);
@@ -1013,6 +1006,7 @@ class Playlist extends CI_Controller {
                             }
                         }
                     }
+
                     //Songs were loaded correctly - Submit a report
                     $refreshReport .= "</pre>";
                     $newReportId = $this->LogModel->SubmitReport(htmlspecialchars($refreshReport));
