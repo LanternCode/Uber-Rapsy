@@ -556,12 +556,14 @@ class Playlist extends CI_Controller {
             //Process each song separately
             $i = 0;
             $data['processed'] = 0;
+            $data['processedAndUpdated'] = 0;
             while (isset($_POST["songUpdated-" . $i+21])) {
                 $i += ($data['processed'] == 0) ? 0 : 26;
                 $data['processed'] += 1;
                 //Only process songs that were actually updated
                 $songUpdated = isset($_POST["songUpdated-" . $i+21]) && $_POST["songUpdated-".$i+21];
                 if ($songUpdated) {
+                    $data['processedAndUpdated'] += 1;
                     //Create a variable for the song's update message
                     $localResultMessage = "";
 
