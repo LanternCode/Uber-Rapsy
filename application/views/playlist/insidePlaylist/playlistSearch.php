@@ -96,6 +96,7 @@
                     <label <?=$playlist[$key]->btnTop ? '' : 'hidden'?>><input type="checkbox" name="<?="songTop-".$i+10?>" class="buttonBox" <?=$song->SongTop ? "checked" : ""?>> X15</label>
                     <label <?=$playlist[$key]->btnXD ? '' : 'hidden'?>><input type="checkbox" name="<?="songXD-".$i+7?>" class="buttonBox" <?=$song->SongXD ? "checked" : ""?>> XD</label>
                     <label <?=$playlist[$key]->btnDiscomfort ? '' : 'hidden'?>><input type="checkbox" name="<?="songDiscomfort-".$i+9?>" class="buttonBox" <?=$song->SongDiscomfort ? "checked" : ""?>> Strefa Dyskomfortu</label>
+                    <label <?=$playlist[$key]->btnDepA ? '' : 'hidden'?>><input type="checkbox" name="<?="songDepA-".$i+26?>" class="buttonBox" <?=$song->SongDepA ? "checked" : ""?>> Dep. Abroad</label>
                     <label <?=$playlist[$key]->btnNotRap ? '' : 'hidden'?>><input type="checkbox" name="<?="songNotRap-".$i+8?>" class="buttonBox" <?=$song->SongNotRap ? "checked" : ""?>> To nie rapsik</label>
                     <label <?=$playlist[$key]->btnNoGrade ? '' : 'hidden'?>><input type="checkbox" name="<?="songNoGrade-".$i+11?>" class="buttonBox" <?=$song->SongNoGrade ? "checked" : ""?>> Nie oceniam</label>
                     <label <?=$playlist[$key]->btnVeto ? '' : 'hidden'?>><input type="checkbox" name="<?="songVeto-".$i+19?>" class="buttonBox" <?=$song->SongVeto ? "checked" : ""?>> VETO</label>
@@ -103,7 +104,7 @@
                 </div>
 			</div>
 		<?php
-        $i += 26;
+        $i += 27;
         endforeach;?>
             <input type="hidden" name="playlistId" value="search"/>
         </form>

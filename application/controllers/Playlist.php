@@ -462,6 +462,7 @@ class Playlist extends CI_Controller {
         $flags['SongXD'] = $currentSong->SongXD != $formInput['SongXD'];
         $flags['SongNotRap'] = $currentSong->SongNotRap != $formInput['SongNotRap'];
         $flags['SongDiscomfort'] = $currentSong->SongDiscomfort != $formInput['SongDiscomfort'];
+        $flags['SongDepA'] = $currentSong->SongDepA != $formInput['SongDepA'];
         $flags['SongTop'] = $currentSong->SongTop != $formInput['SongTop'];
         $flags['SongNoGrade'] = $currentSong->SongNoGrade != $formInput['SongNoGrade'];
         $flags['SongUber'] = $currentSong->SongUber != $formInput['SongUber'];
@@ -505,6 +506,7 @@ class Playlist extends CI_Controller {
             'SongXD' => "XD",
             'SongNotRap' => "to nie rapsik",
             'SongDiscomfort' => "strefa dyskomfortu",
+            'SongDepA' => "department abroad",
             'SongTop' => "X15",
             'SongNoGrade' => "nie oceniam",
             'SongUber' => "Uber",
@@ -558,7 +560,7 @@ class Playlist extends CI_Controller {
             $data['processed'] = 0;
             $data['processedAndUpdated'] = 0;
             while (isset($_POST["songUpdated-" . $i+21])) {
-                $i += ($data['processed'] == 0) ? 0 : 26;
+                $i += ($data['processed'] == 0) ? 0 : 27;
                 $data['processed'] += 1;
                 //Only process songs that were actually updated
                 $songUpdated = isset($_POST["songUpdated-" . $i+21]) && $_POST["songUpdated-".$i+21];
@@ -577,6 +579,7 @@ class Playlist extends CI_Controller {
                     $formInput['SongXD'] = isset($_POST["songXD-" . $i + 7]) && $_POST["songXD-" . $i + 7] == "on" ? 1 : 0;
                     $formInput['SongNotRap'] = isset($_POST["songNotRap-" . $i + 8]) && $_POST["songNotRap-" . $i + 8] == "on" ? 1 : 0;
                     $formInput['SongDiscomfort'] = isset($_POST["songDiscomfort-" . $i + 9]) && $_POST["songDiscomfort-" . $i + 9] == "on" ? 1 : 0;
+                    $formInput['SongDepA'] = isset($_POST["songDepA-" . $i + 26]) && $_POST["songDepA-" . $i + 26] == "on" ? 1 : 0;
                     $formInput['SongTop'] = isset($_POST["songTop-" . $i + 10]) && $_POST["songTop-" . $i + 10] == "on" ? 1 : 0;
                     $formInput['SongNoGrade'] = isset($_POST["songNoGrade-" . $i + 11]) && $_POST["songNoGrade-" . $i + 11] == "on" ? 1 : 0;
                     $formInput['SongUber'] = isset($_POST["songUber-" . $i + 12]) && $_POST["songUber-" . $i + 12] == "on" ? 1 : 0;

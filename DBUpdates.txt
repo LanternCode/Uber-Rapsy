@@ -1,0 +1,4 @@
+ALTER TABLE `list` ADD `btnDepA` BIT(1) NOT NULL DEFAULT b'1' AFTER `btnBelowHalfNine`;
+ALTER TABLE `list` CHANGE `btnBelowTen` `btnBelowTen` BIT(1) NOT NULL DEFAULT b'0', CHANGE `btnBelowNine` `btnBelowNine` BIT(1) NOT NULL DEFAULT b'0', CHANGE `btnBelowEight` `btnBelowEight` BIT(1) NOT NULL DEFAULT b'0', CHANGE `btnBelowSeven` `btnBelowSeven` BIT(1) NOT NULL DEFAULT b'0', CHANGE `btnBelowFour` `btnBelowFour` BIT(1) NOT NULL DEFAULT b'0';
+ALTER TABLE `song` ADD `SongDepA` BIT(1) NOT NULL DEFAULT b'0' AFTER `SongBelHalfNine`;
+UPDATE list SET btnBelowFour = 0, btnBelowSeven = 0, btnBelowEight = 0, btnBelowNine = 0, btnBelowTen = 0
