@@ -1170,7 +1170,7 @@ class Playlist extends CI_Controller {
                 $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
                 $queryData['ListActive'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
 
-                //obtain the unique playlist ID from the url given
+                //Obtain the unique playlist ID from the url given
                 $listPos = strpos($queryData['ListUrl'], "list=");
                 if($listPos > 0)
                 {
@@ -1182,12 +1182,15 @@ class Playlist extends CI_Controller {
 
                 if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "")
                 {
-                    $this->PlaylistModel->InsertPlaylist($queryData);
+                    //Insert the playlist to the local db
+                    $newListId = $this->PlaylistModel->InsertPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
 
-                    //fetch the newly created playlist to obtain the id and create a log
-                    $playlistId = $this->PlaylistModel->GetPlaylistIdByTimestamp($queryData['ListCreatedAt']);
-                    $this->LogModel->CreateLog('playlist', $playlistId, "Stworzono lokalną playlistę");
+                    //Refresh the playlist so to fetch the songs available on YT
+                    $refreshReturnCode = $this->RefreshPlaylist($newListId);
+
+                    //Create a log
+                    $this->LogModel->CreateLog('playlist', $newListId, "Stworzono lokalną playlistę");
                 }
                 else
                 {

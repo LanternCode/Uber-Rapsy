@@ -78,11 +78,12 @@ class PlaylistModel extends CI_Model
      * Inserts a new playlist into the database.
      *
      * @param array $queryData  playlist to be inserted
-     * @return void
+     * @return int the local db id of the inserted object
      */
-    function InsertPlaylist(array $queryData = []): void
+    function InsertPlaylist(array $queryData = []): int
     {
         $this->db->insert('list', $queryData);
+        return $this->db->conn_id->insert_id;
     }
 
     /**
@@ -198,22 +199,6 @@ class PlaylistModel extends CI_Model
         $sql = "UPDATE list SET ListIntegrated = $updatedIntegrationStatus".$updateLink." WHERE ListId = $playlistId";
         if($this->db->simple_query($sql)) return true;
         else return false;
-    }
-
-    /**
-     * Fetches ListId property of the playlist with matching timestamp
-     *
-     * @param int $timestamp  id of the playlist
-     * @return int returned id
-     */
-    function GetPlaylistIdByTimestamp($timestamp)
-    {
-        $sql = "SELECT ListId FROM list WHERE ListCreatedAt = '$timestamp'";
-        if(isset($this->db->query($sql)->row()->ListId))
-        {
-            return $this->db->query($sql)->row()->ListId;
-        }
-        else return 0;
     }
 
     /**
