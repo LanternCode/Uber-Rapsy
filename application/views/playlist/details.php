@@ -10,7 +10,9 @@
 <p>Link do playlisty na YT: <?=!empty($playlist->ListUrl) ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>https://www.youtube.com/playlist?list=$playlist->ListUrl</a>" : "Brak"?></p></br>
 <p>Link na Uber: <a target='_blank' href='<?=base_url('playlist?ListId='.$playlist->ListId)?>'><?=base_url('playlist?ListId='.$playlist->ListId)?></a></p></br>
 <p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
-<p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br><br>
+<p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br>
+<p>ID właściciela playlisty: <?=$playlist->ListOwnerId?></p><br>
+<p>Nazwa użytkownika właściciela playlisty: <?=$playlistOwnerUsername?></p><br><br>
 
 <h3>Zarządzaj playlistą</h3><br>
 <a href="<?=base_url('playlist/edit?id='.$playlist->ListId)?>">Edytuj Playlistę</a><br><br>

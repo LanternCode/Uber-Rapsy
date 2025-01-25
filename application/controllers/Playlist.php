@@ -20,6 +20,7 @@ class Playlist extends CI_Controller {
         parent::__construct();
         $this->load->model('PlaylistModel');
 		$this->load->model('SongModel');
+		$this->load->model('AccountModel');
     }
 
     /**
@@ -299,6 +300,7 @@ class Playlist extends CI_Controller {
 
             if($data['ListId'] && is_numeric($data['ListId'])) {
                 $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
+                $data['playlistOwnerUsername'] = $this->AccountModel->FetchUsernameById($data['playlist']->ListOwnerId);
 
                 if($data['playlist'] === false) {
                     $data['body']  = 'invalidAction';

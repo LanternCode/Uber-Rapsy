@@ -186,4 +186,16 @@ class AccountModel extends CI_Model
         }
         else return false;
     }
+
+    /**
+     * Fetches the username of the user with the provided id number
+     *
+     * @param int $userId
+     * @return string
+     */
+    function FetchUsernameById($userId): string
+    {
+        $sql = "SELECT username FROM user WHERE id = $userId";
+        return $this->db->query($sql)->row()->username;
+    }
 }
