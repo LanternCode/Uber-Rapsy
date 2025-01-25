@@ -1092,6 +1092,7 @@ class Playlist extends CI_Controller {
                         'ListDesc' => $_POST['playlistDesc'] ?? "",
                         'ListIntegrated' => 1,
                         'ListActive' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
+                        'ListOwnerId' => $_SESSION['userId']
                     );
 
                     //Validate the form
@@ -1174,6 +1175,7 @@ class Playlist extends CI_Controller {
                 $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
                 $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
                 $queryData['ListActive'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
+                $queryData['ListOwnerId'] = $_SESSION['userId'];
 
                 //Obtain the unique playlist ID from the url given
                 $listPos = strpos($queryData['ListUrl'], "list=");

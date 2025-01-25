@@ -244,4 +244,16 @@ class PlaylistModel extends CI_Model
 
         return $this->db->query($sql)->result();
     }
+
+    /**
+     * Fetches all playlists created by the Uber Rapsy reviewers
+     *
+     * @return array
+     */
+    function FetchReviewersPlaylists(): array
+    {
+        $sql = "SELECT * FROM list WHERE listOwnerId = 1";
+
+        return $this->db->query($sql)->result();
+    }
 }

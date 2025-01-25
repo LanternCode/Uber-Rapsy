@@ -48,13 +48,20 @@ class SongModel extends CI_Model
      * Fetch songs filtering by title.
      *
      * @param string $Search  title filter
-     * @return array      returns an array containing the songs found
+     * @return array      returns an array containing found songs, if any
      */
     function GetSongsFromSearch(string $Search = "" ): array
     {
+        //If logged in, search in your playlists and in public playlists
+        if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']){
+            $ownerCondition = " AND l.ListOwnerId IN (1, ".$_SESSION['userId'].")";
+        }
+        else $ownerCondition = " AND l.ListOwnerId = 1";
+
+        //Admin staff can scan through private playlists for compliance and CS reasons
         if($this->SecurityModel->debuggingEnabled())
             $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$Search%' AND SongVisible = 1";
-        else $sql = "SELECT * FROM song AS s JOIN list AS l ON s.ListId = l.ListId WHERE s.SongTitle LIKE '%$Search%' AND l.ListActive = true AND SongVisible = 1";
+        else $sql = "SELECT * FROM song AS s JOIN list AS l ON s.ListId = l.ListId WHERE s.SongTitle LIKE '%$Search%' AND l.ListActive = true AND SongVisible = 1".$ownerCondition;
 
         return $this->db->query($sql)->result();
     }

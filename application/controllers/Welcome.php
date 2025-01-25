@@ -15,13 +15,13 @@ class Welcome extends CI_Controller {
     }
 
     /**
-     * Open homepage
+     * Display the homepage
      * @return void
      */
 	public function index()
     {
 		$data = array(
-            'lists' => $this->PlaylistModel->GetAllPublicLists(),
+            'lists' => $this->PlaylistModel->FetchReviewersPlaylists(),
             'body' => 'home',
             'title' => "Uber Rapsy | Portal do oceniania utworów rapowanych"
         );
@@ -35,22 +35,30 @@ class Welcome extends CI_Controller {
 		$this->load->view( 'templates/main', $data );
 	}
 
+    /**
+     * Display the Terms of Service page
+     * @return void
+     */
     public function TOS()
     {
-        $data = [];
+        $data = array(
+            'body' => 'termsOfService',
+            'title' => "Uber Rapsy | Zasady Użytkowania serwisu Uber Rapsy"
+        );
 
-        $data['body']  = 'termsOfService';
-        $data['title'] = "Zasady Użytkowania serwisu Uber Rapsy";
-
-        $this->load->view( 'templates/main', $data );
+        $this->load->view('templates/main', $data);
     }
 
+    /**
+     * Test-specific route
+     * @return void
+     */
     public function testfunc()
     {
-        $data = [];
-
-        $data['body']  = 'test';
-        $data['title'] = "Testing!";
+        $data = array(
+            'body' => 'test',
+            'title' => "Uber Rapsy | Test!"
+        );
 
         //$newReportId = $this->LogModel->SubmitReport("Hello");
         //print_r($newReportId);
