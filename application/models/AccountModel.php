@@ -33,20 +33,15 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Inserts a new user
+     * Inserts a new user into the database.
      *
-     * @param string $email  email of the user
-     * @param string $password  hashed password of the user
-     * @return void
+     * @param array $queryData  user to be inserted
+     * @return int the local db id of the inserted user
      */
-    function RegisterNewUser(string $email, string $password)
+    function RegisterNewUser(array $queryData = []): int
     {
-        $sql = "INSERT INTO user
-        ( email, password, role )
-        VALUES
-        ( '$email', '$password', 'user')";
-
-        $this->db->simple_query($sql);
+        $this->db->insert('user', $queryData);
+        return $this->db->conn_id->insert_id;
     }
 
     /**

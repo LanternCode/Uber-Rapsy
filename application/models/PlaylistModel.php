@@ -231,4 +231,17 @@ class PlaylistModel extends CI_Model
 
         return $this->db->query($sql)->result();
     }
+
+    /**
+     * Fetches all playlists owned/created by the specified user
+     *
+     * @param $userId int the id of the playlist owner
+     * @return array
+     */
+    function FetchUserPlaylists(int $userId): array
+    {
+        $sql = "SELECT * FROM list WHERE listOwnerId = $userId";
+
+        return $this->db->query($sql)->result();
+    }
 }

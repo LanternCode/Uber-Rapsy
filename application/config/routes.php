@@ -2,6 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 $route['playlist'] = 'Playlist/playlist';
+$route['myPlaylists'] = 'Playlist/myPlaylists';
 $route['updateGrades'] = 'Playlist/updateSongsInPlaylist';
 $route['downloadSongs'] = 'Playlist/downloadSongs';
 $route['updateSelection'] = 'Playlist/updateSongsInPlaylist';
@@ -10,6 +11,7 @@ $route['loginYoutube'] = 'YoutubeIntegration';
 $route['apitestPlaylist'] = 'YoutubeIntegration/result';
 $route['newToken'] = 'YoutubeIntegration/generate';
 $route['displayReport'] = 'Log/displayReport';
+$route['TermsOfService'] = 'Welcome/TOS';
 
 $route['playlistDashboard'] = 'Playlist/dashboard';
 $route['playlist/newPlaylist'] = 'Playlist/newPlaylist';
@@ -27,6 +29,7 @@ $route['playlist/showLog'] = 'Playlist/showLog';
 $route['song/rev'] = 'Song/reviewSong';
 $route['song/showLog'] = 'Song/showLog';
 
+$route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account';
 $route['logout'] = 'Account/logout';
 

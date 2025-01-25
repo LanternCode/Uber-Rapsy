@@ -12,9 +12,8 @@
 	<body>
         <header class="optionsHeader">
             <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
-            <p class="optionsURL">Status: <?=(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']
-                    && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer") ? "Recenzent" : "Gość"?></p>
             <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+                <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Playlisty</a>
                 <a class="optionsURL" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
                 <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
             <?php else: ?>

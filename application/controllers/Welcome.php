@@ -33,6 +33,16 @@ class Welcome extends CI_Controller {
 		$this->load->view( 'templates/main', $data );
 	}
 
+    public function TOS()
+    {
+        $data = [];
+
+        $data['body']  = 'termsOfService';
+        $data['title'] = "Zasady Użytkowania serwisu Uber Rapsy";
+
+        $this->load->view( 'templates/main', $data );
+    }
+
     public function testfunc()
     {
         $data = [];

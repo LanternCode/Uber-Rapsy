@@ -307,3 +307,31 @@
 .showMenu {
     transform: translateX(83vw);
 }
+
+.ToSParagraph {
+    display: block;
+    font-weight: bold;
+    margin: 10px;
+    font-size: 1.1em;
+}
+
+.registrationError {
+    color: red;
+    font-size: 15px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.registrationBox {
+    display: block;
+    height: 10vh;
+    width: 100vw;
+    background: black;
+    text-align: center;
+}
+
+    .successfulRegistration {
+        color: green;
+        font-size: 20px;
+    }

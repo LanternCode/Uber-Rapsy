@@ -1437,4 +1437,22 @@ class Playlist extends CI_Controller {
         else redirect('logout');
     }
 
+    /**
+     * Opens the user's playlist dashboard
+     *
+     * @return void
+     */
+    public function myPlaylists()
+    {
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        if($userAuthenticated) {
+            $data = [];
+            $data['body']  = 'playlist/myPlaylists';
+            $data['title'] = "Uber Rapsy | Moje playlisty";
+            $data['playlists'] = $this->PlaylistModel->FetchUserPlaylists($_SESSION['userId']);
+            $this->load->view( 'templates/main', $data );
+        }
+        else redirect('logout');
+    }
+
 }
