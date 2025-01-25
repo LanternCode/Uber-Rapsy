@@ -11,6 +11,7 @@ class Welcome extends CI_Controller {
         parent::__construct();
         $this->load->model('PlaylistModel');
         $this->load->model('AccountModel');
+        $this->load->helper('cookie');
     }
 
     /**
@@ -25,8 +26,9 @@ class Welcome extends CI_Controller {
             'title' => "Uber Rapsy | Portal do oceniania utworów rapowanych"
         );
 
-        //Try to sign the user in if their details are saved
-        if (isset($_COOKIE["login"])) {
+        //Automatic sign-in
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
+        if (isset($_COOKIE["login"]) && !$userLoggedIn) {
             $this->AccountModel->AutomaticSignIn();
         }
 

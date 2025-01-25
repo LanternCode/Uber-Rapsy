@@ -46,7 +46,7 @@
     <ul class="menu">
         <img src="./styles/icons/bigger_cog.png" class="hamburger closing_cog menuIcon"><br><br><br>
         <li class="optionsURL">Zintegrowana: <?=$ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$ListUrl'>Tak</a>" : "Nie"?></li><br>
-        <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
+        <?php if(isset($_SESSION['userRole']) && ($_SESSION['userRole'] == "user" || $_SESSION['userRole'] == "reviewer")): ?>
             <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url("downloadSongs?ListId=" . $ListId)?>">Załaduj nowe nuty</a></li><br>
             <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url('playlist/details?id='.$ListId)?>">Statystyki i Ustawienia</a></li>
         <?php endif; ?>

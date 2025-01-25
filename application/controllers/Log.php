@@ -23,7 +23,7 @@ class Log extends CI_Controller
         $data['body'] = 'showReport';
         $data['title'] = "Uber Rapsy | Widok Raportu";
 
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated) {
             $reportId = isset($_GET['repId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['repId'])) : 0;
             if($reportId) {

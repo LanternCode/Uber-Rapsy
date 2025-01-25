@@ -19,14 +19,40 @@ class SecurityModel extends CI_Model
     {
         parent::__construct();
         $this->load->helper('cookie');
+        $this->load->model('AccountModel');
     }
 
     /**
-     * Checks whether the user is logged in and has the appropriate role.
+     * Checks whether the user is logged in.
      *
-     * @return boolean     true if authenticated, false if not
+     * @return boolean     true if authenticated, false otherwise
      */
     function authenticateUser(): bool
+    {
+        //Automatic sign-in
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
+        if (isset($_COOKIE["login"]) && !$userLoggedIn) {
+            $this->AccountModel->AutomaticSignIn();
+        }
+
+        //Fetch user credentials
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
+        $userRole = $_SESSION['userRole'] ?? 0;
+
+        //Validate clearance
+        if($userLoggedIn === 1 && ($userRole === 'user' || $userRole === 'reviewer'))
+        {
+            return true;
+        }
+        else return false;
+    }
+
+    /**
+     * Checks whether a reviewer is logged in
+     *
+     * @return boolean     true if authenticated, otherwise false
+     */
+    function authenticateReviewer(): bool
     {
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
         $userRole = $_SESSION['userRole'] ?? 0;
@@ -45,7 +71,7 @@ class SecurityModel extends CI_Model
      */
     function debuggingEnabled(): bool
     {
-        $userCanDebug = $this->authenticateUser();
+        $userCanDebug = $this->authenticateReviewer();
         if($userCanDebug) {
             return $_SESSION['debuggingEnabled'] ?? 0;
         }

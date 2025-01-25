@@ -125,6 +125,7 @@ class Account extends CI_Controller
                 $passwordHash = password_hash($password, PASSWORD_BCRYPT);
                 $data['userHasRegistered'] = 1;
                 $data['body'] = 'registrationSuccessful';
+                $queryData['username'] = $email;
                 $queryData['email'] = $email;
                 $queryData['password'] = $passwordHash;
                 $queryData['role'] = "user";
@@ -133,7 +134,7 @@ class Account extends CI_Controller
                 //Automatically sign the user in after registration
                 session_unset();
                 session_destroy();
-                $this->AccountModel->SignIn($email, $password);
+                $authSuccess = $this->AccountModel->SignIn($email, $password);
                 $loginSessionDetails = array(
                     'userEmail' => $email,
                     'userPassword' => $password
@@ -158,8 +159,15 @@ class Account extends CI_Controller
             'body' => 'logout'
         );
 
+        //Delete the user session
         session_unset();
         session_destroy();
+
+        //Delete the 'do not sign me out' cookie
+        if (isset($_COOKIE['login'])) {
+            unset($_COOKIE['login']);
+        }
+        setcookie("login", "", time() - 3600, "/");
 
         $this->load->view('templates/main', $data);
     }

@@ -14,7 +14,9 @@
             <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
             <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
                 <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Playlisty</a>
-                <a class="optionsURL" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
+                <?php if($_SESSION['userRole'] === 'reviewer'): ?>
+                    <a class="optionsURL" href="<?=base_url("loginYoutube")?>">Panel Sterowania YT</a>
+                <?php endif; ?>
                 <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
             <?php else: ?>
                 <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>

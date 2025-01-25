@@ -325,13 +325,15 @@
 
 .registrationBox {
     display: block;
-    height: 10vh;
+    height: 20vh;
     width: 100vw;
-    background: black;
+    background-color: black;
     text-align: center;
 }
 
     .successfulRegistration {
-        color: green;
-        font-size: 20px;
+        background-color: black;
+        color: white;
+        font-size: 30px;
+        padding-top: 8vh;
     }

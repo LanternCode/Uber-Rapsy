@@ -159,9 +159,9 @@ class AccountModel extends CI_Model
      */
     function SignIn(string $email, string $password): bool
     {
-        //Fetch the account and attempt to log in
         $userData = $this->GetUserData($email);
         $passwordToCompare = $userData->password ?? 0;
+
         if ($passwordToCompare && password_verify($password, $passwordToCompare))
         {
             $_SESSION['userLoggedIn'] = 1;
@@ -173,18 +173,17 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * If the login cookie exists, the function tries to sign the user in
-     * @return bool
+     * If the login cookie exists, the function signs the user in when vising the homepage
+     * @return bool authentication status
      */
     function AutomaticSignIn(): bool
     {
-        //Automatically call the Sign In function with the details saved in the cookie
         $data['email'] = json_decode($_COOKIE["login"])->userEmail;
         $data['password'] = json_decode($_COOKIE["login"])->userPassword;
-        if (isset($email) && $email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+        if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             return $this->SignIn($data['email'], $data['password']);
         }
         else return false;
-
     }
 }

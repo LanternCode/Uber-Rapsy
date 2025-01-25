@@ -124,7 +124,7 @@ class Song extends CI_Controller
      */
     public function showLog()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated) {
             $data = [];
             $data['body']  = 'song/showLog';

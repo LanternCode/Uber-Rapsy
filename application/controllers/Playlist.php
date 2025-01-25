@@ -270,7 +270,7 @@ class Playlist extends CI_Controller {
      */
     public function dashboard()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated)
         {
             $data = [];
@@ -290,7 +290,7 @@ class Playlist extends CI_Controller {
      */
     public function details()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated) {
             $data = [];
             $data['body']  = 'playlist/details';
@@ -327,7 +327,7 @@ class Playlist extends CI_Controller {
      */
     public function edit()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated)
         {
             $data = [];
@@ -403,7 +403,7 @@ class Playlist extends CI_Controller {
      */
     public function hidePlaylist()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
 
         if($userAuthenticated)
         {
@@ -535,7 +535,7 @@ class Playlist extends CI_Controller {
     {
         $data = [];
         $data['playlistId'] = $_POST['playlistId'] ?? "invalid";
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
 
         //Check if this request comes from a valid playlist
         if ($data['playlistId'] === "invalid" || ($data['playlistId'] !== "search" && !is_numeric($data['playlistId'])) || $data['playlistId'] == 0 ) {
@@ -1041,7 +1041,7 @@ class Playlist extends CI_Controller {
      */
 	public function newPlaylist()
 	{
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
 
         if($userAuthenticated)
         {
@@ -1062,7 +1062,7 @@ class Playlist extends CI_Controller {
     public function addPlaylist(): void
     {
         $data = [];
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
 
         if($userAuthenticated)
         {
@@ -1219,7 +1219,7 @@ class Playlist extends CI_Controller {
      */
     public function deleteLocal()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
 
         if($userAuthenticated)
         {
@@ -1264,7 +1264,7 @@ class Playlist extends CI_Controller {
      */
     public function delSong()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated) {
             $data = [];
             $data['body']  = 'song/delSong';
@@ -1307,7 +1307,7 @@ class Playlist extends CI_Controller {
      */
     public function updateSongVisibility()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated) {
             $data = [];
             $data['SongId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
@@ -1346,7 +1346,7 @@ class Playlist extends CI_Controller {
      */
     public function integrate()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
 
         if($userAuthenticated)
         {
@@ -1410,7 +1410,7 @@ class Playlist extends CI_Controller {
      */
     public function showLog()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated) {
             $data = [];
             $data['body']  = 'playlist/showLog';
