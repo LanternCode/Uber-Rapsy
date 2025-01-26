@@ -1,5 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
+<?php if ($redirectSource == 'pd'): ?>
+    <a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
+<?php else: ?>
+    <a href="<?=base_url('myPlaylists')?>"><-- Wróć do moich playlist</a><br><br>
+<?php endif; ?>
 <?=$resultMessage ?? ''?>
 
 <h4>Edytuj Playlistę:</h4>

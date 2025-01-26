@@ -90,4 +90,17 @@ class LogModel extends CI_Model
         else return 0;
     }
 
+    /**
+     * Fetches the id the report owner
+     *
+     * @param int $reportId report id
+     * @return int valid user id or 0
+     */
+    function GetReportOwnerById(int $reportId): int
+    {
+        $sql = "SELECT UserId FROM log WHERE raportId = $reportId";
+        if(isset($this->db->query($sql)->row()->UserId))
+            return $this->db->query($sql)->row()->UserId;
+        else return 0;
+    }
 }

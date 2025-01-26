@@ -291,35 +291,26 @@ class Playlist extends CI_Controller {
      */
     public function details()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
-        if($userAuthenticated) {
-            $data = [];
-            $data['body']  = 'playlist/details';
-            $data['title'] = "Uber Rapsy | Zarządzaj playlistą!";
-            $data['ListId'] = isset( $_GET['id'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['id'] ) ) : 0;
+        $data = [];
+        $data['body']  = 'playlist/details';
+        $data['title'] = "Uber Rapsy | Zarządzaj playlistą!";
+        $data['ListId'] = isset( $_GET['id'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['id'] ) ) : 0;
+        $data['ListId'] = is_numeric($data['ListId']) ? $data['ListId'] : 0;
 
-            if($data['ListId'] && is_numeric($data['ListId'])) {
+        if ($data['ListId']) {
+            //Check if the user is logged in and has the required permissions
+            $userAuthenticated = $this->SecurityModel->authenticateUser();
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['ListId']) == $_SESSION['userId'];
+            if ($userAuthenticated && $userAuthorised) {
                 $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
+                $data['songs'] = $this->SongModel->GetAllSongsFromList($data['ListId']);
                 $data['playlistOwnerUsername'] = $this->AccountModel->FetchUsernameById($data['playlist']->ListOwnerId);
-
-                if($data['playlist'] === false) {
-                    $data['body']  = 'invalidAction';
-                    $data['title'] = "Błąd akcji!";
-                    $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
-                }
-                else {
-                    $data['songs'] = $this->SongModel->GetAllSongsFromList($data['ListId']);
-                }
             }
-            else {
-                $data['body']  = 'invalidAction';
-                $data['title'] = "Błąd akcji!";
-                $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
-            }
-
-            $this->load->view( 'templates/main', $data );
+            else redirect('logout');
         }
         else redirect('logout');
+
+        $this->load->view( 'templates/main', $data );
     }
 
     /**
@@ -329,25 +320,23 @@ class Playlist extends CI_Controller {
      */
     public function edit()
     {
-        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
-        if($userAuthenticated)
-        {
-            $data = [];
-            $data['body']  = 'playlist/edit';
-            $data['title'] = "Uber Rapsy | Edytuj playlistę!";
-            $data['ListId'] = isset( $_GET['id'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['id'] ) ) : 0;
+        $data = [];
+        $data['body']  = 'playlist/edit';
+        $data['title'] = "Uber Rapsy | Edytuj playlistę!";
+        $data['ListId'] = isset($_GET['id']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['id'])) : 0;
+        $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : 0;
+        $data['ListId'] = is_numeric($data['ListId']) ? $data['ListId'] : 0;
 
-            if($data['ListId'] && is_numeric($data['ListId'])) {
-                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
-
-                if($data['playlist'] === false) {
-                    $data['body']  = 'invalidAction';
-                    $data['title'] = "Błąd akcji!";
-                    $data['errorMessage'] = "Nie znaleziono playlisty o podanym numerze id!";
-                }
-                else if(isset($_POST['playlistFormSubmitted'])) {
+        if ($data['ListId']) {
+            //Check if the user is logged in and has the required permissions
+            $userAuthenticated = $this->SecurityModel->authenticateUser();
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['ListId']) == $_SESSION['userId'];
+            if ($userAuthenticated && $userAuthorised) {
+                //Process the edit playlist form if it was submitted
+                if(isset($_POST['playlistFormSubmitted'])) {
                     $queryData = [];
                     $queryData['ListId'] = $data['ListId'];
+                    $queryData['ListOwnerId'] = $_SESSION['userId'];
                     $queryData['ListUrl'] = isset($_POST['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistId'])) : "";
                     $queryData['ListName'] = isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "";
                     $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
@@ -375,7 +364,6 @@ class Playlist extends CI_Controller {
 
                     if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "") {
                         $this->PlaylistModel->UpdatePlaylist($queryData);
-                        $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
                         $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
                     }
                     else {
@@ -386,16 +374,14 @@ class Playlist extends CI_Controller {
                         $data['resultMessage'] .= $queryData['ListActive'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
                     }
                 }
+                //Fetch the (possibly updated) playlist settings
+                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
             }
-            else {
-                $data['body']  = 'invalidAction';
-                $data['title'] = "Błąd akcji!";
-                $data['errorMessage'] = "Podano niepoprawny numer id playlisty lub nie podano go wcale!";
-            }
-
-            $this->load->view( 'templates/main', $data );
+            else redirect('logout');
         }
         else redirect('logout');
+
+        $this->load->view( 'templates/main', $data );
     }
 
     /**
@@ -863,7 +849,8 @@ class Playlist extends CI_Controller {
      */
 	public function downloadSongs()
 	{
-		$listId = isset( $_GET['ListId'] ) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_GET['ListId'] ) ) : 0;
+		$listId = isset($_GET['ListId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['ListId'])) : 0;
+        $listId = is_numeric($listId) ? $listId : 0;
 		$data = array(
 			'body' => 'downloadSongs',
 			'title' => 'Aktualizacja listy!',
@@ -871,10 +858,11 @@ class Playlist extends CI_Controller {
 			'refreshSuccess' => true
 		);
 
-		//Check if the user is allowed to do this action
+		//Check if the user is logged in and has the required permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-        if($userAuthenticated) {
-            //Check if the playlist has a YouTube link. If so, compare with the YT list and refresh
+        $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['ListId']) == $_SESSION['userId'];
+        if($userAuthenticated && $userAuthorised) {
+            //Check if the playlist has a YouTube link.
             $playlistUrl = $this->PlaylistModel->GetListUrlById($data['ListId']);
             if(!empty($playlistUrl)) {
                 $refreshReturnCode = $this->RefreshPlaylist($data['ListId']);
@@ -888,6 +876,9 @@ class Playlist extends CI_Controller {
                     //Response returned empty (false) or response could not be reached (-2)
                     $data['refreshSuccess'] = false;
                 }
+                else {
+                    //All good - playlist refresh successful
+                }
             }
             else {
                 //Playlist has no YouTube URL
@@ -897,13 +888,13 @@ class Playlist extends CI_Controller {
             }
         }
         else {
-            //The user is not allowed to update anything in the system
+            //The user is not allowed to update this resource
             $data['body']  = 'invalidAction';
             $data['title'] = "Wystąpił Błąd!";
             $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
         }
 
-		$this->load->view( 'templates/main', $data );
+		$this->load->view('templates/main', $data);
 	}
 
     /**

@@ -37,13 +37,8 @@ class SecurityModel extends CI_Model
 
         //Fetch user credentials
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
-        $userRole = $_SESSION['userRole'] ?? 0;
-
-        //Validate clearance
-        if($userLoggedIn === 1 && ($userRole === 'user' || $userRole === 'reviewer'))
-        {
+        if($userLoggedIn)
             return true;
-        }
         else return false;
     }
 
@@ -58,9 +53,7 @@ class SecurityModel extends CI_Model
         $userRole = $_SESSION['userRole'] ?? 0;
 
         if($userLoggedIn === 1 && $userRole === 'reviewer')
-        {
             return true;
-        }
         else return false;
     }
 

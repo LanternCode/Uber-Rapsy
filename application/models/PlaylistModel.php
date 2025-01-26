@@ -256,4 +256,18 @@ class PlaylistModel extends CI_Model
 
         return $this->db->query($sql)->result();
     }
+
+    /**
+     * Fetches the id the playlist owner
+     *
+     * @param int $listId playlist id
+     * @return int valid user id or 0
+     */
+    function GetListOwnerById(int $listId): int
+    {
+        $sql = "SELECT ListOwnerId FROM list WHERE ListId = $listId";
+        if(isset($this->db->query($sql)->row()->ListOwnerId))
+            return $this->db->query($sql)->row()->ListOwnerId;
+        else return 0;
+    }
 }
