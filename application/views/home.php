@@ -12,7 +12,7 @@
 		<?php foreach($lists as $list): ?>
 			<tr>
 				<td>
-					<a href="<?=base_url("playlist?ListId=" . $list->ListId)?>">
+					<a href="<?=base_url("playlist?listId=" . $list->ListId)?>">
 						<div>
 							<?=$list->ListName;?>
 						</div>

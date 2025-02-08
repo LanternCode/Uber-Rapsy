@@ -8,8 +8,7 @@ if(!isset($_SESSION))
 
 class YoutubeIntegration extends CI_Controller {
 
-	public function __construct()
-	{
+	public function __construct() {
 		parent::__construct();
 		$this->load->model('PlaylistModel');
 		$this->load->model('SongModel');
@@ -18,38 +17,29 @@ class YoutubeIntegration extends CI_Controller {
 
 	public function index()
 	{
-		$data = [];
-
-        if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
-        {
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+        if($userAuthenticated) {
+            $data = [];
             $data['body']  = 'youtubeDashboard';
             $data['title'] = "Uber Rapsy | Centrum Zarządzania";
         }
-        else
-        {
-            //The user is not allowed to update anything in the system
-            $data['body']  = 'invalidAction';
-            $data['title'] = "Wystąpił Błąd!";
-            $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
-        }
+        else redirect('logout');
 
-		$this->load->view( 'templates/main', $data );
+		$this->load->view('templates/main', $data);
 	}
 
 	public function generate()
     {
-        $data = [];
-        $data['body']  = 'invalidAction';
-        $data['title'] = "Wystąpił Błąd!";
-
-        if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn'] && isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer")
-        {
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+        if ($userAuthenticated) {
             //Include google library
             $client = $this->SecurityModel->initialiseLibrary();
+            $data = [];
+            $data['body']  = 'invalidAction';
+            $data['title'] = "Wystąpił Błąd!";
 
             //only proceed when the library was successfully included
-            if($client !== false)
-            {
+            if ($client !== false) {
                 $client->addScope(Google_Service_Youtube::YOUTUBE);
                 $client->setRedirectUri('http://localhost/Dev/Uber-Rapsy/apitestPlaylist');
                 // offline access will give you both an access and refresh token so that
@@ -63,18 +53,14 @@ class YoutubeIntegration extends CI_Controller {
                 $auth_url = $client->createAuthUrl();
                 header('Location: ' . filter_var($auth_url, FILTER_SANITIZE_URL));
             }
-            else
-            {
+            else {
                 //Could not load the library
                 $data['errorMessage'] = "Nie znaleziono biblioteki google!";
             }
         }
-        else
-        {
-            //The user is not allowed to update anything in the system
-            $data['errorMessage'] = "Nie posiadasz uprawnień do wykonywania tej akcji.";
-        }
-        $this->load->view( 'templates/main', $data );
+        else redirect('logout');
+
+        $this->load->view('templates/main', $data);
     }
 	public function result()
 	{
@@ -103,7 +89,7 @@ class YoutubeIntegration extends CI_Controller {
                 $data['errorMessage'] = "Nie znaleziono biblioteki google!";
             }
 		}
-		$this->load->view( 'templates/main', $data );
+		$this->load->view('templates/main', $data);
 	}
 
 }

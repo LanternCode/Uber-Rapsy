@@ -1,10 +1,14 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
+<?php if ($redirectSource == 'pd'): ?>
+    <a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
+<?php else: ?>
+    <a href="<?=base_url('myPlaylists')?>"><-- Wróć do moich playlist</a><br><br>
+<?php endif; ?>
 <?=$resultMessage ?? ""?>
 
 <h3>Dodaj nową playlistę</h3>
 <h4>Zostanie ona dodana na YT oraz w bazie danych Uber-Rapsów, będzie automatycznie zintegrowana.</h4><br />
-<form method="post" action="<?=base_url('playlist/addPlaylist')?>">
+<form method="post" action="<?=base_url('playlist/addPlaylist?src='.$redirectSource)?>">
 	<label>Nazwa Playlisty:</label>
 	<input type="text" name="playlistName" size="40" />
 
@@ -20,8 +24,8 @@
 
     <label>Status Playlisty na Uber:</label><br />
     <select name="playlistVisibility">
-        <option value="1">Publiczna - widoczna na stronie głównej</option>
-        <option value="0">Prywatna - widoczna tylko w panelu sterowania</option>
+        <option value="1">Publiczna - widoczna dla ogółu</option>
+        <option value="0">Prywatna - widoczna tylko dla właściciela</option>
     </select><br /><br />
 
 	<br><br><input type="submit" value="Dodaj playlistę na YT" />

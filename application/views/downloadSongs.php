@@ -8,5 +8,5 @@
     <h3>Ładowanie utworów na playlistę zakończone sukcesem!</h3>
 <?php endif; ?>
 <br /><br />
-<a href="<?=base_url('/playlist?ListId=' . $ListId)?>">Powrót do listy</a>
+<a href="<?=base_url('/playlist?listId='.$ListId)?>">Powrót do listy</a>
 <br />

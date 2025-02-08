@@ -9,5 +9,5 @@
 
 Kontynuować?<br>
 
-<a href="<?=base_url('playlist/hidePlaylist?hide=true&id='.$playlist->ListId)?>">Tak</a><br>
-<a href="<?=base_url('playlist/details?id='.$playlist->ListId)?>">Powrót</a>
+<a href="<?=base_url('playlist/hidePlaylist?switch=true&playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Tak</a><br>
+<a href="<?=base_url('playlist/details?listId='.$playlist->ListId.'&src='.$redirectSource)?>">Powrót</a>

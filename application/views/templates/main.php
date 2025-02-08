@@ -21,7 +21,7 @@
             <?php else: ?>
                 <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>
             <?php endif; ?>
-            <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>" target="_blank">
+            <form class="optionsURL optionsRight" method="get" action="<?=base_url("search")?>" target="_blank">
                 <label class="optionsSearchLabel">Szukaj nuty</label>
                 <input type="text" placeholder="Rajaner" name="SearchQuery" />
                 <input type="hidden" value="true" name="GlobalSearch" />

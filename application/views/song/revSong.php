@@ -65,7 +65,7 @@
         <label>Recenzja:</label><br>
         <textarea name="reviewRev" id="txt" class=""><?=$rV ?? ''?></textarea>
     </article>
-    <input type="submit" class="btnSaveReview" value="Zapisz Recenzję!"><br>
+    <input type="submit" class="btnSaveReview" value="Zapisz Recenzję!" <?=$owner ? '' : 'disabled'?>><br>
 </form>
 <script src="https://cdn.tiny.cloud/1/622hecsg6zxldlharfjthzkv1fck34b6l7eufosk6rwayu6r/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
 <script>

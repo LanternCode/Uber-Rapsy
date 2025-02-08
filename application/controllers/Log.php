@@ -6,9 +6,7 @@ if (!isset($_SESSION)) {
 
 class Log extends CI_Controller
 {
-
-    public function __construct()
-    {
+    public function __construct() {
         parent::__construct();
         $this->load->model('SecurityModel');
         $this->load->model('LogModel');
@@ -32,7 +30,7 @@ class Log extends CI_Controller
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = $userAuthenticated && $this->LogModel->GetReportOwnerById($reportId) == $_SESSION['userId'];
-            if($userAuthenticated && $userAuthorised) {
+            if ($userAuthorised) {
                 $data['report'] = $this->LogModel->FetchReport($reportId);
             }
             else redirect('logout');

@@ -1,11 +1,11 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-$route['playlist'] = 'Playlist/playlist';
-$route['myPlaylists'] = 'Playlist/myPlaylists';
-$route['updateGrades'] = 'Playlist/updateSongsInPlaylist';
-$route['downloadSongs'] = 'Playlist/downloadSongs';
-$route['updateSelection'] = 'Playlist/updateSongsInPlaylist';
+$route['playlist'] = 'PlaylistItems/loadPlaylist';
+$route['search'] = 'PlaylistItems/globalSearch';
+$route['tierlist'] = 'PlaylistItems/tierlist';
+$route['updateSongRatings'] = 'PlaylistItems/updateSongRatingsInPlaylist';
+$route['downloadSongs'] = 'PlaylistItems/downloadSongs';
 
 $route['loginYoutube'] = 'YoutubeIntegration';
 $route['apitestPlaylist'] = 'YoutubeIntegration/result';
@@ -13,21 +13,22 @@ $route['newToken'] = 'YoutubeIntegration/generate';
 $route['displayReport'] = 'Log/displayReport';
 $route['TermsOfService'] = 'Welcome/TOS';
 
+$route['myPlaylists'] = 'Playlist/myPlaylists';
 $route['playlistDashboard'] = 'Playlist/dashboard';
 $route['playlist/newPlaylist'] = 'Playlist/newPlaylist';
 $route['playlist/addPlaylist'] = 'Playlist/addPlaylist';
 $route['playlist/addLocal'] = 'Playlist/addLocal';
 $route['playlist/details'] = 'Playlist/details';
 $route['playlist/edit'] = 'Playlist/edit';
-$route['playlist/hidePlaylist'] = 'Playlist/hidePlaylist';
+$route['playlist/hidePlaylist'] = 'Playlist/switchPlaylistActiveStatus';
 $route['playlist/deleteLocal'] = 'Playlist/deleteLocal';
 $route['playlist/delSong'] = 'Playlist/delSong';
-$route['playlist/updateSongVisibility'] = 'Playlist/updateSongVisibility';
 $route['playlist/integrate'] = 'Playlist/integrate';
 $route['playlist/showLog'] = 'Playlist/showLog';
 
 $route['song/rev'] = 'Song/reviewSong';
 $route['song/showLog'] = 'Song/showLog';
+$route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account';

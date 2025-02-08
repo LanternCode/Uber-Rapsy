@@ -36,7 +36,7 @@ class LogModel extends CI_Model
 
         if($validType)
         {
-            $sql = "INSERT INTO log (`UserId`,`EntityType`, `EntityId`, `Description`, `raportId`) VALUES ($actionBy, '$entityType', $entityId, '$description', $reportId)";
+            $sql = "INSERT INTO log (`UserId`,`EntityType`, `EntityId`, `Description`, `reportId`) VALUES ($actionBy, '$entityType', $entityId, '$description', $reportId)";
             if($this->db->simple_query($sql)) return true;
             else return false;
         }
@@ -98,7 +98,7 @@ class LogModel extends CI_Model
      */
     function GetReportOwnerById(int $reportId): int
     {
-        $sql = "SELECT UserId FROM log WHERE raportId = $reportId";
+        $sql = "SELECT UserId FROM log WHERE reportId = $reportId";
         if(isset($this->db->query($sql)->row()->UserId))
             return $this->db->query($sql)->row()->UserId;
         else return 0;

@@ -3,10 +3,10 @@
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#songsForm">Góra Listy</a>
-    <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer" && count($songs) > 0): ?>
+    <?php if($reviewer && count($songs) > 0): ?>
         <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
     <?php endif; ?>
-    <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>">
+    <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist?Filter=search")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
         <input type="text" placeholder="Rajaner" name="SearchQuery" />
         <input type="hidden" value="true" name="GlobalSearch" />
@@ -15,9 +15,9 @@
 </nav>
 <br><br><br>
 <h2>Wyniki wyszukiwania!</h2>
-	<?php if(count($songs) > 0): ?>
+	<?php if(count($songs) > 0 && count($songs) < 301): ?>
         <h3>Liczba nut: <?=count($songs)?></h3>
-        <form id="songsForm" method="post" action="<?=base_url('updateSelection')?>">
+        <form id="songsForm" method="post" action="<?=base_url('updateSongRatings')?>">
 		<?php
         $i = 0;
         foreach($songs as $key => $song):?>
@@ -32,19 +32,19 @@
                             <h4 class="dataContainer--gradeContainer">
                                 <label>Adam: <?=$song->SongGradeAdam ?? 'Nieoceniona'?> -></label>
                                 <input name="nwGradeA-<?=$i+1?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                                       value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$Reviewer ? "" : "disabled" ?>/>
+                                       value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?>/>
                             </h4>
                             <h4 class="dataContainer--gradeContainer">
                                 <label>Kościelny: <?=$song->SongGradeChurchie ?? 'Nieoceniona'?> -></label>
                                 <input name="nwGradeC-<?=$i+2?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                                       value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$Reviewer ? "" : "disabled" ?>/>
+                                       value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$reviewer ? "" : "disabled" ?>/>
                             </h4>
                             <h5 class="dataContainer--gradeContainer">
                                 <label>Średnia:</label>
                                 <input class="gradeInput" type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
                             </h5>
                             <?php  //only 1 list means there is nowhere to move or copy the song to
-                            if(count($lists) > 1 && $Reviewer): ?>
+                            if(count($lists) > 1 && $reviewer): ?>
                                 <h5 class="dataContainer--gradeContainer">
                                     <label>Przenieś do:</label>
                                     <select name="<?="nwPlistId-".$i+3?>" class="selectBox">
@@ -108,6 +108,10 @@
         endforeach;?>
             <input type="hidden" name="playlistId" value="search"/>
         </form>
+    <?php elseif (strlen($searchQuery) < 1): ?>
+        <h3>Wystąpił błąd! Nie wpisano nic do wyszukiwarki!</h3>
+    <?php elseif (count($songs) > 300): ?>
+        <h3>Znaleziono ponad 300 piosenek! Musisz zawęzić kryteria wyszukiwania!</h3>
 	<?php else: ?>
 		<h3>Nie znaleziono nic o podanej nazwie!</h3>
 	<?php endif; ?>

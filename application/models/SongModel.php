@@ -118,11 +118,12 @@ class SongModel extends CI_Model
      * @param int $songId  id of the song to update
      * @param float|string $gradeAdam  grade added by Adam
      * @param float|string $gradeKoscielny  grade added by Koscielny
+     * @param float|string $gradeOwner  grade added by the playlist owner
      * @return boolean           true if query worked, false otherwise
      */
-    function UpdateSongScores(int $songId, mixed $gradeAdam, mixed $gradeKoscielny): bool
+    function UpdateSongScores(int $songId, mixed $gradeAdam, mixed $gradeKoscielny, mixed $gradeOwner): bool
     {
-        $sql = "UPDATE song SET SongGradeAdam = '$gradeAdam', SongGradeChurchie = '$gradeKoscielny' WHERE SongId = $songId";
+        $sql = "UPDATE song SET SongGradeAdam = '$gradeAdam', SongGradeChurchie = '$gradeKoscielny', SongGradeOwner = '$gradeOwner' WHERE SongId = $songId";
 
         if($this->db->simple_query($sql)) return true;
         else return false;
@@ -249,8 +250,9 @@ class SongModel extends CI_Model
      */
     function GetTopSongsFromList(int $listId, string $filter): array
     {
-        $cond = $filter === "Adam" ? "SongGradeAdam" : ($filter === "Churchie" ? "SongGradeChurchie" : "(SongGradeAdam+SongGradeChurchie)/2");
+        $cond = $filter === "Adam" ? "SongGradeAdam" : ($filter === "Churchie" ? "SongGradeChurchie" : ($filter === "Owner" ? "SongGradeOwner" : "(SongGradeAdam+SongGradeChurchie+SongGradeOwner)/3"));
         $sql = "SELECT * FROM song WHERE SongVisible = 1 AND ListId = $listId AND ".$cond." > 0 ORDER BY $cond DESC";
+
         return $this->db->query($sql)->result();
     }
 

@@ -102,11 +102,9 @@ class Account extends CI_Controller
             {
 
                 $dataKeys = array_keys($data);
-                for($i = 0; $i < count($dataKeys); ++$i)
-                {
-                    if(!$data[$dataKeys[$i]]) $data[$dataKeys[$i]] = "";
-                    else if ($data[$dataKeys[$i]] != "register") //Exclude the 'body' param
-                    {
+                for ($i = 0; $i < count($dataKeys); ++$i) {
+                    if (!$data[$dataKeys[$i]]) $data[$dataKeys[$i]] = "";
+                    else if ($data[$dataKeys[$i]] != "register") { //Exclude the 'body' param
                         $addInFront = "<h4 class='registrationError'>";
                         $addInFront .= $data[$dataKeys[$i]];
                         $addInFront .= "</h4>";
@@ -120,8 +118,7 @@ class Account extends CI_Controller
                 $data['setPasswordRepetition'] = ($data['setPassword'] && !$data['passwordRepetitionNotMatching']) ? $password : "";
                 $data['setTOS']                = $data['termsOfServiceDenied'] ? "" : "checked";
             }
-            else
-            {
+            else {
                 $passwordHash = password_hash($password, PASSWORD_BCRYPT);
                 $data['userHasRegistered'] = 1;
                 $data['body'] = 'registrationSuccessful';

@@ -1,7 +1,8 @@
 {
     "require": {
         "ext-mysqli": "*",
-        "google/apiclient": "2.15.0"
+        "google/apiclient": "2.15.0",
+        "ext-bcmath": "*"
     },
     "scripts": {
         "pre-autoload-dump": "Google\\Task\\Composer::cleanup"

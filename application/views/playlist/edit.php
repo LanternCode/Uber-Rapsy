@@ -1,14 +1,14 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <?php if ($redirectSource == 'pd'): ?>
-    <a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
+    <a href="<?=base_url('playlistDashboard?src='.$redirectSource)?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
 <?php else: ?>
-    <a href="<?=base_url('myPlaylists')?>"><-- Wróć do moich playlist</a><br><br>
+    <a href="<?=base_url('myPlaylists?src='.$redirectSource)?>"><-- Wróć do moich playlist</a><br><br>
 <?php endif; ?>
 <?=$resultMessage ?? ''?>
 
 <h4>Edytuj Playlistę:</h4>
 
-<form method="post" action="<?=base_url('playlist/edit?id='.$playlist->ListId)?>">
+<form method="post" action="<?=base_url('playlist/edit?listId='.$playlist->ListId)?>">
     <label>Nazwa Playlisty:</label><br />
     <input type="text" name="playlistName" value="<?=$playlist->ListName?>" /><br /><br />
 

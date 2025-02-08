@@ -23,7 +23,7 @@ function updateAverage(event)
         newRating = 0;
     }
     //Find the dom element that has the average box
-    let avgElem = event.parentElement.parentElement.children[2].children[1];
+    let avgElem = event.parentElement.parentElement.children[3].children[1];
     //Calculate the average
     let average = (parseFloat(newRating) + parseFloat(secondRating)) / 2;
     //Find the proposed playlist for this rating
@@ -43,6 +43,7 @@ function toggleUpdate(event)
 {
     //Find the hidden input that holds the update boolean - the last element child of the data container box
     let elem = event.closest(".dataContainerBox").lastElementChild;
+    console.log(elem);
 
     //If the bool is false, set it to true
     if(elem.value == 0)

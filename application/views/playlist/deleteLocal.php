@@ -10,5 +10,5 @@
 
 Kontynuować?<br>
 
-<a href="<?=base_url('playlist/deleteLocal?delete=true&id='.$playlist->ListId)?>">Permanentnie usuń playlistę</a><br>
-<a href="<?=base_url('playlist/details?id='.$playlist->ListId)?>">Nie, Powrót</a>
+<a href="<?=base_url('playlist/deleteLocal?del=true&playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Permanentnie usuń playlistę</a><br>
+<a href="<?=base_url('playlist/details?listId='.$playlist->ListId.'&src='.$redirectSource)?>">Nie, Powrót</a>
