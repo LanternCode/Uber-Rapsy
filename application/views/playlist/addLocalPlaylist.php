@@ -5,6 +5,11 @@
     <a href="<?=base_url('myPlaylists')?>"><-- Wróć do moich playlist</a><br><br>
 <?php endif; ?>
 <?=$resultMessage ?? ""?>
+<?php if(isset($displayErrorMessage)): ?>
+    <h3>Wystąpił błąd w pobieraniu utworów z playlisty na YT :/</h3>
+    <h4><?=$displayErrorMessage?></h4>
+    <h4>Jeśli ponowne podjęcie tej samej akcji nie zadziała, niezwłocznie skontaktuj się z administracją.</h4>
+<?php endif; ?>
 
 <h3>Dodaj lokalnie playlistę</h3>
 <h4>Nie zostanie ona dodana na YT a jedynie w bazie danych Uber-Rapsów. Domyślnie nie jest zintegrowana.</h4><br />
@@ -24,7 +29,7 @@
     <button onclick="createdAt.value = new Date().toISOString().slice(0, 19).replace('T', ' '); return false;">Teraz</button>
     <br /><br />
 
-    <label>Status Playlisty:</label><br />
+    <label>Widoczność Playlisty:</label><br />
     <select name="playlistVisibility">
         <option value="1">Publiczna - widoczna dla ogółu</option>
         <option value="0">Prywatna - widoczna tylko dla właściciela</option>

@@ -48,21 +48,23 @@ class PlaylistItems extends CI_Controller {
      */
     public function loadPlaylist()
     {
+        //Confirm a valid playlist id was passed
         $data = [];
+        $data['body'] = 'playlist/insidePlaylist/playlist';
         $data['listId'] = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
         $data['listId'] = is_numeric($data['listId']) ? $data['listId'] : 0;
         if ($data['listId']) {
+            //Confirm the user is authorised or the playlist is public
             $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['listId']);
-            $data['owner'] = isset($_SESSION['userId']) && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
+            $data['title'] = $data['playlist']->ListName." | Playlista Uber Rapsy";
+            $data['isOwner'] = isset($_SESSION['userId']) && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $data['owner'];
-            $userAuthorised = $userAuthorised || $data['playlist']->ListActive;
+            $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
-                $data['title'] = $data['playlist']->ListName." | Playlista Uber Rapsy";
+                //Fetch the required playlist properties
                 $data['searchQuery'] = isset($_GET['SearchQuery']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['SearchQuery'])) : "";
-                $data['reviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer";
+                $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer";
                 $data['allPlaylists'] = $this->PlaylistModel->GetListsIdsAndNames();
-                $data['body'] = 'playlist/insidePlaylist/playlist';
                 $data['songs'] = [];
 
                 //Define various checkbox-related properties in one place - first the db name, then the button name, then the display name
@@ -200,21 +202,20 @@ class PlaylistItems extends CI_Controller {
      */
     public function tierlist(): void
     {
+        //Verify whether a valid playlist id was submitted
         $data = [];
+        $data['body'] = 'playlist/insidePlaylist/tierlist';
         $data['listId'] = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
         $data['listId'] = is_numeric($data['listId']) ? $data['listId'] : 0;
         if ($data['listId']) {
-            //Fetch the playlist and set the page name
+            //Fetch the playlist and check if the user is authorised (or the list is public)
             $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['listId']);
-            $data['owner'] = isset($_SESSION['userId']) && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
-
+            $data['title'] = $data['playlist']->ListName . " | Playlista Uber Rapsy";
+            $data['isOwner'] = isset($_SESSION['userId']) && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $data['owner'];
-            $userAuthorised = $userAuthorised || $data['playlist']->ListActive;
+            $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
-                $data['title'] = $data['playlist']->ListName . " | Playlista Uber Rapsy";
-                $data['reviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] === "reviewer";
-                $data['body'] = 'playlist/insidePlaylist/tierlist';
+                $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] === "reviewer";
                 $data['gradesToDisplay'] = [];
 
                 //Define the tierlist owner
@@ -602,37 +603,32 @@ class PlaylistItems extends CI_Controller {
         $data = array(
             'body' => 'downloadSongs',
             'title' => 'Aktualizacja listy!',
-            'ListId' => $listId,
-            'refreshSuccess' => true
+            'listId' => $listId,
+            'displayErrorMessage' => ''
         );
 
         //Check if the user is logged in and has the required permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-        $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['ListId']) == $_SESSION['userId'];
+        $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
         if($userAuthorised) {
             //Check if the playlist has a YouTube link.
             $playlistUrl = $this->PlaylistModel->GetListUrlById($data['ListId']);
             if(!empty($playlistUrl)) {
                 //Refresh the playlist and see if any errors occurred
-                $refreshReturnCode = $this->RefreshPlaylistService->RefreshPlaylist($data['ListId']);
-                if($refreshReturnCode === -1) {
-                    //API key not found
-                    $data['body']  = 'invalidAction';
-                    $data['title'] = "Nie znaleziono klucza API!";
-                    $data['errorMessage'] = "Nie znaleziono klucza API.";
+                $refreshReturnCode = $this->RefreshPlaylistService->refreshPlaylist($data['listId']);
+                if ($refreshReturnCode === false) {
+                    $data['displayErrorMessage'] = "Wskazana na YT playlista jest pusta! Sprawdź w ustawieniach czy podano poprawny link!";
                 }
-                else if ($refreshReturnCode === false || $refreshReturnCode === -2) {
-                    //Response returned empty (false) or response could not be reached (-2)
-                    $data['refreshSuccess'] = false;
+                else if (isset($refreshReturnCode['code'])) {
+                    if (in_array($refreshReturnCode['code'], ["LNF", "TNF"])) {
+                        $data['displayErrorMessage'] = $refreshReturnCode['displayMessage'];
+                    }
+                    else if ($refreshReturnCode['code'] === "RF") {
+                        $data['displayErrorMessage'] = $refreshReturnCode['displayMessage'];
+                    }
                 }
             }
-            else {
-                //Playlist has no YouTube URL
-                //TODO: NIE POKAZYWAĆ OPCJI BEZ LINKU
-                $data['body']  = 'invalidAction';
-                $data['title'] = "Nie znaleziono linku do playlisty na YT!";
-                $data['errorMessage'] = "Nie znaleziono linku do playlisty na YT.";
-            }
+            else $data['displayErrorMessage'] = "Nie znaleziono linku do tej playlisty na YT!";
         }
         else redirect('logout');
 

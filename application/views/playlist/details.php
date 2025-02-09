@@ -10,7 +10,7 @@
 <p>Opis playlisty: <?=$playlist->ListDesc?></p><br>
 <p>Data dodania playlisty: <?=$playlist->ListCreatedAt?></p><br>
 <p>Playlista zintegrowana: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?> <a href="<?=base_url('playlist/integrate?id='.$playlist->ListId.'&src='.$redirectSource)?>">(Zmień status integracji)</a></p><br>
-<p>Playlista publiczna: <?=$playlist->ListActive === "1" ? "Tak" : "Nie"?></p><br>
+<p>Playlista publiczna: <?=$playlist->ListPublic === "1" ? "Tak" : "Nie"?></p><br>
 <p>Link do playlisty na YT: <?=!empty($playlist->ListUrl) ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>https://www.youtube.com/playlist?list=$playlist->ListUrl</a>" : "Brak"?></p></br>
 <p>Link na Uber: <a target='_blank' href='<?=base_url('playlist?listId='.$playlist->ListId)?>'><?=base_url('playlist?listId='.$playlist->ListId)?></a></p></br>
 <p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
@@ -20,7 +20,7 @@
 
 <h3>Zarządzaj playlistą</h3><br>
 <a href="<?=base_url('playlist/edit?listId='.$playlist->ListId.'&src='.$redirectSource)?>">Edytuj Playlistę</a><br><br>
-<a href="<?=base_url('playlist/hidePlaylist?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>"><?=$playlist->ListActive === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br><br>
+<a href="<?=base_url('playlist/hidePlaylist?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>"><?=$playlist->ListPublic === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br><br>
 <a href="<?=base_url('playlist/deleteLocal?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Usuń Playlistę</a><br><br>
 <a href="<?=base_url('playlist/showLog?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Pokaż ostatnie zmiany</a><br><br>
 

@@ -1,12 +1,12 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <br /><br />
-<?php if(isset($refreshSuccess) && $refreshSuccess === false): ?>
-    <h3>Podano niepoprawny link do playlisty na YT!</h3>
-    <h4>W wolnej chwili przejdź do ustawień i zmień link na poprawny, bądź go usuń!</h4>
-    <h4>Ten błąd otrzymasz także jeśli nie jesteś właścicielem playlisty.</h4>
+<?php if($displayErrorMessage !== ''): ?>
+    <h3>Wystąpił błąd w pobieraniu utworów z playlisty na YT :/</h3>
+    <h4><?=$displayErrorMessage?></h4>
+    <h4>Jeśli ponowne podjęcie tej samej akcji nie zadziała, niezwłocznie skontaktuj się z administracją.</h4>
 <?php else: ?>
-    <h3>Ładowanie utworów na playlistę zakończone sukcesem!</h3>
+    <h3>Pomyślnie załadowano utwory z playlisty na YT!</h3>
 <?php endif; ?>
 <br /><br />
-<a href="<?=base_url('/playlist?listId='.$ListId)?>">Powrót do listy</a>
+<a href="<?=base_url('/playlist?listId='.$listId)?>">Powrót do listy</a>
 <br />

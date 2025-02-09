@@ -104,7 +104,7 @@ class Playlist extends CI_Controller {
                     $queryData['ListName'] = isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "";
                     $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
                     $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
-                    $queryData['ListActive'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
+                    $queryData['ListPublic'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
                     $queryData['btnRehearsal'] = isset($_POST["btnRehearsal"]) ? 1 : 0;
                     $queryData['btnDistinction'] = isset($_POST["btnDistinction"]) ? 1 : 0;
                     $queryData['btnMemorial'] = isset($_POST["btnMemorial"]) ? 1 : 0;
@@ -125,7 +125,7 @@ class Playlist extends CI_Controller {
                     $queryData['btnBelowHalfEight'] = isset($_POST["btnBelowHalfEight"]) ? 1 : 0;
                     $queryData['btnBelowHalfNine'] = isset($_POST["btnBelowHalfNine"]) ? 1 : 0;
 
-                    if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "") {
+                    if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
                         $this->PlaylistModel->UpdatePlaylist($queryData);
                         $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
                     }
@@ -134,7 +134,7 @@ class Playlist extends CI_Controller {
                         $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
-                        $data['resultMessage'] .= $queryData['ListActive'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
+                        $data['resultMessage'] .= $queryData['ListPublic'] == "" ? "Status Widoczności Playlisty jest wymagany!</br>" : '';
                     }
                 }
                 //Fetch the (possibly updated) playlist settings
@@ -154,7 +154,7 @@ class Playlist extends CI_Controller {
      *
      * @return void
      */
-    public function switchPlaylistActiveStatus(): void
+    public function switchPlaylistPublicStatus(): void
     {
         $playlistId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
         $playlistId = is_numeric($playlistId) ? $playlistId : 0;
@@ -168,11 +168,11 @@ class Playlist extends CI_Controller {
                 $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($playlistId);
                 $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
 
-                //If the user pressed yes, reverse the current playlistActive status (to hide or show the playlist)
+                //If the user pressed yes, reverse the current ListPublic status (to hide or show the playlist)
                 $hidePlaylist = isset($_GET['switch']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['switch'])) : false;
                 if($hidePlaylist === "true") {
                     //Fetch the playlist to show it to the user after making changes
-                    $this->PlaylistModel->SetPlaylistActiveProperty($data['playlist']->ListActive, $playlistId);
+                    $this->PlaylistModel->SetPlaylistPublicProperty($data['playlist']->ListPublic, $playlistId);
                     $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($playlistId);
                 }
 
@@ -195,7 +195,8 @@ class Playlist extends CI_Controller {
         {
             $data = array(
                 'body' => 'playlist/addPlaylist',
-                'title' => 'Uber Rapsy | Dodaj nową playlistę!'
+                'title' => 'Uber Rapsy | Dodaj nową playlistę!',
+                'redirectSource' => isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : ""
             );
             $this->load->view('templates/main', $data);
         }
@@ -239,7 +240,7 @@ class Playlist extends CI_Controller {
                         'ListName' => isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "",
                         'ListDesc' => $_POST['playlistDesc'] ?? "",
                         'ListIntegrated' => 1,
-                        'ListActive' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
+                        'ListPublic' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
                         'ListOwnerId' => $_SESSION['userId']
                     );
 
@@ -297,7 +298,7 @@ class Playlist extends CI_Controller {
         }
         else redirect('logout');
 
-        $this->load->view( 'templates/main', $data );
+        $this->load->view('templates/main', $data);
     }
 
     /**
@@ -320,7 +321,7 @@ class Playlist extends CI_Controller {
                 $queryData['ListName'] = isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "";
                 $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
                 $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
-                $queryData['ListActive'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
+                $queryData['ListPublic'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
                 $queryData['ListOwnerId'] = $_SESSION['userId'];
 
                 //Obtain the unique playlist ID from the url given
@@ -332,13 +333,26 @@ class Playlist extends CI_Controller {
                     else $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5);
                 }
 
-                if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListActive'] != "") {
+                if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
                     //Insert the playlist to the local db
                     $newListId = $this->PlaylistModel->InsertPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
 
-                    //Refresh the playlist so to fetch the songs available on YT
-                    $refreshReturnCode = $this->RefreshPlaylistService->RefreshPlaylist($newListId);
+                    //If a YT URL was provided, fetch the songs and refresh the playlist
+                    if(!empty($queryData['ListUrl'])) {
+                        $refreshReturnCode = $this->RefreshPlaylistService->refreshPlaylist($newListId);
+                        if ($refreshReturnCode === false) {
+                            $data['displayErrorMessage'] = "Wskazana na YT playlista jest pusta! Sprawdź w ustawieniach czy podano poprawny link!";
+                        }
+                        else if (isset($refreshReturnCode['code'])) {
+                            if (in_array($refreshReturnCode['code'], ["LNF", "TNF"])) {
+                                $data['displayErrorMessage'] = $refreshReturnCode['displayMessage'];
+                            }
+                            else if ($refreshReturnCode['code'] === "RF") {
+                                $data['displayErrorMessage'] = $refreshReturnCode['displayMessage'];
+                            }
+                        }
+                    }
 
                     //Create a log
                     $this->LogModel->CreateLog('playlist', $newListId, "Stworzono lokalną playlistę");
@@ -348,11 +362,11 @@ class Playlist extends CI_Controller {
                     $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
-                    $data['resultMessage'] .= $queryData['ListActive'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
+                    $data['resultMessage'] .= $queryData['ListPublic'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
                 }
             }
 
-            $this->load->view( 'templates/main', $data );
+            $this->load->view('templates/main', $data);
         }
         else redirect('logout');
     }

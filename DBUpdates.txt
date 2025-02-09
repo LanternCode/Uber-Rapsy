@@ -7,3 +7,5 @@ ALTER TABLE `list` ADD `ListOwnerId` INT NOT NULL COMMENT 'Id of the user who cr
 ALTER TABLE `user` ADD `username` VARCHAR(22) CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci NOT NULL AFTER `id`;
 ALTER TABLE `log` CHANGE `raportId` `reportId` INT NOT NULL DEFAULT '0' COMMENT 'If a report was generated, its id will be attached here';
 ALTER TABLE `song` ADD `SongGradeOwner` DECIMAL(10, 2) NOT NULL AFTER `SongGradeChurchie`;
+ALTER TABLE `list` CHANGE `ListActive` `ListPublic` BIT(1) NOT NULL DEFAULT b'1';
+ALTER TABLE `list` ADD `ListActive` BIT(1) NOT NULL DEFAULT b'1' COMMENT 'An inactive list is archived' AFTER `btnDepA`;

@@ -41,7 +41,7 @@ class Song extends CI_Controller
             $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['song']->ListId);
 
             $userAuthorised = $userAuthenticated && $data['owner'];
-            $userAuthorised = $userAuthorised || $data['playlist']->ListActive;
+            $userAuthorised = $userAuthorised || $data['playlist']->ListPublic;
             if ($userAuthorised) {
                 //Check if there is an existing review
                 $data['body'] = "song/revSong";

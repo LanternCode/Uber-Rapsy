@@ -15,14 +15,14 @@
 	<br><br><label>Opis Playlisty:</label><br>
     <textarea name="playlistDesc" rows="10" cols="50"></textarea>
 
-    <br><br><label>Status Playlisty na YT:</label><br />
+    <br><br><label>Widoczność Playlisty na YT:</label><br />
     <select name="playlistVisibilityYT">
         <option value="public">Publiczna</option>
         <option value="unlisted">Niepubliczna</option>
         <option value="private">Prywatna</option>
     </select><br /><br />
 
-    <label>Status Playlisty na Uber:</label><br />
+    <label>Widoczność Playlisty na Uber:</label><br />
     <select name="playlistVisibility">
         <option value="1">Publiczna - widoczna dla ogółu</option>
         <option value="0">Prywatna - widoczna tylko dla właściciela</option>

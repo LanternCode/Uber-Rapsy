@@ -6,7 +6,7 @@
 <p>Link do playlisty: <a target="_blank" href="https://www.youtube.com/playlist?list=<?=$playlist->ListUrl?>"><?=$playlist->ListName?></a></p></br>
 <p>Opis playlisty: <?=$playlist->ListDesc?></p><br>
 <p>Data dodania playlisty: <?=$playlist->ListCreatedAt?></p><br>
-<p>Playlista publiczna: <?=$playlist->ListActive === "1" ? "Tak" : "Nie"?></p><br><br>
+<p>Playlista publiczna: <?=$playlist->ListPublic === "1" ? "Tak" : "Nie"?></p><br><br>
 
 Kontynuować?<br>
 

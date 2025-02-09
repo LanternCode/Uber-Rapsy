@@ -37,41 +37,48 @@ class RefreshPlaylistService
      * -2 is returned if the YouTube playlist is not found
      *
      * @param $listId
-     * @return bool|int|void|string
+     * @return bool|int|void|string|string[]
      */
-    public function RefreshPlaylist($listId)
+    public function refreshPlaylist($listId)
     {
-        //Include google library
+        //Include the YT API library
         $client = $this->CI->SecurityModel->initialiseLibrary();
 
-        //Only proceed when the library was successfully included
+        //Only proceed if the library was successfully loaded
         if ($client !== false) {
             //Validate the access token required for the api call
             $tokenExpired = $this->CI->SecurityModel->validateAuthToken($client);
 
             //Continue to the api call or refresh the auth token
             if ($tokenExpired) {
-                $data['body'] = 'invalidAction';
-                $data['title'] = "Błąd autoryzacji tokenu!";
-                $data['errorMessage'] = "Odświeżenie tokenu autoryzującego się nie powiodło.</br>
-    Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki.";
-            } else {
-                //Define service object for making API requests.
+                $err = array(
+                    'code' => "TNF",
+                    'displayMessage' => "Odświeżenie tokenu autoryzującego się nie powiodło!"
+                );
+                return $err;
+            }
+            else {
+                //Define the service object for making YT API requests
                 $service = new Google_Service_YouTube($client);
                 $queryParams = [
                     'maxResults' => 50,
                     'playlistId' => $this->CI->PlaylistModel->GetListUrlById($listId)
                 ];
 
-                //Load songs for the first time. If the request fails, return -2
+                //Load songs for the first time. If the request fails, return with an error
                 $songsJsonArray = [];
                 try {
                     $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
-                } catch (Google_Service_Exception $e) {
-                    $errorType = json_decode($e->getMessage())->error->errors[0]->reason;
-                    if ($errorType == "playlistNotFound") {
-                        return -2;
-                    }
+                }
+                catch (Google_Service_Exception | Throwable $e) {
+                    $err = array(
+                        'code' => "RF",
+                        'displayMessage' => "Wskazana playlista jest prywatna lub podano niepoprawny link. Zaktualizuj go i spróbuj jeszcze raz!",
+                        'errorType' => json_decode($e->getMessage())->error->errors[0]->reason ?? 'unknown',
+                        'errorObject' => json_decode($e) ?? 'unknown',
+                        'errorMessage' => json_decode($e->getMessage()) ?? 'unknown'
+                    );
+                    return $err;
                 }
 
                 //How many songs total - assign 0 if null
@@ -86,19 +93,18 @@ class RefreshPlaylistService
                          $scannedResults += $response['pageInfo']['resultsPerPage']) {
                         //Get the token of the next page
                         $pageToken = $response['nextPageToken'];
-                        //Perform the api call
+                        //Perform calls to the PlaylistItems API until all items are retrieved
                         $queryParams = [
                             'maxResults' => 50,
                             'pageToken' => $pageToken,
                             'playlistId' => $this->CI->PlaylistModel->GetListUrlById($listId)
                         ];
-
                         $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
-                        //Save the songs into the array
+                        //Save the songs into the local array
                         $songsJsonArray[] = $response['items'];
                     }
 
-                    //Get all songs that are already in the list, only urls
+                    //Get the URLs of all songs that are currently in the playlist
                     $songURLs = $this->CI->SongModel->GetURLsOfAllSongsInList($listId);
                     $songURLsArray = [];
                     foreach ($songURLs as $songURL) {
@@ -117,39 +123,41 @@ class RefreshPlaylistService
                             $songTitle = mysqli_real_escape_string($this->CI->db->conn_id, $song['snippet']['title']);
                             $songPlaylistItemsId = $song['id'];
 
-                            //If something goes wrong any incorrect entries will be discarded
+                            //Discard incorrect and empty entries
                             if (isset($songURL) && isset($songThumbnailURL) && strlen($songTitle) > 0 && isset($songPlaylistItemsId)) {
                                 //Check if the song already exists in the database
                                 if (in_array($songURL, $songURLsArray)) {
                                     $refreshReport .= $songTitle . " - ⏸<br />";
-                                } else if ($songPublic && $this->CI->SongModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId)) {
+                                }
+                                else if ($songPublic && $this->CI->SongModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId)) {
                                     //Attempt to insert the song to the database
                                     $refreshReport .= $songTitle . " - ✔<br />";
-                                } else {
-                                    //If insertion failed
+                                }
+                                else {
+                                    //If the insertion failed
                                     $refreshReport .= $songURL . " is private - ❌<br />";
                                 }
                             }
                         }
                     }
 
-                    //Songs were loaded correctly - Submit a report
+                    //Songs were loaded correctly - submit a report
                     $refreshReport .= "</pre>";
                     $newReportId = $this->CI->LogModel->SubmitReport(htmlspecialchars($refreshReport));
-                    //Create a log
+                    //Create a log with the report
                     $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
                     $logMessage = "Załadowano nowe nuty na playlistę" . $reportSuccessful;
                     $this->CI->LogModel->CreateLog('playlist', $listId, $logMessage, $newReportId);
                     return true;
                 } else return false;
             }
-        } else {
-            //Could not load the YouTube api
-            $data['body'] = 'invalidAction';
-            $data['title'] = "Wystąpił Błąd!";
-            $data['errorMessage'] = "Nie znaleziono biblioteki Google!";
-
-            $this->load->view('templates/main', $data);
+        }
+        else {
+            $err = array(
+                'code' => "LNF",
+                'displayMessage' => "Nie znaleziono biblioteki YT API podczas odświeżania playlisty!"
+            );
+            return $err;
         }
     }
 }

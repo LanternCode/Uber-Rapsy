@@ -23,10 +23,10 @@
     <button onclick="createdAt.value = new Date().toISOString().slice(0, 19).replace('T', ' '); return false;">Teraz</button>
     <br /><br />
 
-    <label>Status Playlisty:</label><br />
+    <label>Widoczność Playlisty:</label><br />
     <select name="playlistVisibility">
-        <option value="1" <?=$playlist->ListActive === "1" ? "selected" : ''?>>Publiczna - widoczna na stronie głównej</option>
-        <option value="0" <?=$playlist->ListActive === "0" ? "selected" : ''?>>Prywatna - widoczna tylko w panelu sterowania</option>
+        <option value="1" <?=$playlist->ListPublic === "1" ? "selected" : ''?>>Publiczna - widoczna dla ogółu</option>
+        <option value="0" <?=$playlist->ListPublic === "0" ? "selected" : ''?>>Prywatna - widoczna tylko dla właściciela</option>
     </select><br /><br />
 
     <label>Widoczność przycisków:</label><br>

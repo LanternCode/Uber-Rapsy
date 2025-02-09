@@ -28,14 +28,14 @@ class PlaylistModel extends CI_Model
     /**
      * Fetch all playlists set as public.
      *
-     * A public playlist is considered to have its ListActive property
+     * A public playlist is considered to have its ListPublic property
      * set to 1.
      *
      * @return array      returns an array containing the lists found
      */
     function GetAllPublicLists()
     {
-        $sql = "SELECT * FROM list WHERE ListActive = 1";
+        $sql = "SELECT * FROM list WHERE ListPublic = 1";
         return $this->db->query( $sql )->result();
     }
 
@@ -127,16 +127,16 @@ class PlaylistModel extends CI_Model
     }
 
     /**
-     * Updates ListActive with the value given.
+     * Updates ListPublic with the value given.
      *
-     * @param int $playlistActive value to update with
+     * @param int $playlistPublic value to update with
      * @param int $listId playlist to update
      * @return void
      */
-    function SetPlaylistActiveProperty(int $playlistActive, int $listId)
+    function SetPlaylistPublicProperty(int $playlistPublic, int $listId)
     {
-        $reverse = $playlistActive == 1 ? 0 : 1;
-        $sql = "UPDATE list SET ListActive = $reverse WHERE ListId = $listId";
+        $reverse = $playlistPublic == 1 ? 0 : 1;
+        $sql = "UPDATE list SET ListPublic = $reverse WHERE ListId = $listId";
         $this->db->query($sql);
     }
 
