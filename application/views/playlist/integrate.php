@@ -7,7 +7,7 @@
 <label>Aby zintegrować playlistę, musisz podać link do tej playlisty na YT!<br>
 Jeżeli zostawisz to pole puste, zostanie użyty wskazany wyżej link. Upewnij się, że jest poprawny!<br>
 Jeśli usuwasz integrację, możesz wstawić tutaj nowy link który zostanie zapisany, lub zostawić pole puste.</label><br>
-<form method="post" action="<?=base_url('playlist/integrate?id='.$playlist->ListId.'&status=confirm&src='.$redirectSource)?>">
+<form method="post" action="<?=base_url('playlist/integrate?playlistId='.$playlist->ListId.'&status=confirm&src='.$redirectSource)?>">
     <label>Nowy link do playlisty:</label><br>
     <input type="url" name="nlink" <?=isset($playlistUpdatedStatus) && $playlistUpdatedStatus ? "disabled" : ""?>><br><br>
 
@@ -16,4 +16,4 @@ Jeśli usuwasz integrację, możesz wstawić tutaj nowy link który zostanie zap
         <?=isset($playlistUpdatedStatus) && $playlistUpdatedStatus ? "disabled" : ""?>
     >
 </form><br><br>
-<a href="<?=base_url('playlist/details?id='.$playlist->ListId.'&src='.$redirectSource)?>">Powrót</a>
+<a href="<?=base_url('playlist/details?listId='.$playlist->ListId.'&src='.$redirectSource)?>">Powrót</a>

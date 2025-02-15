@@ -55,7 +55,6 @@ class RefreshPlaylistService
                     'code' => "TNF",
                     'displayMessage' => "Odświeżenie tokenu autoryzującego się nie powiodło!"
                 );
-                return $err;
             }
             else {
                 //Define the service object for making YT API requests
@@ -78,7 +77,6 @@ class RefreshPlaylistService
                         'errorObject' => json_decode($e) ?? 'unknown',
                         'errorMessage' => json_decode($e->getMessage()) ?? 'unknown'
                     );
-                    return $err;
                 }
 
                 //How many songs total - assign 0 if null
@@ -148,8 +146,8 @@ class RefreshPlaylistService
                     $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
                     $logMessage = "Załadowano nowe nuty na playlistę" . $reportSuccessful;
                     $this->CI->LogModel->CreateLog('playlist', $listId, $logMessage, $newReportId);
-                    return true;
-                } else return false;
+                    $err = true;
+                } else $err = false;
             }
         }
         else {
@@ -157,7 +155,20 @@ class RefreshPlaylistService
                 'code' => "LNF",
                 'displayMessage' => "Nie znaleziono biblioteki YT API podczas odświeżania playlisty!"
             );
-            return $err;
         }
+
+        //Return an error message based on how the refreshing went - "" means everything went well
+        if ($err === false) {
+            return "Wskazana na YT playlista jest pusta! Sprawdź w ustawieniach czy podano poprawny link!";
+        }
+        else if (isset($err['code'])) {
+            if (in_array($err['code'], ["LNF", "TNF"])) {
+                return $err['displayMessage'];
+            }
+            else if ($err['code'] === "RF") {
+                return $err['displayMessage'];
+            }
+        }
+        else return "";
     }
 }

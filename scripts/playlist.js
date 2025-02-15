@@ -8,26 +8,31 @@
  */
 function updateAverage(event)
 {
-    //Find this event's index in the list of dataContainer children
-    let childIndex = Array.prototype.indexOf.call(event.parentElement.parentElement.children, event.parentElement);
-    //Establish the second rating's index
-    let indexToSelect = childIndex === 1 ? 0 : 1;
-    //Save the new rating directly from the event
+    //Ensure the newly entered rating is within the 1-15 range and can be divided by 0.5
     let newRating = event.value;
-    //Obtain the second rating based on the established index
-    let secondRating = event.parentElement.parentElement.children[indexToSelect].children[1].value;
-    //Ensure the entered rating is within the 0-15 range
-    if(newRating < 1 || newRating > 15)
-    {
+    if (newRating < 1 || newRating > 15 || newRating % 0.5 !== 0) {
         //If not, use 0 as the average placeholder
-        newRating = 0;
+        event.value = 0;
     }
-    //Find the dom element that has the average box
-    let avgElem = event.parentElement.parentElement.children[3].children[1];
-    //Calculate the average
-    let average = (parseFloat(newRating) + parseFloat(secondRating)) / 2;
+    //Obtain all ratings based on the index
+    let firstRating = parseFloat(event.parentElement.parentElement.children[0].children[1].value);
+    let secondRating = parseFloat(event.parentElement.parentElement.children[1].children[1].value);
+    let thirdRating = parseFloat(event.parentElement.parentElement.children[2].children[1].value);
+    //Calculate the new average
+    let average = ((firstRating, secondRating, thirdRating) => {
+        if (firstRating > 0 || secondRating > 0 || thirdRating > 0) {
+            let localAvg = firstRating > 0 ? firstRating : 0;
+            localAvg += secondRating > 0 ? secondRating : 0;
+            localAvg += thirdRating > 0 ? thirdRating : 0;
+            let result = localAvg / ((firstRating > 0) + (secondRating > 0) + (thirdRating > 0));
+            return result % 1 === 0 ? result : result.toFixed(2);
+        }
+        else return 0;
+    })(firstRating, secondRating, thirdRating);
     //Find the proposed playlist for this rating
     let playlistName = getPlaylistName(average);
+    //Find the dom element that has the average box
+    let avgElem = event.parentElement.parentElement.children[3].children[1];
     //Update the average
     avgElem.value = average + " (" + playlistName + ")";
 }
@@ -41,9 +46,8 @@ function updateAverage(event)
  */
 function toggleUpdate(event)
 {
-    //Find the hidden input that holds the update boolean - the last element child of the data container box
+    //Find the input of type hidden that holds the update boolean - the last element child of the data container box
     let elem = event.closest(".dataContainerBox").lastElementChild;
-    console.log(elem);
 
     //If the bool is false, set it to true
     if(elem.value == 0)
@@ -60,7 +64,7 @@ function toggleUpdate(event)
  */
 function getPlaylistName(average)
 {
-    if(average >= 9.5) return "X15";
+    if(average >= 10) return "X15";
     else if(average >= 8.25) return "Uber";
     else return "Akademia";
 }

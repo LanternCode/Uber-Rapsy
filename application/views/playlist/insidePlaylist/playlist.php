@@ -3,10 +3,8 @@
     <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#topoftherap">Góra Listy</a>
-    <?php if($isOwner || $isReviewer): ?>
-        <?php if(count($songs) > 0): ?>
-            <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
-        <?php endif; ?>
+    <?php if(count($songs) > 0 && ($isOwner || $isReviewer)): ?>
+        <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
     <?php endif; ?>
     <select class="optionsURL redirectsBox" onchange="javascript:location.href = this.value;">
         <option value="">Pokaż oceny:</option>
@@ -34,10 +32,11 @@
     <div class="averagesBar--left">
         <h2 class="blackBar">Przeglądasz playlistę <?=$playlist->ListName ?? "o nieznanej nazwie"?>!</h2>
         <h3 class="blackBar">Liczba nut: <?=count($songs)?></h3>
-        <h3 class="blackBar" title="Średnia ocen jest obliczana tylko gdy obu recenzentów oceniło utwór. Utwory na których zaznaczono przycisk ''10'' nie są brane pod uwagę.">Średnie ocen (?):</h3>
+        <h3 class="blackBar" title="Średnia ocen jest obliczana tylko gdy obu recenzentów oceniło utwór. Utwory na których zaznaczono przycisk ''10'' i wpisano tylko oceny 10, nie są brane pod uwagę.">Średnie ocen (?):</h3>
         <h4 class="blackBar">Średnia Ocen Playlisty: <?=number_format($avgOverall, 2)?> (<?=$ratedOverall?>)</h4>
         <h4 title="Średnia ocen na podstawie ocenionych utworów Kościelnego" class="blackBar">Średnia Ocen (Kościelny): <?=number_format($avgChurchie, 2)?> (<?=$ratedChurchie?>)</h4>
         <h4 title="Średnia ocen na podstawie ocenionych utworów Adama" class="blackBar">Średnia Ocen (Adam): <?=number_format($avgAdam, 2)?> (<?=$ratedAdam?>)</h4>
+        <h4 title="Średnia ocen na podstawie ocenionych utworów właściciela playlisty" class="blackBar">Średnia Ocen (Właściciel): <?=number_format($avgOwner, 2)?> (<?=$ratedOwner?>)</h4>
     </div>
     <div class="averagesBar--right">
         <img src="./styles/icons/bigger_cog.png" class="hamburger optionsRight settings_cog menuIcon">
@@ -46,19 +45,14 @@
 <form id="songsForm" method="post" action="<?=base_url('updateSongRatings')?>">
     <ul class="menu">
         <img src="./styles/icons/bigger_cog.png" class="hamburger closing_cog menuIcon"><br><br><br>
-        <li class="optionsURL">Zintegrowana: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>Tak</a>" : "Nie"?></li><br>
+        <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
+            <li class="optionsURL">Zintegrowana: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>Tak</a>" : "Nie"?></li><br>
+        <?php endif; ?>
         <?php if(isset($_SESSION['userRole']) && ($_SESSION['userRole'] == "user" || $_SESSION['userRole'] == "reviewer")): ?>
             <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url("downloadSongs?listId=".$listId)?>">Załaduj nowe nuty</a></li><br>
             <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url('playlist/details?listId='.$listId.'&src=mp')?>">Statystyki i Ustawienia</a></li>
         <?php endif; ?>
     </ul>
-    <?php if(isset($refreshSuccess) && $refreshSuccess === false): ?>
-        <h2>Podano niepoprawny link do playlisty na YT!</h2>
-        <h3>W wolnej chwili przejdź do ustawień i zmień link na poprawny!</h3>
-        <h3>Jeśli usunięto playlistę albo chcesz pozbyć się tej wiadomości, usuń link w ustawieniach.</h3>
-        <h3>Playlista na YT musi być publiczna lub niepubliczna (ale nie prywatna) aby mogła zostać wczytana.</h3>
-        <h3>Poniżej podano znajdujące się już na liście utwory.</h3><br /><br />
-    <?php endif; ?>
 	<?php if(count($songs) > 0):
         $i = 0; ?>
 		<?php foreach($songs as $song): ?>
@@ -86,7 +80,7 @@
                             </h4>
                             <h5 class="dataContainer--gradeContainer">
                                 <label>Średnia:</label>
-                                <input class="gradeInput" type="text" value="<?=is_numeric($song->SongGradeAdam) && is_numeric($song->SongGradeChurchie) ? (($song->SongGradeAdam + $song->SongGradeChurchie) / 2) : "Nieoceniona"?>" disabled />
+                                <input class="gradeInput" type="text" value="<?=$song->Average ?? "Nieoceniona"?>" disabled />
                             </h5>
                             <?php  //only 1 list means there is nowhere to move or copy the song to
                             if(count($allPlaylists) > 1 && $isReviewer): ?>

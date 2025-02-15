@@ -1,9 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <h4>Witaj w panelu zarządzania playlistami!</h4>
 <br/><br/>
-<a href="<?=base_url('playlist/newPlaylist?src=pd')?>">Dodaj nową playlistę</a>
+<a href="<?=base_url('playlist/newPlaylist?src=pd')?>">Dodaj nową, zintegrowaną z YT playlistę</a>
 <br/><br/>
-<a href="<?=base_url('playlist/addLocal?src=pd')?>">Dodaj lokalną playlistę</a>
+<a href="<?=base_url('playlist/addLocal?src=pd')?>">Dodaj nową, lokalną playlistę</a>
 <br/><br/>
 <h4>Aktywne Playlisty</h4>
 <br/><br/>

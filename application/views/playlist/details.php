@@ -9,7 +9,9 @@
 <p>Nazwa playlisty: <?=$playlist->ListName?></p><br>
 <p>Opis playlisty: <?=$playlist->ListDesc?></p><br>
 <p>Data dodania playlisty: <?=$playlist->ListCreatedAt?></p><br>
-<p>Playlista zintegrowana: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?> <a href="<?=base_url('playlist/integrate?id='.$playlist->ListId.'&src='.$redirectSource)?>">(Zmień status integracji)</a></p><br>
+<?php if ($isReviewer): ?>
+    <p>Playlista zintegrowana z YT: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?> <a href="<?=base_url('playlist/integrate?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">(Zmień status integracji)</a></p><br>
+<?php endif; ?>
 <p>Playlista publiczna: <?=$playlist->ListPublic === "1" ? "Tak" : "Nie"?></p><br>
 <p>Link do playlisty na YT: <?=!empty($playlist->ListUrl) ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>https://www.youtube.com/playlist?list=$playlist->ListUrl</a>" : "Brak"?></p></br>
 <p>Link na Uber: <a target='_blank' href='<?=base_url('playlist?listId='.$playlist->ListId)?>'><?=base_url('playlist?listId='.$playlist->ListId)?></a></p></br>

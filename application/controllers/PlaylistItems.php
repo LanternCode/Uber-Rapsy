@@ -117,38 +117,48 @@ class PlaylistItems extends CI_Controller {
                 }
 
                 //Initialise the variables to store the average grades
-                $avgOverall = 0;
                 $avgAdam = 0;
                 $avgChurchie = 0;
-                $ratedCount = 0;
+                $avgOwner = 0;
+                $avgOverall = 0;
                 $ratedAdam = 0;
                 $ratedChurchie = 0;
+                $ratedOwner = 0;
+                $ratedTotal = 0;
 
                 //Compute the average grades song-by-song
-                foreach($data['songs'] as $song) {
-                    //Display values without decimals at the end if the decimals are only 0
+                foreach($data['songs'] as &$song) {
+                    //Display values without decimals at the end if the decimals are zeros
                     if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
                     if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
                     if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeOwner);
+                    $song->Average = $this->calculateAverage($song);
 
-                    //Do not include songs graded "10" by both reviewers in the average
-                    if(!($song->SongDuoTen && $song->SongGradeAdam == 10 && $song->SongGradeChurchie == 10)) {
-                        $avgOverall += ($song->SongGradeAdam + $song->SongGradeChurchie) / 2;
-                        $avgAdam += ($song->SongDuoTen && $song->SongGradeAdam == 10) ? 0 : $song->SongGradeAdam;
-                        $avgChurchie += ($song->SongDuoTen && $song->SongGradeChurchie == 10) ? 0 : $song->SongGradeChurchie;
-                        $ratedCount += $song->SongGradeAdam > 0 || $song->SongGradeChurchie > 0 ? 1 : 0;
-                        $ratedAdam += $song->SongGradeAdam > 0 && !($song->SongDuoTen && $song->SongGradeAdam == 10) ? 1 : 0;
-                        $ratedChurchie += $song->SongGradeChurchie > 0 && !($song->SongDuoTen && $song->SongGradeChurchie == 10) ? 1 : 0;
+                    //Check per-reviewer averages to add to the playlist statistics
+                    $includeAdam = $song->SongGradeAdam > 0 && !($song->SongDuoTen && $song->SongGradeAdam == 10);
+                    $includeChurchie = $song->SongGradeChurchie > 0 && !($song->SongDuoTen && $song->SongGradeChurchie == 10);
+                    $includeOwner = $song->SongGradeOwner > 0 && !($song->SongDuoTen && $song->SongGradeOwner == 10);
+                    if($includeAdam || $includeChurchie || $includeOwner) {
+                        $avgAdam += $includeAdam ? $song->SongGradeAdam : 0;
+                        $avgChurchie += $includeChurchie ? $song->SongGradeChurchie : 0;
+                        $avgOwner += $includeOwner ? $song->SongGradeOwner : 0;
+                        $ratedAdam += $includeAdam ? 1 : 0;
+                        $ratedChurchie += $includeChurchie ? 1 : 0;
+                        $ratedOwner += $includeOwner ? 1 : 0;
+                        $avgOverall += $song->Average;
+                        $ratedTotal += 1;
                     }
                 }
 
                 //Calculate playlist averages for each reviewer
-                $data['avgOverall'] = $ratedCount > 0 ? $avgOverall/$ratedCount : 0;
+                $data['avgOverall'] = $ratedTotal > 0 ? $avgOverall/$ratedTotal : 0;
                 $data['avgAdam'] = $ratedAdam > 0 ? $avgAdam/$ratedAdam : 0;
                 $data['avgChurchie'] = $ratedChurchie > 0 ? $avgChurchie/$ratedChurchie : 0;
-                $data['ratedOverall'] = $ratedCount;
+                $data['avgOwner'] = $ratedOwner > 0 ? $avgOwner/$ratedOwner : 0;
+                $data['ratedOverall'] = $ratedTotal;
                 $data['ratedAdam'] = $ratedAdam;
                 $data['ratedChurchie'] = $ratedChurchie;
+                $data['ratedOwner'] = $ratedOwner;
             }
             else redirect('logout');
         }
@@ -216,29 +226,32 @@ class PlaylistItems extends CI_Controller {
             $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
                 $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] === "reviewer";
-                $data['gradesToDisplay'] = [];
 
                 //Define the tierlist owner
                 $data['filter'] = isset($_GET['filter']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['filter'])) : "none";
-                $propName = $data['filter'] === "Adam" ? "SongGradeAdam" : ($data['filter'] === "Churchie" ? "SongGradeChurchie" : ($data['filter'] === "Owner" ? "SongGradeOwner" : "Average"));
+                $data['propName'] = $data['filter'] === "Adam" ? "SongGradeAdam" : ($data['filter'] === "Churchie" ? "SongGradeChurchie" : ($data['filter'] === "Owner" ? "SongGradeOwner" : "Average"));
 
                 //Fetch other relevant data to complete the tierlist
                 $data['songs'] = $this->SongModel->GetTopSongsFromList($data['listId'], $data['filter']);
                 $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
 
-                //Construct tierlist tiers
-                foreach ($data['songs'] as $song) {
-                    //Display values without decimals at the end if the decimals are only 0
+                //Pre-compute every song's average and trim trailing zeros
+                foreach ($data['songs'] as &$song) {
                     if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
                     if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
                     if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeOwner);
-                    $grade = $propName !== "Average" ? $song->$propName : bcdiv(($song->SongGradeAdam+$song->SongGradeChurchie+$song->SongGradeOwner)/3, 1, 2);
-                    if(!in_array($grade, $data['gradesToDisplay']))
-                        $data['gradesToDisplay'][] = $grade;
+                    $song->Average = $this->calculateAverage($song);
                 }
 
-                //Sort the tierlist tiers from highest to lowest
-                rsort($data['gradesToDisplay']);
+                //Filter out songs without the reviewer's grade
+                $data['songs'] = array_filter($data['songs'], function($song) use ($data) {
+                    return $song->{$data['propName']} >= 1 && $song->{$data['propName']} <= 15;
+                });
+
+                //Sort the filtered array by the reviewer's grade in descending order
+                usort($data['songs'], function($a, $b) use ($data) {
+                    return $b->{$data['propName']} <=> $a->{$data['propName']};
+                });
             }
             else redirect('logout');
         }
@@ -598,7 +611,7 @@ class PlaylistItems extends CI_Controller {
      */
     public function downloadSongs()
     {
-        $listId = isset($_GET['ListId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['ListId'])) : 0;
+        $listId = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
         $listId = is_numeric($listId) ? $listId : 0;
         $data = array(
             'body' => 'downloadSongs',
@@ -612,21 +625,10 @@ class PlaylistItems extends CI_Controller {
         $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
         if($userAuthorised) {
             //Check if the playlist has a YouTube link.
-            $playlistUrl = $this->PlaylistModel->GetListUrlById($data['ListId']);
+            $playlistUrl = $this->PlaylistModel->GetListUrlById($data['listId']);
             if(!empty($playlistUrl)) {
-                //Refresh the playlist and see if any errors occurred
-                $refreshReturnCode = $this->RefreshPlaylistService->refreshPlaylist($data['listId']);
-                if ($refreshReturnCode === false) {
-                    $data['displayErrorMessage'] = "Wskazana na YT playlista jest pusta! Sprawdź w ustawieniach czy podano poprawny link!";
-                }
-                else if (isset($refreshReturnCode['code'])) {
-                    if (in_array($refreshReturnCode['code'], ["LNF", "TNF"])) {
-                        $data['displayErrorMessage'] = $refreshReturnCode['displayMessage'];
-                    }
-                    else if ($refreshReturnCode['code'] === "RF") {
-                        $data['displayErrorMessage'] = $refreshReturnCode['displayMessage'];
-                    }
-                }
+                //Refresh the playlist - if everything went well, the message will be empty
+                $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($data['listId']);
             }
             else $data['displayErrorMessage'] = "Nie znaleziono linku do tej playlisty na YT!";
         }
@@ -717,5 +719,29 @@ class PlaylistItems extends CI_Controller {
             'SongBelHalfNine' => "< 9.5",
             default => ""
         };
+    }
+
+    /**
+     * Given an internal property name, returns a custom display name
+     * Applies only to checkbox properties
+     *
+     * @param $song object song to calculate the average for
+     * @return float|int the average calculated
+     */
+    function calculateAverage(object $song): float|int
+    {
+        $grades = [
+            $song->SongGradeAdam,
+            $song->SongGradeChurchie,
+            $song->SongGradeOwner
+        ];
+
+        // Filter out zero values
+        $nonZeroGrades = array_filter($grades, function($grade) {
+            return $grade > 0;
+        });
+
+        // Calculate the average if there are non-zero grades, otherwise return 0
+        return count($nonZeroGrades) > 0 ? round(array_sum($nonZeroGrades) / count($nonZeroGrades), 2) : 0;
     }
 }

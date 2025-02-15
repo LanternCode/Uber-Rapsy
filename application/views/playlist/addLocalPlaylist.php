@@ -5,10 +5,10 @@
     <a href="<?=base_url('myPlaylists')?>"><-- Wróć do moich playlist</a><br><br>
 <?php endif; ?>
 <?=$resultMessage ?? ""?>
-<?php if(isset($displayErrorMessage)): ?>
+<?php if(isset($displayErrorMessage) && $displayErrorMessage != ""): ?>
     <h3>Wystąpił błąd w pobieraniu utworów z playlisty na YT :/</h3>
     <h4><?=$displayErrorMessage?></h4>
-    <h4>Jeśli ponowne podjęcie tej samej akcji nie zadziała, niezwłocznie skontaktuj się z administracją.</h4>
+    <h4>Jeśli po wykonaniu instrukcji, ponowne podjęcie tej samej akcji nie zadziała, niezwłocznie skontaktuj się z administracją.</h4>
 <?php endif; ?>
 
 <h3>Dodaj lokalnie playlistę</h3>
