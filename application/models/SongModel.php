@@ -54,14 +54,14 @@ class SongModel extends CI_Model
     {
         //If logged in, search in your playlists and in public playlists
         if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']){
-            $ownerCondition = " AND l.ListOwnerId IN (1, ".$_SESSION['userId'].")";
+            $ownerCondition = " AND ((l.ListPublic = true AND SongVisible = 1) OR l.ListOwnerId IN (1, ".$_SESSION['userId']."))";
         }
-        else $ownerCondition = " AND l.ListOwnerId = 1";
+        else $ownerCondition = " AND ((l.ListPublic = true AND SongVisible = 1) OR l.ListOwnerId = 1)";
 
         //Admin staff can scan through private playlists for compliance and CS reasons
         if($this->SecurityModel->debuggingEnabled())
             $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$Search%' AND SongVisible = 1";
-        else $sql = "SELECT * FROM song AS s JOIN list AS l ON s.ListId = l.ListId WHERE s.SongTitle LIKE '%$Search%' AND l.ListActive = true AND SongVisible = 1".$ownerCondition;
+        else $sql = "SELECT * FROM song AS s JOIN list AS l ON s.ListId = l.ListId WHERE s.SongTitle LIKE '%$Search%'".$ownerCondition;
 
         return $this->db->query($sql)->result();
     }
@@ -382,5 +382,20 @@ class SongModel extends CI_Model
             return $this->db->query($sql)->row()->SongId;
         }
         else return 0;
+    }
+
+    /**
+     * There are a lot of checkboxes for each song entry, and this function makes it possible
+     * to filter songs in a given playlist by specifying the checked checkbox.
+     *
+     * @param $listId int the id of the list to fetch the songs from
+     * @param $propertyName string the name of the checkbox property to filter by
+     * @return array
+     */
+    function FilterSongsByCheckboxProperty(int $listId, string $propertyName): array
+    {
+        $sql = "SELECT * FROM song WHERE $propertyName = 1 AND ListId = $listId AND SongVisible = 1";
+
+        return $this->db->query($sql)->result();
     }
 }

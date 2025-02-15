@@ -51,6 +51,18 @@ class PlaylistModel extends CI_Model
     }
 
     /**
+     * Fetch Ids and names of all playlists.
+     *
+     * @param int $listId  playlist id
+     * @return string      returns the property value
+     */
+    function getListPublicProperty(int $listId): string
+    {
+        $sql = "SELECT ListPublic FROM list WHERE ListId = '$listId'";
+        return $this->db->query($sql)->row()->ListPublic;
+    }
+
+    /**
      * Returns the URL of a playlist.
      *
      * @param int $listId  id of the playlist
@@ -111,19 +123,6 @@ class PlaylistModel extends CI_Model
             return $this->db->query($sql)->row();
         }
         else return false;
-    }
-
-    /**
-     * Update the playlist's Etag once it's gone out of date
-     *
-     * @param int $playlistId
-     * @param string $newEtag
-     * @return void
-     */
-    function UpdatePlaylistEtag(int $playlistId, string $newEtag): void
-    {
-        $sql = "UPDATE list SET ListEtag = '$newEtag' WHERE ListId = $playlistId";
-        $this->db->simple_query($sql);
     }
 
     /**
@@ -218,21 +217,6 @@ class PlaylistModel extends CI_Model
     }
 
     /**
-     * There are a lot of checkboxes for each song entry, and this function makes it possible
-     * to filter songs in a given playlist by specifying the checked checkbox.
-     *
-     * @param $listId int the id of the list to fetch the songs from
-     * @param $propertyName string the name of the checkbox property to filter by
-     * @return array
-     */
-    function FilterSongsByCheckboxProperty(int $listId, string $propertyName): array
-    {
-        $sql = "SELECT * FROM song WHERE $propertyName = 1 AND ListId = $listId AND SongVisible = 1";
-
-        return $this->db->query($sql)->result();
-    }
-
-    /**
      * Fetches all playlists owned/created by the specified user
      *
      * @param $userId int the id of the playlist owner
@@ -240,7 +224,20 @@ class PlaylistModel extends CI_Model
      */
     function FetchUserPlaylists(int $userId): array
     {
-        $sql = "SELECT * FROM list WHERE listOwnerId = $userId";
+        $sql = "SELECT * FROM list WHERE ListOwnerId = $userId";
+
+        return $this->db->query($sql)->result();
+    }
+
+    /**
+     * Fetches IDs of playlists owned/created by the specified user
+     *
+     * @param $userId int the id of the playlist owner
+     * @return array
+     */
+    function FetchUserPlaylistsIDs(int $userId): array
+    {
+        $sql = "SELECT ListId FROM list WHERE ListOwnerId = $userId";
 
         return $this->db->query($sql)->result();
     }

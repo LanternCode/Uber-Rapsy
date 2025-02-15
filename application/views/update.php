@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <h1>Oceny zostały zapisane!</h1>
 <br><br>
-<?php if(is_numeric($playlistId)): ?>
+<?php if(isset($playlistId) && is_numeric($playlistId)): ?>
     <a href="<?=base_url('playlist?listId='.$playlistId)?>">Powrót do playlisty</a>
 <?php else: ?>
     <a href="<?=base_url()?>">Powrót do strony głównej</a>

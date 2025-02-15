@@ -508,7 +508,7 @@ class Playlist extends CI_Controller {
                 $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($playlistId);
                 $data['playlistLog'] = $this->LogModel->GetPlaylistLog($playlistId);
 
-                $this->load->view( 'templates/main', $data );
+                $this->load->view('templates/main', $data);
             }
             else redirect('logout');
         }

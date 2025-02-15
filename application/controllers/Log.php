@@ -28,8 +28,12 @@ class Log extends CI_Controller
         //Check if the provided report is is valid
         if($reportId) {
             //Check if the user is logged in and has the required permissions
+            //TODO: report.reportId->log.EntityId->list.ListOwnerId
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = $userAuthenticated && $this->LogModel->GetReportOwnerById($reportId) == $_SESSION['userId'];
+            //print_r($this->LogModel->GetReportOwnerById($reportId));
+            //print_r($_SESSION['userId']);
+            //die();
             if ($userAuthorised) {
                 $data['report'] = $this->LogModel->FetchReport($reportId);
             }
