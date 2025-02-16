@@ -48,9 +48,9 @@ class AccountModel extends CI_Model
      * Checks whether an account with this email address exists.
      *
      * @param string $email  email to check
-     * @return boolean      returns 0 if email is not unique and 1 otherwise
+     * @return boolean      returns 0 if the email is not unique and 1 otherwise
      */
-    function IsEmailUnique(string $email): bool
+    function isEmailUnique(string $email): bool
     {
         $sql = "SELECT email FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
@@ -86,7 +86,7 @@ class AccountModel extends CI_Model
      * @param string $email  email of the user who resets their password
      * @return string      returns the password reset key
      */
-    function InsertPasswordUpdateLink(string $email): string
+    function insertPasswordUpdateLink(string $email): string
     {
         $keyToInsert = $this->getToken();
         $sql = "UPDATE user SET passwordResetKey = '$keyToInsert' WHERE email = '$email'";
@@ -102,20 +102,21 @@ class AccountModel extends CI_Model
      * @param string $resetKey  password reset key
      * @return void
      */
-    function SendPasswordChangeEmail(string $email, string $resetKey)
+    function sendPasswordChangeEmail(string $email, string $resetKey)
     {
-        $resetLink = base_url('forgottenPassword/reset?qs=' . $resetKey);
-        $subject = "Zresetuj Hasło: Uber-Rapsy";
+        $resetLink = base_url('forgottenPassword/reset?qs='.$resetKey);
+        $subject = "Zresetuj hasło w RAPPAR";
         $headers = array(
-            'From: No reply',
-            'Reply-To: noreply@UberRapsy.pl',
+            'From: "RAPPAR" <noreply@uberrapsy.pl>',
+            'Reply-To: noreply@uberrapsy.pl',
             'MIME-Version: 1.0',
-            'Content-Type: text/html; charset=ISO-8859-1'
+            'Content-Type: text/html; charset=UTF-8'
         );
-        $txt = "It appears that someone has requested to change the password assigned to this
-        email <br /> on the Uber Rapsy web application. If it was you, press the
-        URL located below.<br /><br />Reset Password: <a href='$resetLink' target='_blank'>
-        $resetLink</a><br /><br /> If you did not ask for a password reset, simply ignore this email.";
+        $txt = "Otrzymaliśmy prośbę o zresetowanie hasła przypisanego do tego adresu email <br />
+                na platformie RAPPAR. Jeżeli to Ty wysłałeś zgłoszenie, użyj poniższy link aby
+                zresetować swoje hasło.<br /><br />
+                Zresetuj hasło: <a href='$resetLink' target='_blank'>$resetLink</a><br /><br />
+                Jeżeli to nie Ty wysłałeś zgłoszenie, zignoruj tę wiadomość.";
 
         mail($email, $subject, $txt, implode("\r\n", $headers));
     }
@@ -126,7 +127,7 @@ class AccountModel extends CI_Model
      * @param string $key  password reset key used
      * @return int|object      returns 0 if invalid or the user id when valid
      */
-    function ValidatePasswordResetString(string $key)
+    function validatePasswordResetString(string $key)
     {
         $sql = "SELECT id FROM user WHERE passwordResetKey = '$key'";
         $query = $this->db->query($sql);
@@ -142,7 +143,7 @@ class AccountModel extends CI_Model
      * @param string $userId  id of the user to update
      * @return void
      */
-    function UpdateUserPassword(string $password, string $userId)
+    function updateUserPassword(string $password, string $userId)
     {
         $newPass = password_hash($password, PASSWORD_BCRYPT);
         $sql = "UPDATE user SET passwordResetKey = NULL, password = '$newPass' WHERE id = $userId";

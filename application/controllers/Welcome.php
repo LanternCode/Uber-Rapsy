@@ -4,8 +4,8 @@ if(!isset($_SESSION)){
     session_start();
 }
 
-class Welcome extends CI_Controller {
-
+class Welcome extends CI_Controller
+{
 	public function __construct()
     {
         parent::__construct();
@@ -32,7 +32,7 @@ class Welcome extends CI_Controller {
             $this->AccountModel->AutomaticSignIn();
         }
 
-		$this->load->view( 'templates/main', $data );
+		$this->load->view('templates/main', $data);
 	}
 
     /**

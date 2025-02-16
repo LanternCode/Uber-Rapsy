@@ -33,6 +33,8 @@ $route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account';
 $route['logout'] = 'Account/logout';
+$route['forgottenPassword'] = 'Account/forgottenPassword';
+$route['forgottenPassword/reset'] = 'Account/resetPassword';
 
 $route['testfunc'] = 'Welcome/testfunc';
 

@@ -169,4 +169,81 @@ class Account extends CI_Controller
         $this->load->view('templates/main', $data);
     }
 
+    public function forgottenPassword()
+    {
+        //If the user is already logged in, reset the session
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
+        if ($userLoggedIn)
+            redirect('logout');
+
+        $data = array(
+            'title' => 'Przypomnij Hasło | Uber Rapsy',
+            'body' => 'account/forgotPassword'
+        );
+
+        //Verify the provided email address
+        $enteredEmail = isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['email'])) : "";
+        if ($enteredEmail) {
+            if (!$this->AccountModel->isEmailUnique($enteredEmail)) {
+                if($resetKey = $this->AccountModel->insertPasswordUpdateLink($enteredEmail)) {
+                    $this->AccountModel->sendPasswordChangeEmail($enteredEmail, $resetKey);
+                    $data['actionNotification'] = "<span class='universal--successMessage'>Jeżeli istnieje konto założone na ten adres email, została na niego wysłana wiadomość z linkiem resetującym hasło.</span>";
+                }
+                else $data['actionNotification'] = "Nie udało się wysłać linku resetującego hasło. Spróbuj ponownie później bądź skontaktuj się z administracją RAPPAR.";
+            }
+            else $data['actionNotification'] = "<span class='universal--successMessage'>Jeżeli istnieje konto założone na ten adres email, została na niego wysłana wiadomość z linkiem resetującym hasło.</span>";
+        }
+        elseif (isset($_POST['email']))
+            $data['actionNotification'] = "Wpisano niepoprawny adres email.";
+
+        $this->load->view('templates/main', $data);
+    }
+
+    public function resetPassword()
+    {
+        //If the user is already logged in, reset the session
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
+        if ($userLoggedIn)
+            redirect('logout');
+
+        $data = array(
+            'title' => 'Zresetuj Hasło | Uber Rapsy',
+            'body' => 'account/resetPassword',
+            'errorMessage' => '',
+            'key' => isset($_GET['qs']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['qs'])) : ""
+        );
+
+        //Check if a valid password reset key was provided
+        $userId = $this->AccountModel->validatePasswordResetString($data['key']);
+        if ($userId) {
+            $password = isset($_POST['newPassword']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['newPassword'])) : null;
+            $passwordRepeat = isset($_POST['newPasswordRepeated']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['newPasswordRepeated'])) : null;
+
+            //Process the form if it was submitted
+            if ($password && $passwordRepeat && strlen($password) > 7 && $password == $passwordRepeat) {
+                $this->AccountModel->updateUserPassword($password, $userId);
+                $data['body'] = 'account/resetPasswordResult';
+                $data['result'] = "Pomyślnie zresetowano hasło! Możesz teraz się zalogować!";
+            }
+            elseif (isset($_POST['newPassword'])) {
+                if (!$password)
+                    $data['errorMessage'] = "Musisz wpisać nowe hasło.";
+                elseif (strlen($password) < 8)
+                    $data['errorMessage'] = "Nowe hasło musi zawierać przynajmniej osiem (8) znaków.";
+                elseif (!$passwordRepeat)
+                    $data['errorMessage'] = "Musisz ponownie wpisać nowe hasło.";
+                elseif ($password !== $passwordRepeat)
+                    $data['errorMessage'] = "Wpisane hasła nie są identyczne.";
+
+                $data['errorMessage'] .= "<br />";
+            }
+        }
+        else {
+            $data['body'] = 'account/resetPasswordResult';
+            $data['result'] = "Podany link jest niepoprawny. Spróbuj jeszcze raz lub ponownie kliknij przycisk przypomnij hasło w panelu logowania i wpisz swój adres email.";
+        }
+
+        $this->load->view('templates/main', $data);
+    }
+
 }
