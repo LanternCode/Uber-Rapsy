@@ -43,17 +43,17 @@
     </div>
 </div>
 <form id="songsForm" method="post" action="<?=base_url('updateSongRatings')?>">
-    <ul class="menu">
-        <img src="./styles/icons/bigger_cog.png" class="hamburger closing_cog menuIcon"><br><br><br>
-        <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer"): ?>
-            <li class="optionsURL">Zintegrowana: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>Tak</a>" : "Nie"?></li><br>
-        <?php endif; ?>
-        <?php if(isset($_SESSION['userRole']) && ($_SESSION['userRole'] == "user" || $_SESSION['userRole'] == "reviewer")): ?>
+    <?php if ($isOwner || $isReviewer): ?>
+        <ul class="menu">
+            <img src="./styles/icons/bigger_cog.png" class="hamburger closing_cog menuIcon"><br><br><br>
+            <?php if($isReviewer): ?>
+                <li class="optionsURL">Zintegrowana: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>Tak</a>" : "Nie"?></li><br>
+            <?php endif; ?>
             <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url("downloadSongs?listId=".$listId)?>">Załaduj nowe nuty</a></li><br>
             <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url('playlist/details?listId='.$listId.'&src=mp')?>">Statystyki i Ustawienia</a></li>
-        <?php endif; ?>
-    </ul>
-	<?php if(count($songs) > 0):
+        </ul>
+	<?php endif; ?>
+    <?php if(count($songs) > 0):
         $i = 0; ?>
 		<?php foreach($songs as $song): ?>
             <div class="videoContainerBox">
