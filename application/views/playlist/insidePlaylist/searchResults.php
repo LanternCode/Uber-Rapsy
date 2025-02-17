@@ -113,6 +113,7 @@
             $i += 28;
             endforeach;?>
             <input type="hidden" name="playlistId" value="search"/>
+            <input type="hidden" name="searchQuery" value="<?=$searchQuery?>"/>
         </form>
     <?php elseif (strlen($searchQuery) < 1): ?>
         <h3>Wystąpił błąd! Nie wpisano nic do wyszukiwarki!</h3>

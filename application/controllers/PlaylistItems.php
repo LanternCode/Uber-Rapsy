@@ -293,6 +293,7 @@ class PlaylistItems extends CI_Controller {
                 $data = [];
                 $data['body']  = 'update';
                 $data['title'] = "Oceny Zapisane!";
+                $data['searchQuery'] = $playlistId == "search" ? $this->input->post('searchQuery') : false;
                 $resultMessage = "<pre>";
 
                 //Fetch the playlist to access its settings
