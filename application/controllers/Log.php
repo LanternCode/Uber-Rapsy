@@ -25,17 +25,13 @@ class Log extends CI_Controller
         $reportId = isset($_GET['repId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['repId'])) : 0;
         $reportId = is_numeric($reportId) ? $reportId : 0;
 
-        //Check if the provided report is is valid
-        if($reportId) {
+        //Check if the provided report id is valid
+        if ($reportId) {
             //Check if the user is logged in and has the required permissions
-            //TODO: report.reportId->log.EntityId->list.ListOwnerId
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->LogModel->GetReportOwnerById($reportId) == $_SESSION['userId'];
-            //print_r($this->LogModel->GetReportOwnerById($reportId));
-            //print_r($_SESSION['userId']);
-            //die();
+            $userAuthorised = $userAuthenticated && $this->LogModel->getReportOwnerById($reportId) == $_SESSION['userId'];
             if ($userAuthorised) {
-                $data['report'] = $this->LogModel->FetchReport($reportId);
+                $data['report'] = $this->LogModel->fetchReport($reportId);
             }
             else redirect('logout');
         }

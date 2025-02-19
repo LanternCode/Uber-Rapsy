@@ -71,7 +71,7 @@ class LogModel extends CI_Model
      * @param $reportId the id of the report to fetch
      * @return mixed
      */
-    function FetchReport($reportId)
+    function fetchReport($reportId)
     {
         $sql = "SELECT * FROM report WHERE reportId = $reportId";
         return $this->db->query($sql)->row();
@@ -96,11 +96,11 @@ class LogModel extends CI_Model
      * @param int $reportId report id
      * @return int valid user id or 0
      */
-    function GetReportOwnerById(int $reportId): int
+    function getReportOwnerById(int $reportId): int
     {
-        $sql = "SELECT UserId FROM log WHERE reportId = $reportId";
-        if(isset($this->db->query($sql)->row()->UserId))
-            return $this->db->query($sql)->row()->UserId;
+        $sql = "SELECT li.ListOwnerId FROM report AS r JOIN log AS l ON r.reportId = l.reportId JOIN list as li ON l.EntityId = li.ListId WHERE r.reportId = $reportId";
+        if(isset($this->db->query($sql)->row()->ListOwnerId))
+            return $this->db->query($sql)->row()->ListOwnerId;
         else return 0;
     }
 }
