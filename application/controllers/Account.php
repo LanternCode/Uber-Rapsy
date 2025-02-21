@@ -246,4 +246,22 @@ class Account extends CI_Controller
         $this->load->view('templates/main', $data);
     }
 
+    /**
+     * Opens the users dashboard (with only safe data presented)
+     *
+     * @return void
+     */
+    public function usersDashboard()
+    {
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+        if($userAuthenticated) {
+            $data = array(
+                'body' => 'admin/usersDashboard',
+                'title' => 'Uber Rapsy | Centrum Zarządzania Użytkownikami',
+                'users' => $this->AccountModel->fetchAllSafeUserdata()
+            );
+            $this->load->view('templates/main', $data);
+        }
+        else redirect('logout');
+    }
 }

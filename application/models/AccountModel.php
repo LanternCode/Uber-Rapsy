@@ -17,10 +17,10 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Returns the URL of a playlist.
+     * Returns the user data requires for authentication.
      *
      * @param string $email  email of the user
-     * @return int|object      returns 0 if user not found or their data if found
+     * @return int|object      returns 0 if the user was not found, or their data if found
      */
     function GetUserData(string $email)
     {
@@ -198,5 +198,19 @@ class AccountModel extends CI_Model
     {
         $sql = "SELECT username FROM user WHERE id = $userId";
         return $this->db->query($sql)->row()->username;
+    }
+
+    /**
+     * Fetches all safe user data of all users to display in the users dashboard
+     * Safe user data is: database id, username, role, accountLocked status
+     *
+     * @return array returns all found users' safe data
+     */
+    function fetchAllSafeUserdata(): bool
+    {
+        $sql = "SELECT id, username, role, accountLocked FROM user";
+        $query = $this->db->query($sql);
+
+        return $query->result();
     }
 }

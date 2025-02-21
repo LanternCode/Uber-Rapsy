@@ -36,6 +36,8 @@ $route['logout'] = 'Account/logout';
 $route['forgottenPassword'] = 'Account/forgottenPassword';
 $route['forgottenPassword/reset'] = 'Account/resetPassword';
 
+$route['usersDashboard'] = 'Account/usersDashboard';
+
 $route['testfunc'] = 'Welcome/testfunc';
 
 $route['default_controller'] = 'Welcome';

@@ -10,3 +10,4 @@ ALTER TABLE `song` ADD `SongGradeOwner` DECIMAL(10, 2) NOT NULL AFTER `SongGrade
 ALTER TABLE `list` CHANGE `ListActive` `ListPublic` BIT(1) NOT NULL DEFAULT b'1';
 ALTER TABLE `list` ADD `ListActive` BIT(1) NOT NULL DEFAULT b'1' COMMENT 'An inactive list is archived' AFTER `btnDepA`;
 ALTER TABLE `list` DROP `ListEtag`;
+ALTER TABLE `user` ADD `accountLocked` BIT(1) NOT NULL DEFAULT b'0' AFTER `passwordResetKey`;
