@@ -42,17 +42,21 @@ class Account extends CI_Controller
             else {
                 $email = isset($_POST['userEmail']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userEmail'])) : NULL;
                 $password = isset($_POST['userPassword']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userPassword'])) : NULL;
+                $doNotLogout = $this->input->post('doNotLogout');
             }
 
             //Only attempt the login once the form is submitted or the cookie is set
             if (isset($email) && $email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $loginSuccess = $this->AccountModel->SignIn($email, $password);
-                if($loginSuccess) {
+                if ($loginSuccess) {
                     $loginSessionDetails = array(
                         'userEmail' => $email,
                         'userPassword' => $password
                     );
-                    setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 7), "/");
+
+                    if ($doNotLogout)
+                        setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 7), "/");
+
                     redirect(base_url());
                 }
                 else $data['invalidCredentials'] = 1;

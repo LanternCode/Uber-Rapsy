@@ -21,6 +21,8 @@
             <label>Hasło:</label>
             <input type="password" name="userPassword" autocomplete="off" required><br /><br />
 
+            <label><input type="checkbox" name="doNotLogout" value="true">Nie wylogowuj mnie przez 7 dni</label>
+
             <input type="submit" class="btn btn-primary" value="Zaloguj"><br />
         </form>
         lub
