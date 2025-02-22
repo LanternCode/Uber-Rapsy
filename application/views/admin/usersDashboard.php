@@ -7,7 +7,7 @@
     <tr>
         <th>Nazwa Użytkownika</th>
         <th>Rola</th>
-        <th>Konto Zablokowane</th>
+        <th>Status Konta</th>
         <th>Szczegóły</th>
     </tr>
     <?php foreach($users as $user): ?>

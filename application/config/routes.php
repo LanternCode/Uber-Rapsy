@@ -7,7 +7,7 @@ $route['tierlist'] = 'PlaylistItems/tierlist';
 $route['updateSongRatings'] = 'PlaylistItems/updateSongRatingsInPlaylist';
 $route['downloadSongs'] = 'PlaylistItems/downloadSongs';
 
-$route['loginYoutube'] = 'YoutubeIntegration';
+$route['adminDashboard'] = 'YoutubeIntegration';
 $route['apitestPlaylist'] = 'YoutubeIntegration/result';
 $route['newToken'] = 'YoutubeIntegration/generate';
 $route['displayReport'] = 'Log/displayReport';

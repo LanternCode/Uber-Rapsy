@@ -243,13 +243,13 @@ class PlaylistModel extends CI_Model
     }
 
     /**
-     * Fetches all playlists created by the Uber Rapsy reviewers
+     * Fetches all playlists to be displayed on the homepage
      *
      * @return array
      */
-    function FetchReviewersPlaylists(): array
+    function fetchHomepagePlaylists(): array
     {
-        $sql = "SELECT * FROM list WHERE listOwnerId = 1";
+        $sql = "SELECT * FROM list WHERE ListOwnerId = 1 AND ListPublic = 1 AND ListActive = 1";
 
         return $this->db->query($sql)->result();
     }

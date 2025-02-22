@@ -206,7 +206,7 @@ class AccountModel extends CI_Model
      *
      * @return array returns all found users' safe data
      */
-    function fetchAllSafeUserdata(): bool
+    function fetchAllSafeUserdata(): array
     {
         $sql = "SELECT id, username, role, accountLocked FROM user";
         $query = $this->db->query($sql);

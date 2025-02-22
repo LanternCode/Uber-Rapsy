@@ -20,7 +20,7 @@ class YoutubeIntegration extends CI_Controller {
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if($userAuthenticated) {
             $data = [];
-            $data['body']  = 'youtubeDashboard';
+            $data['body']  = 'adminDashboard';
             $data['title'] = "Uber Rapsy | Centrum Zarządzania";
         }
         else redirect('logout');

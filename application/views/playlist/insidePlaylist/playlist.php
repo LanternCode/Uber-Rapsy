@@ -39,7 +39,9 @@
         <h4 title="Średnia ocen na podstawie ocenionych utworów właściciela playlisty" class="blackBar">Średnia Ocen (Właściciel): <?=number_format($avgOwner, 2)?> (<?=$ratedOwner?>)</h4>
     </div>
     <div class="averagesBar--right">
-        <img src="./styles/icons/bigger_cog.png" class="hamburger optionsRight settings_cog menuIcon">
+        <?php if ($isOwner || $isReviewer): ?>
+            <img src="./styles/icons/bigger_cog.png" class="hamburger optionsRight settings_cog menuIcon">
+        <?php endif; ?>
     </div>
 </div>
 <form id="songsForm" method="post" action="<?=base_url('updateSongRatings')?>">

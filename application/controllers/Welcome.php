@@ -21,7 +21,7 @@ class Welcome extends CI_Controller
 	public function index()
     {
 		$data = array(
-            'lists' => $this->PlaylistModel->FetchReviewersPlaylists(),
+            'lists' => $this->PlaylistModel->fetchHomepagePlaylists(),
             'body' => 'home',
             'title' => "Uber Rapsy | Portal do oceniania utworów rapowanych"
         );
