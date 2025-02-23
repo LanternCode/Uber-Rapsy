@@ -1,8 +1,16 @@
 RewriteEngine on
-RewriteCond $1 !^(index\.php|resources|robots\.txt)
+
+# ======================
+# NORMAL CODEIGNITER RULES
+# ======================
+RewriteCond %{REQUEST_URI} !^(index\.php|resources|robots\.txt) [NC]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php?/$1 [L,QSA]
+
+# ======================
+# PHP SETTINGS
+# ======================
 php_value max_input_vars 10000
 php_value memory_limit 256M
 php_value max_input_time 600

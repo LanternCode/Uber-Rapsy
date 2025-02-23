@@ -4,6 +4,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 //Self-imposed
 ini_set("memory_limit","256M");
 
+//Maintenance mode
+$config['maintenance_mode'] = false;
+$config['maintenance_ips'] = array('0.0.0.0', '1.1.1.1', '2.2.2.2');
+
 /*
 |--------------------------------------------------------------------------
 | Base Site URL

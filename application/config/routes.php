@@ -43,3 +43,8 @@ $route['testfunc'] = 'Welcome/testfunc';
 $route['default_controller'] = 'Welcome';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+if (!in_array($_SERVER['REMOTE_ADDR'], $this->config->item('maintenance_ips')) && $this->config->item('maintenance_mode')) {
+    $route['default_controller'] = "Welcome/maintenance";
+    $route['(:any)'] = "Welcome/maintenance";
+}

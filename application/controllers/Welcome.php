@@ -66,4 +66,14 @@ class Welcome extends CI_Controller
 
         $this->load->view( 'templates/main', $data );
     }
+
+    /**
+     * Maintenance-specific route
+     * @return void
+     */
+    function maintenance()
+    {
+        $this->output->set_status_header('503');
+        $this->load->view('maintenance');
+    }
 }
