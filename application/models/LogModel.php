@@ -27,7 +27,7 @@ class LogModel extends CI_Model
      * @param string $description the logged message
      * @return boolean            true if query worked, false if it failed
      */
-    function CreateLog(string $entityType, int $entityId, string $description, int $reportId = 0): bool
+    function createLog(string $entityType, int $entityId, string $description, int $reportId = 0): bool
     {
         //ensure the entity type is legit
         $allowedTypes = ["playlist", "song", "user"];

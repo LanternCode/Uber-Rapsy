@@ -38,7 +38,7 @@ class Song extends CI_Controller
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $listOwnerId = $this->PlaylistModel->GetListOwnerById($data['song']->ListId);
             $data['owner'] = $listOwnerId == $_SESSION['userId'];
-            $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['song']->ListId);
+            $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['song']->ListId);
 
             $userAuthorised = $userAuthenticated && $data['owner'];
             $userAuthorised = $userAuthorised || $data['playlist']->ListPublic;
@@ -106,7 +106,7 @@ class Song extends CI_Controller
                         else $this->SongModel->InsertSongReview($review);
                         $data['successMessage'] = 1;
 
-                        $this->LogModel->CreateLog('song', $songId, "Zrecenzowano utwór");
+                        $this->LogModel->createLog('song', $songId, "Zrecenzowano utwór");
                     }
 
                     //Update the review data with the newly inserted data for user convenience
@@ -169,7 +169,7 @@ class Song extends CI_Controller
                 $currentVisibility = $song->SongVisible;
                 $newVisibility = $currentVisibility == 1 ? 0 : 1;
                 $this->SongModel->UpdateSongVisibility($songId, $newVisibility);
-                $this->LogModel->CreateLog('song', $songId, ($newVisibility ? "Upubliczniono" : "Ukryto") . " nutę na playliście");
+                $this->LogModel->createLog('song', $songId, ($newVisibility ? "Upubliczniono" : "Ukryto") . " nutę na playliście");
 
                 //Return to the playlist details view
                 $redirectSource = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : 0;

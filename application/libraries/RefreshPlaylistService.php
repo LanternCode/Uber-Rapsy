@@ -145,7 +145,7 @@ class RefreshPlaylistService
                     //Create a log with the report
                     $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
                     $logMessage = "Załadowano nowe nuty na playlistę" . $reportSuccessful;
-                    $this->CI->LogModel->CreateLog('playlist', $listId, $logMessage, $newReportId);
+                    $this->CI->LogModel->createLog('playlist', $listId, $logMessage, $newReportId);
                     $err = true;
                 } else $err = false;
             }

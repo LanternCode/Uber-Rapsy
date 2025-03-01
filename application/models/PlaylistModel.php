@@ -115,7 +115,7 @@ class PlaylistModel extends CI_Model
      * @param int $playlistId  id of the playlist to fetch
      * @return object|bool playlist object or false if not found
      */
-    function FetchPlaylistById(int $playlistId)
+    function fetchPlaylistById(int $playlistId)
     {
         $sql = "SELECT * FROM list WHERE ListId = $playlistId";
         if(isset($this->db->query($sql)->row()->ListName))

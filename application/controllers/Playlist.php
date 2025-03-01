@@ -65,7 +65,7 @@ class Playlist extends CI_Controller {
                 $data['body']  = 'playlist/details';
                 $data['title'] = "Uber Rapsy | Zarządzaj playlistą!";
                 $data['songs'] = $this->SongModel->GetAllSongsFromList($listId);
-                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($listId);
+                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($listId);
                 $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
                 $data['playlistOwnerUsername'] = $this->AccountModel->FetchUsernameById($data['playlist']->ListOwnerId);
                 $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
@@ -139,7 +139,7 @@ class Playlist extends CI_Controller {
                     }
                 }
                 //Fetch the (possibly updated) playlist settings
-                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['ListId']);
+                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['ListId']);
             }
             else redirect('logout');
         }
@@ -166,7 +166,7 @@ class Playlist extends CI_Controller {
                 $data = [];
                 $data['body']  = 'playlist/hidePlaylist';
                 $data['title'] = "Uber Rapsy | Ukryj playlistę";
-                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($playlistId);
+                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
                 $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
 
                 //If the user pressed yes, reverse the current ListPublic status (to hide or show the playlist)
@@ -174,7 +174,7 @@ class Playlist extends CI_Controller {
                 if($hidePlaylist === "true") {
                     //Fetch the playlist to show it to the user after making changes
                     $this->PlaylistModel->SetPlaylistPublicProperty($data['playlist']->ListPublic, $playlistId);
-                    $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($playlistId);
+                    $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
                 }
 
                 $this->load->view('templates/main', $data);
@@ -281,7 +281,7 @@ class Playlist extends CI_Controller {
                         $listId = $this->PlaylistModel->GetListIdByUrl($playlistData['ListUrl']);
 
                         //Create a log
-                        $this->LogModel->CreateLog('playlist', $listId, "Stworzono zintegrowaną playlistę");
+                        $this->LogModel->createLog('playlist', $listId, "Stworzono zintegrowaną playlistę");
 
                         $data['resultMessage'] = "Playlista zapisana!";
                     } else {
@@ -334,19 +334,19 @@ class Playlist extends CI_Controller {
                     else $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5);
                 }
 
-                if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
+                if ($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
                     //Insert the playlist to the local db
                     $newListId = $this->PlaylistModel->InsertPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
 
                     //If a YT URL was provided, fetch the songs and refresh the playlist
-                    if(!empty($queryData['ListUrl'])) {
+                    if (!empty($queryData['ListUrl'])) {
                         //Refresh the playlist - if everything went well, the message will be empty
                         $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($newListId);
                     }
 
                     //Create a log
-                    $this->LogModel->CreateLog('playlist', $newListId, "Stworzono lokalną playlistę");
+                    $this->LogModel->createLog('playlist', $newListId, "Stworzono lokalną playlistę");
                 }
                 else {
                     $data['resultMessage'] = "";
@@ -379,7 +379,7 @@ class Playlist extends CI_Controller {
                 $data = [];
                 $data['body']  = 'playlist/deleteLocal';
                 $data['title'] = "Uber Rapsy | Usuń playlistę";
-                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($playlistId);
+                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
                 $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
 
                 //Delete the local playlist if selected by the user
@@ -414,14 +414,14 @@ class Playlist extends CI_Controller {
             if ($userAuthenticated && $userAuthorised) {
                 $data['body']  = 'song/delSong';
                 $data['title'] = "Uber Rapsy | Usuń piosenkę z playlisty";
-                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($data['song']->ListId);
+                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['song']->ListId);
                 $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : 0;
 
                 //Delete the song if the form was submitted
                 $delSong = isset($_GET['delete']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['delete'])) : false;
                 if($delSong) {
-                    $this->LogModel->CreateLog('song', $songId, "Permanentnie usunięto nutę z plejki...");
-                    $this->LogModel->CreateLog('playlist', $data['song']->ListId, "Permanentnie usunięto nutę ".$data['song']->SongTitle." z plejki.");
+                    $this->LogModel->createLog('song', $songId, "Permanentnie usunięto nutę z plejki...");
+                    $this->LogModel->createLog('playlist', $data['song']->ListId, "Permanentnie usunięto nutę ".$data['song']->SongTitle." z plejki.");
                     $this->SongModel->DeleteSong($songId);
                     if ($redirectSource == 'pd')
                         redirect('playlist/details?listId='.$data['song']->ListId.'&src=pd');
@@ -455,7 +455,7 @@ class Playlist extends CI_Controller {
 
             //Validate the provided playlist id
             if ($playlistId) {
-                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($playlistId);
+                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
                 if ($data['playlist'] !== false) {
                     //Integrate if the form was submitted, otherwise open the form
                     if ($status == "confirm") {
@@ -468,7 +468,7 @@ class Playlist extends CI_Controller {
                             $data['playlistUpdatedMessage'] = "<h2>Playlista została zaktualizowana!</h2>";
                             $data['playlistUpdatedStatus'] = true;
                             $this->PlaylistModel->UpdatePlaylistIntegrationStatus($playlistId, $updatedIntegrationStatus, $updatedLink);
-                            $this->LogModel->CreateLog('playlist', $playlistId,
+                            $this->LogModel->createLog('playlist', $playlistId,
                                 $updatedIntegrationStatus ? "Playlista została zintegrowana z YT" : "Usunięto integrację playlisty z YT");
                         }
                         else {
@@ -505,7 +505,7 @@ class Playlist extends CI_Controller {
                 $data['body']  = 'playlist/showLog';
                 $data['title'] = "Uber Rapsy | Historia playlisty";
                 $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
-                $data['playlist'] = $this->PlaylistModel->FetchPlaylistById($playlistId);
+                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
                 $data['playlistLog'] = $this->LogModel->GetPlaylistLog($playlistId);
 
                 $this->load->view('templates/main', $data);

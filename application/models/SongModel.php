@@ -183,7 +183,7 @@ class SongModel extends CI_Model
      * @param string $newSongPlaylistItemsId  unique YT PlaylistItemsId (API item)
      * @return boolean           true if query worked, false if it failed
      */
-    function UpdateIntegratedSongPlaylist(int $songId, int $newPlaylistId, string $newSongPlaylistItemsId): bool
+    function updateIntegratedSongPlaylist(int $songId, int $newPlaylistId, string $newSongPlaylistItemsId): bool
     {
         $sql = "UPDATE song SET ListId = $newPlaylistId, SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE SongId = $songId";
 
@@ -201,7 +201,7 @@ class SongModel extends CI_Model
      * @param string $newSongPlaylistItemsId  unique YT PlaylistItemsId (API item)
      * @return boolean           true if query worked, false if it failed
      */
-    function UpdateCopiedSongItemsId(int $songId, string $newSongPlaylistItemsId): bool
+    function updateCopiedSongItemsId(int $songId, string $newSongPlaylistItemsId): bool
     {
         $sql = "UPDATE song SET SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE SongId = $songId";
 
@@ -233,7 +233,7 @@ class SongModel extends CI_Model
      * @param int $newPlaylistId  id of the playlist the song was moved to
      * @return boolean           true if query worked, false if it failed
      */
-    function UpdateLocalSongPlaylist(int $songId, int $newPlaylistId): bool
+    function updateLocalSongPlaylist(int $songId, int $newPlaylistId): bool
     {
         $sql = "UPDATE song SET ListId = $newPlaylistId WHERE SongId = $songId";
 
