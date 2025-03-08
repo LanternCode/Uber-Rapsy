@@ -22,7 +22,7 @@
 
     <label>Link do playlisty na YT:</label><br />
     <h4>Jest wymagany aby pobrać utwory z istniejącej playlisty!</h4>
-    <input type="text" name="playlistId" size="90"/><br /><br />
+    <input type="text" name="playlistUrl" size="90"/><br /><br />
 
     <label>Data stworzenia na YT: (Format: 2021-09-16 16:13:50)</label><br />
     <input id="createdAt" type="text" name="playlistDate"/>

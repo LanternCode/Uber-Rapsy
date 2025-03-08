@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-if(!isset($_SESSION)){
+if (!isset($_SESSION)) {
 	session_start();
 }
 
@@ -13,6 +13,14 @@ if(!isset($_SESSION)){
  * @version Pre-release
  * @link https://lanterncode.com/Uber-Rapsy/
  *
+ * @property PlaylistModel $PlaylistModel
+ * @property SongModel $SongModel
+ * @property UtilityModel $UtilityModel
+ * @property LogModel $LogModel
+ * @property SecurityModel $SecurityModel
+ * @property AccountModel $AccountModel
+ * @property CI_Input $input
+ * @property CI_DB_mysqli_driver $db
  * @property RefreshPlaylistService $RefreshPlaylistService
  */
 class Playlist extends CI_Controller {
@@ -28,47 +36,64 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Opens the playlist dashboard.
+     * Opens the administrator playlist dashboard.
      *
      * @return void
      */
-    public function dashboard()
+    public function playlistDashboard(): void
     {
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
-        if($userAuthenticated)
-        {
-            $data = [];
-            $data['body']  = 'playlist/playlistDashboard';
-            $data['title'] = "Uber Rapsy | Zarządzaj playlistami!";
-            $data['playlists'] = $this->PlaylistModel->GetAllLists();
-
-            $this->load->view( 'templates/main', $data );
+        if ($userAuthenticated) {
+            $data = array(
+                'body' => 'playlist/playlistDashboard',
+                'title' => 'Uber Rapsy | Zarządzaj playlistami!',
+                'playlists' => $this->PlaylistModel->GetAllLists()
+            );
+            $this->load->view('templates/main', $data);
         }
         else redirect('logout');
     }
 
     /**
-     * Opens the playlist details page.
+     * Opens the user playlist dashboard
      *
      * @return void
      */
-    public function details()
+    public function myPlaylists(): void
     {
-        $listId = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
-        $listId = is_numeric($listId) ? $listId : 0;
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        if ($userAuthenticated) {
+            $data = array(
+                'body' => 'playlist/myPlaylists',
+                'title' => 'Uber Rapsy | Moje playlisty',
+                'playlists' => $this->PlaylistModel->FetchUserPlaylists($_SESSION['userId'])
+            );
+            $this->load->view('templates/main', $data);
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Opens the playlist's details page.
+     *
+     * @return void
+     */
+    public function playlistDetails(): void
+    {
+        $listId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if ($listId) {
-            //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($listId) == $_SESSION['userId'];
-            if ($userAuthenticated && $userAuthorised) {
-                $data = [];
-                $data['body']  = 'playlist/details';
-                $data['title'] = "Uber Rapsy | Zarządzaj playlistą!";
-                $data['songs'] = $this->SongModel->GetAllSongsFromList($listId);
-                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($listId);
-                $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
+            if ($userAuthorised) {
+                $data = array(
+                    'body' => 'playlist/details',
+                    'title' => 'Uber Rapsy | Zarządzaj playlistą!',
+                    'songs' => $this->SongModel->GetAllSongsFromList($listId),
+                    'playlist' => $this->PlaylistModel->fetchPlaylistById($listId),
+                    'isReviewer' => $this->SecurityModel->authenticateReviewer(),
+                    'redirectSource' => $this->input->get('src')
+                );
                 $data['playlistOwnerUsername'] = $this->AccountModel->FetchUsernameById($data['playlist']->ListOwnerId);
-                $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
 
                 $this->load->view('templates/main', $data);
             }
@@ -78,74 +103,73 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Opens the playlist edit page and processes the form.
+     * Opens the 'edit playlist' page and if submitted, processes the editing form.
      *
      * @return void
      */
-    public function edit()
+    public function editPlaylist(): void
     {
-        $data = [];
-        $data['ListId'] = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
-        $data['ListId'] = is_numeric($data['ListId']) ? $data['ListId'] : 0;
-        if ($data['ListId']) {
-            //Check if the user is logged in and has the required permissions
+        $listId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
+        if ($listId) {
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['ListId']) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($listId) == $_SESSION['userId'];
             if ($userAuthorised) {
-                $data['body']  = 'playlist/edit';
-                $data['title'] = "Uber Rapsy | Edytuj playlistę!";
-                $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
+                $data = array(
+                    'body' => 'playlist/edit',
+                    'title' => 'Uber Rapsy | Edytuj playlistę!',
+                    'redirectSource' => $this->input->get('src')
+                );
 
-                //Process the edit playlist form if it was submitted
-                if(isset($_POST['playlistFormSubmitted'])) {
-                    $queryData = [];
-                    $queryData['ListId'] = $data['ListId'];
-                    $queryData['ListOwnerId'] = $_SESSION['userId'];
-                    $queryData['ListUrl'] = isset($_POST['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistId'])) : "";
-                    $queryData['ListName'] = isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "";
-                    $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
-                    $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
-                    $queryData['ListPublic'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
-                    $queryData['btnRehearsal'] = isset($_POST["btnRehearsal"]) ? 1 : 0;
-                    $queryData['btnDistinction'] = isset($_POST["btnDistinction"]) ? 1 : 0;
-                    $queryData['btnMemorial'] = isset($_POST["btnMemorial"]) ? 1 : 0;
-                    $queryData['btnXD'] = isset($_POST["btnXD"]) ? 1 : 0;
-                    $queryData['btnNotRap'] = isset($_POST["btnNotRap"]) ? 1 : 0;
-                    $queryData['btnDiscomfort'] = isset($_POST["btnDiscomfort"]) ? 1 : 0;
-                    $queryData['btnTop'] = isset($_POST["btnTop"]) ? 1 : 0;
-                    $queryData['btnNoGrade'] = isset($_POST["btnNoGrade"]) ? 1 : 0;
-                    $queryData['btnUber'] = isset($_POST["btnUber"]) ? 1 : 0;
-                    $queryData['btnBelowSeven'] = isset($_POST["btnBelowSeven"]) ? 1 : 0;
-                    $queryData['btnBelowTen'] = isset($_POST["btnBelowTen"]) ? 1 : 0;
-                    $queryData['btnBelowNine'] = isset($_POST["btnBelowNine"]) ? 1 : 0;
-                    $queryData['btnBelowEight'] = isset($_POST["btnBelowEight"]) ? 1 : 0;
-                    $queryData['btnBelowFour'] = isset($_POST["btnBelowFour"]) ? 1 : 0;
-                    $queryData['btnDuoTen'] = isset($_POST["btnDuoTen"]) ? 1 : 0;
-                    $queryData['btnVeto'] = isset($_POST["btnVeto"]) ? 1 : 0;
-                    $queryData['btnBelowHalfSeven'] = isset($_POST["btnBelowHalfSeven"]) ? 1 : 0;
-                    $queryData['btnBelowHalfEight'] = isset($_POST["btnBelowHalfEight"]) ? 1 : 0;
-                    $queryData['btnBelowHalfNine'] = isset($_POST["btnBelowHalfNine"]) ? 1 : 0;
+                //Process the form if it was submitted
+                if ($this->input->post('playlistFormSubmitted')) {
+                    $queryData = array(
+                        'ListId' => $listId,
+                        'ListOwnerId' => $_SESSION['userId'],
+                        'ListUrl' => $this->input->post('playlistUrl'),
+                        'ListName' => $this->input->post('playlistName'),
+                        'ListDesc' => $this->input->post('playlistDesc'),
+                        'ListCreatedAt' => $this->input->post('playlistDate'),
+                        'ListPublic' => $this->input->post('playlistVisibility'),
+                        'btnRehearsal' => $this->input->post('btnRehearsal') ?: 0,
+                        'btnDistinction' => $this->input->post('btnDistinction') ?: 0,
+                        'btnMemorial' => $this->input->post('btnMemorial') ?: 0,
+                        'btnXD' => $this->input->post('btnXD') ?: 0,
+                        'btnNotRap' => $this->input->post('btnNotRap') ?: 0,
+                        'btnDiscomfort' => $this->input->post('btnDiscomfort') ?: 0,
+                        'btnTop' => $this->input->post('btnTop') ?: 0,
+                        'btnNoGrade' => $this->input->post('btnNoGrade') ?: 0,
+                        'btnUber' => $this->input->post('btnUber') ?: 0,
+                        'btnBelowSeven' => $this->input->post('btnBelowSeven') ?: 0,
+                        'btnBelowTen' => $this->input->post('btnBelowTen') ?: 0,
+                        'btnBelowNine' => $this->input->post('btnBelowNine') ?: 0,
+                        'btnBelowEight' => $this->input->post('btnBelowEight') ?: 0,
+                        'btnBelowFour' => $this->input->post('btnBelowFour') ?: 0,
+                        'btnDuoTen' => $this->input->post('btnDuoTen') ?: 0,
+                        'btnVeto' => $this->input->post('btnVeto') ?: 0,
+                        'btnBelowHalfSeven' => $this->input->post('btnBelowHalfSeven') ?: 0,
+                        'btnBelowHalfEight' => $this->input->post('btnBelowHalfEight') ?: 0,
+                        'btnBelowHalfNine' => $this->input->post('btnBelowHalfNine') ?: 0,
+                    );
 
-                    if($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
+                    if ($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
                         $this->PlaylistModel->UpdatePlaylist($queryData);
                         $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
                     }
                     else {
-                        $data['resultMessage'] = "";
-                        $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
+                        $data['resultMessage'] = $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListPublic'] == "" ? "Status Widoczności Playlisty jest wymagany!</br>" : '';
                     }
                 }
-                //Fetch the (possibly updated) playlist settings
-                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['ListId']);
+
+                //Fetch the (possibly, by now updated) playlist settings
+                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($listId);
+                $this->load->view('templates/main', $data);
             }
             else redirect('logout');
         }
         else redirect('logout');
-
-        $this->load->view( 'templates/main', $data );
     }
 
     /**
@@ -157,23 +181,24 @@ class Playlist extends CI_Controller {
      */
     public function switchPlaylistPublicStatus(): void
     {
-        $playlistId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
-        $playlistId = is_numeric($playlistId) ? $playlistId : 0;
+        $playlistId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if ($playlistId) {
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
-            if($userAuthorised) {
-                $data = [];
-                $data['body']  = 'playlist/hidePlaylist';
-                $data['title'] = "Uber Rapsy | Ukryj playlistę";
-                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
-                $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
+            if ($userAuthorised) {
+                $data = array(
+                    'body' => 'playlist/hidePlaylist',
+                    'title' => 'Uber Rapsy | Ukryj playlistę',
+                    'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
+                    'redirectSource' => $this->input->get('src')
+                );
 
                 //If the user pressed yes, reverse the current ListPublic status (to hide or show the playlist)
-                $hidePlaylist = isset($_GET['switch']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['switch'])) : false;
-                if($hidePlaylist === "true") {
-                    //Fetch the playlist to show it to the user after making changes
+                $hidePlaylist = $this->input->get('switch');
+                if ($hidePlaylist) {
                     $this->PlaylistModel->SetPlaylistPublicProperty($data['playlist']->ListPublic, $playlistId);
+
+                    //Fetch the playlist to show it to the user after making changes
                     $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
                 }
 
@@ -189,15 +214,14 @@ class Playlist extends CI_Controller {
      *
      * @return void
      */
-	public function newPlaylist()
+	public function newIntegratedPlaylistForm(): void
 	{
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
-        if($userAuthenticated)
-        {
+        if ($userAuthenticated) {
             $data = array(
                 'body' => 'playlist/addPlaylist',
                 'title' => 'Uber Rapsy | Dodaj nową playlistę!',
-                'redirectSource' => isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : ""
+                'redirectSource' => $this->input->get('src')
             );
             $this->load->view('templates/main', $data);
         }
@@ -209,45 +233,42 @@ class Playlist extends CI_Controller {
      *
      * @return void
      */
-    public function addPlaylist(): void
+    public function addIntegratedPlaylist(): void
     {
-        $data = [];
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
-        if($userAuthenticated)
-        {
+        if ($userAuthenticated) {
             //Include google library
             $client = $this->SecurityModel->initialiseLibrary();
-
-            if($client !== false) {
+            if ($client !== false) {
                 //Validate the access token required for an api call
                 $tokenExpired = $this->SecurityModel->validateAuthToken($client);
-
-                if($tokenExpired) {
+                if ($tokenExpired) {
                     //Refresh token not found
-                    $data['body']  = 'invalidAction';
-                    $data['title'] = "Błąd autoryzacji tokenu!";
-                    $data['errorMessage'] = "Odświeżenie tokenu autoryzującego nie powiodło się.</br> Nie stworzono playlisty.";
+                    $data = array(
+                        'body' => 'invalidAction',
+                        'title' => 'Błąd autoryzacji tokenu!',
+                        'errorMessage' => "Odświeżenie tokenu autoryzującego nie powiodło się.</br> Nie stworzono playlisty."
+                    );
                 }
                 else {
                     $data = array(
                         'body' => 'playlist/addPlaylist',
                         'link' => '',
-                        'resultMessage' => '',
-                        'redirectSource' => isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "",
-                        'ListPrivacyStatus' => isset($_POST['playlistVisibilityYT']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibilityYT'])) : ""
+                        'redirectSource' => $this->input->get('src'),
+                        'ListPrivacyStatus' => $this->input->post('playlistVisibilityYT')
                     );
 
                     $playlistData = array(
-                        'ListName' => isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "",
-                        'ListDesc' => $_POST['playlistDesc'] ?? "",
+                        'ListName' => $this->input->post('playlistName'),
+                        'ListDesc' => $this->input->post('playlistDesc'),
+                        'ListPublic' => $this->input->post('playlistVisibility'),
+                        'ListOwnerId' => $_SESSION['userId'],
                         'ListIntegrated' => 1,
-                        'ListPublic' => isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "",
-                        'ListOwnerId' => $_SESSION['userId']
                     );
 
                     //Validate the form
-                    if($playlistData['ListName'] != "" && in_array($data['ListPrivacyStatus'], ["public", "unlisted", "private"]) ) {
-                        //Update the description new-line characters
+                    if ($playlistData['ListName'] && in_array($data['ListPrivacyStatus'], ["public", "unlisted", "private"])) {
+                        //Update the entered description's newline character
                         $playlistData['ListDesc'] = trim(str_replace(["\r\n", "\r"], "\n", $playlistData['ListDesc']));
 
                         //Define service object for making API requests.
@@ -282,56 +303,60 @@ class Playlist extends CI_Controller {
 
                         //Create a log
                         $this->LogModel->createLog('playlist', $listId, "Stworzono zintegrowaną playlistę");
-
                         $data['resultMessage'] = "Playlista zapisana!";
                     } else {
-                        $data['resultMessage'] = "Proszę wyślij formularz ponownie, wprowadzone dane są niepoprawne.";
+                        $data['resultMessage'] = "Proszę wypełnić formularz ponownie, wprowadzone dane są niepoprawne.";
                     }
                 }
             }
-            else
-            {
+            else {
                 //Could not load the library
-                $data['body']  = 'invalidAction';
-                $data['title'] = "Wystąpił Błąd!";
-                $data['errorMessage'] = "Nie znaleziono biblioteki google!";
+                $data = array(
+                    'body' => 'invalidAction',
+                    'title' => 'Wystąpił Błąd!',
+                    'errorMessage' => "Nie znaleziono biblioteki google!"
+                );
             }
+
+            $this->load->view('templates/main', $data);
         }
         else redirect('logout');
-
-        $this->load->view('templates/main', $data);
     }
 
     /**
-     * Shows and validates the form to add a local playlist.
+     * Shows and validates the form that adds a local playlist.
      *
      * @return void
      */
-    public function addLocal()
+    public function addLocalPlaylist(): void
     {
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-        if($userAuthenticated) {
-            $data = [];
-            $data['body']  = 'playlist/addLocalPlaylist';
-            $data['title'] = "Uber Rapsy | Dodaj lokalnie playlistę!";
-            $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
+        if ($userAuthenticated) {
+            $data = array(
+                'body' => 'playlist/addLocalPlaylist',
+                'title' => 'Uber Rapsy | Dodaj lokalnie playlistę!',
+                'redirectSource' => $this->input->get('src')
+            );
 
-            if(isset($_POST['playlistFormSubmitted'])) {
-                $queryData = [];
-                $queryData['ListUrl'] = isset($_POST['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistId'])) : "";
-                $queryData['ListName'] = isset($_POST['playlistName']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistName'])) : "";
-                $queryData['ListDesc'] = isset($_POST['playlistDesc']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDesc'])) : "";
-                $queryData['ListCreatedAt'] = isset($_POST['playlistDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistDate'])) : "";
-                $queryData['ListPublic'] = isset($_POST['playlistVisibility']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistVisibility'])) : "";
-                $queryData['ListOwnerId'] = $_SESSION['userId'];
+            if ($this->input->post('playlistFormSubmitted')) {
+                $queryData = array(
+                    'ListUrl' => $this->input->post('playlistUrl'),
+                    'ListName' => $this->input->post('playlistName'),
+                    'ListDesc' => $this->input->post('playlistDesc'),
+                    'ListCreatedAt' => $this->input->post('playlistDate'),
+                    'ListPublic' => $this->input->post('playlistVisibility'),
+                    'ListOwnerId' => $_SESSION['userId'],
+                );
 
                 //Obtain the unique playlist ID from the url given
                 $listPos = strpos($queryData['ListUrl'], "list=");
-                if($listPos > 0) {
+                if ($listPos > 0) {
                     $indexPos = strpos($queryData['ListUrl'], "&index=");
                     $indexLength = strlen(substr($queryData['ListUrl'], $indexPos));
-                    if($indexPos > 0) $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5, -$indexLength);
-                    else $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5);
+                    if ($indexPos > 0)
+                        $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5, -$indexLength);
+                    else
+                        $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5);
                 }
 
                 if ($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
@@ -349,8 +374,7 @@ class Playlist extends CI_Controller {
                     $this->LogModel->createLog('playlist', $newListId, "Stworzono lokalną playlistę");
                 }
                 else {
-                    $data['resultMessage'] = "";
-                    $data['resultMessage'] .= $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
+                    $data['resultMessage'] = $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListPublic'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
@@ -367,24 +391,23 @@ class Playlist extends CI_Controller {
      *
      * @return void
      */
-    public function deleteLocal()
+    public function deleteLocalPlaylist(): void
     {
-        $playlistId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
-        $playlistId = is_numeric($playlistId) ? $playlistId : 0;
+        $playlistId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if ($playlistId) {
-            //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
             if ($userAuthorised) {
-                $data = [];
-                $data['body']  = 'playlist/deleteLocal';
-                $data['title'] = "Uber Rapsy | Usuń playlistę";
-                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
-                $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
+                $data = array(
+                    'body' => 'playlist/deleteLocal',
+                    'title' => 'Uber Rapsy | Usuń playlistę',
+                    'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
+                    'redirectSource' => $this->input->get('src')
+                );
 
-                //Delete the local playlist if selected by the user
-                $deleteLocal = isset($_GET['del']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['del'])) : false;
-                if($deleteLocal === "true") {
+                //Delete the local playlist if confirmed by the user
+                $deleteLocal = $this->input->get('del');
+                if ($deleteLocal) {
                     $this->PlaylistModel->DeleteLocalPlaylist($playlistId);
                     redirect('myPlaylists');
                 }
@@ -397,79 +420,39 @@ class Playlist extends CI_Controller {
     }
 
     /**
-     * Allows the user to delete a song from a playlist.
-     *
-     * @return void
-     */
-    public function delSong()
-    {
-        //Validate the submitted song id
-        $data = [];
-        $songId = isset($_GET['songId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['songId'])) : 0;
-        $data['song'] = is_numeric($songId) ? $this->SongModel->GetSongById($songId) : false;
-        if ($data['song'] !== false) {
-            //Check if the user is logged in and has the required permissions
-            $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['song']->ListId) == $_SESSION['userId'];
-            if ($userAuthenticated && $userAuthorised) {
-                $data['body']  = 'song/delSong';
-                $data['title'] = "Uber Rapsy | Usuń piosenkę z playlisty";
-                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['song']->ListId);
-                $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : 0;
-
-                //Delete the song if the form was submitted
-                $delSong = isset($_GET['delete']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['delete'])) : false;
-                if($delSong) {
-                    $this->LogModel->createLog('song', $songId, "Permanentnie usunięto nutę z plejki...");
-                    $this->LogModel->createLog('playlist', $data['song']->ListId, "Permanentnie usunięto nutę ".$data['song']->SongTitle." z plejki.");
-                    $this->SongModel->DeleteSong($songId);
-                    if ($redirectSource == 'pd')
-                        redirect('playlist/details?listId='.$data['song']->ListId.'&src=pd');
-                    else redirect('playlist/details?listId='.$data['song']->ListId.'&src=mp');
-                }
-
-                $this->load->view( 'templates/main', $data );
-            }
-            else redirect('logout');
-        }
-        else redirect('logout');
-    }
-
-    /**
      * Allows the user to switch the integration status of a playlist
      * An integrated playlist reflects changes made to it between platforms
      *
      * @return void
      */
-    public function integrate()
+    public function integratePlaylist(): void
     {
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if ($userAuthenticated) {
-            $data = [];
-            $data['body']  = 'playlist/integrate';
-            $data['title'] = "Uber Rapsy | Zintegruj playlistę";
-            $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
-            $playlistId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
-            $playlistId = is_numeric($playlistId) ? $playlistId : false;
-            $status = isset($_GET['status']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['status'])) : 0;
+            $data = array(
+                'body' => 'playlist/integrate',
+                'title' => 'Uber Rapsy | Zintegruj playlistę',
+                'redirectSource' => $this->input->get('src'),
+            );
 
             //Validate the provided playlist id
+            $playlistId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
             if ($playlistId) {
                 $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
                 if ($data['playlist'] !== false) {
-                    //Integrate if the form was submitted, otherwise open the form
+                    //Integrate playlists if the form was submitted, otherwise open the form
+                    $status = $this->input->get('status');
                     if ($status == "confirm") {
-                        $updatedIntegrationStatus = $data['playlist']->ListIntegrated ? "0" : "1";
-                        $updatedLink = isset($_POST['nlink']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['nlink'])) : 0;
-
                         //Check if a valid link exists in the db or was entered when integrating the playlist with YT
+                        $updatedIntegrationStatus = $data['playlist']->ListIntegrated ? "0" : "1";
+                        $updatedLink = $this->input->post('nlink');
                         $linkValid = !$updatedIntegrationStatus || (strlen($data['playlist']->ListUrl) > 10 || strlen($updatedLink) > 10);
                         if ($linkValid) {
                             $data['playlistUpdatedMessage'] = "<h2>Playlista została zaktualizowana!</h2>";
                             $data['playlistUpdatedStatus'] = true;
                             $this->PlaylistModel->UpdatePlaylistIntegrationStatus($playlistId, $updatedIntegrationStatus, $updatedLink);
                             $this->LogModel->createLog('playlist', $playlistId,
-                                $updatedIntegrationStatus ? "Playlista została zintegrowana z YT" : "Usunięto integrację playlisty z YT");
+                                $updatedIntegrationStatus ? "Playlista została zintegrowana z YouTube" : "Wyłączono integrację playlisty z YouTube");
                         }
                         else {
                             //This local playlist does not have a link required to integrate it with an existing YT playlist
@@ -492,21 +475,21 @@ class Playlist extends CI_Controller {
      *
      * @return void
      */
-    public function showLog()
+    public function showPlaylistLog(): void
     {
-        $playlistId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
-        $playlistId = is_numeric($playlistId) ? $playlistId : 0;
+        $playlistId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if ($playlistId) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
             if ($userAuthorised) {
-                $data = [];
-                $data['body']  = 'playlist/showLog';
-                $data['title'] = "Uber Rapsy | Historia playlisty";
-                $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : "";
-                $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
-                $data['playlistLog'] = $this->LogModel->GetPlaylistLog($playlistId);
+                $data = array(
+                    'body' => 'playlist/showLog',
+                    'title' => 'Uber Rapsy | Historia playlisty',
+                    'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
+                    'playlistLog' => $this->LogModel->GetPlaylistLog($playlistId),
+                    'redirectSource' => $this->input->get('src')
+                );
 
                 $this->load->view('templates/main', $data);
             }
@@ -514,23 +497,4 @@ class Playlist extends CI_Controller {
         }
         else redirect('logout');
     }
-
-    /**
-     * Opens the user's playlist dashboard
-     *
-     * @return void
-     */
-    public function myPlaylists()
-    {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
-        if($userAuthenticated) {
-            $data = [];
-            $data['body']  = 'playlist/myPlaylists';
-            $data['title'] = "Uber Rapsy | Moje playlisty";
-            $data['playlists'] = $this->PlaylistModel->FetchUserPlaylists($_SESSION['userId']);
-            $this->load->view('templates/main', $data);
-        }
-        else redirect('logout');
-    }
-
 }

@@ -500,7 +500,7 @@ class PlaylistItems extends CI_Controller {
      *
      * @return void
      */
-    public function downloadSongs()
+    public function downloadSongs(): void
     {
         $listId = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
         $listId = is_numeric($listId) ? $listId : 0;
@@ -526,6 +526,47 @@ class PlaylistItems extends CI_Controller {
         else redirect('logout');
 
         $this->load->view('templates/main', $data);
+    }
+
+    /**
+     * Allows the user to delete a song from a playlist.
+     *
+     * @return void
+     */
+    public function deleteSongFromPlaylist(): void
+    {
+        //Validate the submitted song id
+        $songId = $this->input->get('songId');
+        $song = $songId ? $this->SongModel->GetSongById($songId) : false;
+        if ($song !== false) {
+            //Check if the user is logged in and has the required permissions
+            $userAuthenticated = $this->SecurityModel->authenticateUser();
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($song->ListId) == $_SESSION['userId'];
+            if ($userAuthorised) {
+                $data = array(
+                    'body' => 'song/delSong',
+                    'title' => 'Uber Rapsy | Usuń piosenkę z playlisty',
+                    'playlist' => $this->PlaylistModel->fetchPlaylistById($song->ListId),
+                    'redirectSource' => $this->input->get('src'),
+                    'song' => $song
+                );
+
+                //Delete the song if the form was submitted
+                $delSong = $this->input->get('delete');
+                if ($delSong) {
+                    $this->LogModel->createLog('song', $songId, "Permanentnie usunięto nutę z playlisty.");
+                    $this->LogModel->createLog('playlist', $data['song']->ListId, "Permanentnie usunięto nutę ".$data['song']->SongTitle." z playlisty.");
+                    $this->SongModel->DeleteSong($songId);
+                    if ($data['redirectSource'] == 'pd')
+                        redirect('playlist/details?listId='.$data['song']->ListId.'&src=pd');
+                    else redirect('playlist/details?listId='.$data['song']->ListId.'&src=mp');
+                }
+
+                $this->load->view('templates/main', $data);
+            }
+            else redirect('logout');
+        }
+        else redirect('logout');
     }
 
     /**

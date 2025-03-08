@@ -8,7 +8,7 @@
 
 <h4>Edytuj Playlistę:</h4>
 
-<form method="post" action="<?=base_url('playlist/edit?listId='.$playlist->ListId)?>">
+<form method="post" action="<?=base_url('playlist/edit?playlistId='.$playlist->ListId)?>">
     <label>Nazwa Playlisty:</label><br />
     <input type="text" name="playlistName" value="<?=$playlist->ListName?>" /><br /><br />
 
@@ -16,7 +16,7 @@
     <input type="text" name="playlistDesc" value="<?=$playlist->ListDesc?>" /><br /><br />
 
     <label>Link do playlisty na YT:</label><br />
-    <input type="text" name="playlistId" value="<?=$playlist->ListUrl?>" /><br /><br />
+    <input type="text" name="playlistUrl" value="<?=$playlist->ListUrl?>" /><br /><br />
 
     <label>Data stworzenia na YT: (Format: 2021-09-16 16:13:50)</label><br />
     <input id="createdAt" type="text" name="playlistDate" value="<?=$playlist->ListCreatedAt?>" />

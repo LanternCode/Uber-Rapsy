@@ -6,6 +6,7 @@ $route['search'] = 'PlaylistItems/globalSearch';
 $route['tierlist'] = 'PlaylistItems/tierlist';
 $route['updateSongRatings'] = 'PlaylistItems/updateSongRatingsInPlaylist';
 $route['downloadSongs'] = 'PlaylistItems/downloadSongs';
+$route['playlist/delSong'] = 'PlaylistItems/deleteSongFromPlaylist';
 
 $route['adminDashboard'] = 'YoutubeIntegration';
 $route['apitestPlaylist'] = 'YoutubeIntegration/result';
@@ -14,21 +15,22 @@ $route['displayReport'] = 'Log/displayReport';
 $route['TermsOfService'] = 'Welcome/TOS';
 
 $route['myPlaylists'] = 'Playlist/myPlaylists';
-$route['playlistDashboard'] = 'Playlist/dashboard';
-$route['playlist/newPlaylist'] = 'Playlist/newPlaylist';
-$route['playlist/addPlaylist'] = 'Playlist/addPlaylist';
-$route['playlist/addLocal'] = 'Playlist/addLocal';
-$route['playlist/details'] = 'Playlist/details';
-$route['playlist/edit'] = 'Playlist/edit';
+$route['playlistDashboard'] = 'Playlist/playlistDashboard';
+$route['playlist/newPlaylist'] = 'Playlist/newIntegratedPlaylistForm';
+$route['playlist/addPlaylist'] = 'Playlist/addIntegratedPlaylist';
+$route['playlist/addLocal'] = 'Playlist/addLocalPlaylist';
+$route['playlist/details'] = 'Playlist/playlistDetails';
+$route['playlist/edit'] = 'Playlist/editPlaylist';
 $route['playlist/hidePlaylist'] = 'Playlist/switchPlaylistPublicStatus';
-$route['playlist/deleteLocal'] = 'Playlist/deleteLocal';
-$route['playlist/delSong'] = 'Playlist/delSong';
-$route['playlist/integrate'] = 'Playlist/integrate';
-$route['playlist/showLog'] = 'Playlist/showLog';
+$route['playlist/deleteLocal'] = 'Playlist/deleteLocalPlaylist';
+$route['playlist/integrate'] = 'Playlist/integratePlaylist';
+$route['playlist/showLog'] = 'Playlist/showPlaylistLog';
 
 $route['song/rev'] = 'Song/reviewSong';
 $route['song/showLog'] = 'Song/showLog';
 $route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
+$route['songsToplist'] = 'Song/songsToplist';
+$route['songsToplist/saveGrades'] = 'Song/saveGradesFromToplist';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account';

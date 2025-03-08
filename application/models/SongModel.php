@@ -398,4 +398,34 @@ class SongModel extends CI_Model
 
         return $this->db->query($sql)->result();
     }
+
+    /**
+     * Fetches the songs to display on the song toplist
+     *
+     * @return array
+     */
+    function fetchSongsForToplist(): array
+    {
+        $sql = "SELECT * FROM song WHERE SongVisible = 1 AND SongId = 7998 LIMIT 1";
+        return $this->db->query($sql)->result();
+    }
+
+    function addSongRating($queryData)
+    {
+        $this->db->insert('song_rating', $queryData);
+    }
+
+    function updateSongRating($queryData)
+    {
+        $this->db->replace('song_rating', $queryData);
+    }
+
+    function checkSongRatingExists($songId, $userId)
+    {
+        $query = $this->db->get_where('song_rating', [
+            'songId' => $songId,
+            'userId' => $userId
+        ]);
+        return ($query->num_rows() > 0);
+    }
 }
