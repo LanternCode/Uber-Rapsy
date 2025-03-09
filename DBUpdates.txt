@@ -1,1 +1,2 @@
 CREATE TABLE `lanternc_uberrapsy`.`song_rating` (`id` INT NOT NULL AUTO_INCREMENT , `songId` INT NOT NULL , `userId` INT NOT NULL , `songGrade` DECIMAL(2, 2) NOT NULL , PRIMARY KEY (`id`)) ENGINE = MyISAM;
+ALTER TABLE song_rating ADD UNIQUE KEY unique_rating (userId, songId);

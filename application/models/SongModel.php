@@ -417,15 +417,36 @@ class SongModel extends CI_Model
 
     function updateSongRating($queryData)
     {
-        $this->db->replace('song_rating', $queryData);
+        $result = $this->db->replace('song_rating', $queryData);
+        return $result;
     }
 
-    function checkSongRatingExists($songId, $userId)
+    function checkSongRatingExists($songId, $userId): bool
     {
         $query = $this->db->get_where('song_rating', [
             'songId' => $songId,
             'userId' => $userId
         ]);
-        return ($query->num_rows() > 0);
+
+        return ($query->result_id->num_rows > 0);
+    }
+
+    function fetchSongRating($songId, $userId)
+    {
+        $query = $this->db->get_where('song_rating', [
+            'songId' => $songId,
+            'userId' => $userId
+        ]);
+        return ($query->row());
+    }
+
+    function fetchSongAverage($songId)
+    {
+        $this->db->select('AVG(songGrade) as avg_rating');
+        $this->db->from('song_rating');
+        $this->db->where('songId', $songId);
+        $query = $this->db->get();
+        $result = $query->row();
+        return $result->avg_rating;
     }
 }

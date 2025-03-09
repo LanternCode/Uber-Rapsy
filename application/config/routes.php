@@ -29,8 +29,9 @@ $route['playlist/showLog'] = 'Playlist/showPlaylistLog';
 $route['song/rev'] = 'Song/reviewSong';
 $route['song/showLog'] = 'Song/showLog';
 $route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
-$route['songsToplist'] = 'Song/songsToplist';
-$route['songsToplist/saveGrades'] = 'Song/saveGradesFromToplist';
+
+$route['songsToplist'] = 'Toplist/songsToplist';
+$route['songsToplist/saveGrades'] = 'Toplist/saveGradesFromToplist';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account';

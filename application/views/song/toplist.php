@@ -17,14 +17,14 @@
             <div class="song-content songBackground">
                 <img src="<?=$song->SongThumbnailURL?>" alt="Song Thumbnail" class="song-thumbnail" />
                 <div class="song-grades">
-                    <p>Moja Ocena: <?=$song->SongGradeOwner?></p>
+                    <p>Moja Ocena: <?=$ratings->songGrade ?? 0?></p>
                     <p>Ocena Adama: <?=$song->SongGradeAdam?></p>
                     <p>Ocena Kościelnego: <?=$song->SongGradeChurchie?></p>
-                    <p>Średnia Społeczności: 9</p>
+                    <p>Średnia Społeczności: <?=$averages?></p>
                 </div>
             </div>
             <div class="song-slider songBackground">
-                <input type="range" min="1" max="10" step="0.5" value="<?=$song->SongGradeOwner?>" name="songGrade">
+                <input type="range" min="1" max="10" step="0.5" value="<?=$ratings->songGrade ?? 0?>" name="songGrade">
                 <div class="slider-labels">
                     <!-- n from 0..9, so label=1 => n=0, label=10 => n=9 -->
                     <span style="left: calc((0/9) * (100% - var(--thumb-size)) + var(--thumb-center) - var(--offset-adjust));">

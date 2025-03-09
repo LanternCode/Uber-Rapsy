@@ -181,34 +181,4 @@ class Song extends CI_Controller
         }
         else redirect('logout');
     }
-
-    public function songsToplist()
-    {
-        $data = array(
-            'body' => 'song/toplist',
-            'title' => 'Uber Rapsy | Toplista Nut',
-            'songs' => $this->SongModel->fetchSongsForToplist()
-        );
-
-        $this->load->view('templates/toplist', $data);
-    }
-
-    public function saveGradesFromToplist()
-    {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
-        if ($userAuthenticated) {
-            $queryData['userId'] = $_SESSION['userId'];
-            $queryData['songGrade'] = $this->input->post('songGrade');
-            $queryData['songId'] = $this->input->post('songId');
-
-            $songUnrated = !$this->SongModel->checkSongRatingExists($queryData);;
-            if($songUnrated)
-                $this->SongModel->addSongRating($queryData);
-            else
-                $this->SongModel->updateSongRating($queryData);
-
-            redirect('songsToplist');
-        }
-        else redirect('logout');
-    }
 }
