@@ -437,7 +437,7 @@ class SongModel extends CI_Model
             'songId' => $songId,
             'userId' => $userId
         ]);
-        return ($query->row());
+        return ($query->row()->songGrade ?? 0);
     }
 
     function fetchSongAverage($songId)
@@ -448,5 +448,13 @@ class SongModel extends CI_Model
         $query = $this->db->get();
         $result = $query->row();
         return $result->avg_rating;
+    }
+
+    function fetchSongAwards($songId)
+    {
+        $query = $this->db->get_where('song_award', [
+            'songId' => $songId
+        ]);
+        return $query->result();
     }
 }

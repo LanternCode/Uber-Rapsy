@@ -19,13 +19,16 @@ class UtilityModel extends CI_Model
 
     /**
      * Trims trailing zeroes from a given number.
+     * If a non-number is passed, return 0.
      *
-     * @param float $nbr number to trim
+     * @param mixed $number the number to trim
      * @return float trimmed number
      */
-    function TrimTrailingZeroes(float $nbr): float
+    public function trimTrailingZeroes(mixed $number): float
     {
-        return str_contains($nbr, '.') ? rtrim(rtrim($nbr,'0'),'.') : $nbr;
+        if (filter_var($number, FILTER_VALIDATE_FLOAT))
+            return str_contains($number, '.') ? rtrim(rtrim($number,'0'),'.') : $number;
+        else return 0;
     }
 
     /**

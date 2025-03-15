@@ -30,11 +30,11 @@ $route['song/rev'] = 'Song/reviewSong';
 $route['song/showLog'] = 'Song/showLog';
 $route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
 
-$route['songsToplist'] = 'Toplist/songsToplist';
+$route['songsToplist'] = 'Toplist/songPage';
 $route['songsToplist/saveGrades'] = 'Toplist/saveGradesFromToplist';
 
 $route['newAccount'] = 'Account/newAccount';
-$route['login'] = 'Account';
+$route['login'] = 'Account/login';
 $route['logout'] = 'Account/logout';
 $route['forgottenPassword'] = 'Account/forgottenPassword';
 $route['forgottenPassword/reset'] = 'Account/resetPassword';

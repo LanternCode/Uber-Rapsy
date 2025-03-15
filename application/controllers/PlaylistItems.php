@@ -131,9 +131,9 @@ class PlaylistItems extends CI_Controller {
                 //Compute the average grades song-by-song
                 foreach($data['songs'] as $song) {
                     //Display values without decimals at the end if the decimals are zeros
-                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
-                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
-                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeOwner);
+                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
+                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);
+                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->trimTrailingZeroes($song->SongGradeOwner);
                     $song->Average = $this->calculateAverage($song);
 
                     //Check per-reviewer averages to add to the playlist statistics
@@ -194,9 +194,9 @@ class PlaylistItems extends CI_Controller {
                 $data['userOwnedPlaylists'] = isset($_SESSION['userId']) ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->FetchUserPlaylistsIDs($_SESSION['userId'])) : [];
                 foreach ($data['songs'] as $song) {
                     //Display values without decimals at the end if the decimals are only 0's (ex. 5.50 -> 5.5)
-                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
-                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
-                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeOwner);
+                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
+                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);
+                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->trimTrailingZeroes($song->SongGradeOwner);
                     $song->Average = $this->calculateAverage($song);
 
                     //Get song button information
@@ -242,9 +242,9 @@ class PlaylistItems extends CI_Controller {
 
                 //Pre-compute every song's average and trim trailing zeros
                 foreach ($data['songs'] as $song) {
-                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeAdam);
-                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeChurchie);
-                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->TrimTrailingZeroes($song->SongGradeOwner);
+                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
+                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);
+                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->trimTrailingZeroes($song->SongGradeOwner);
                     $song->Average = $this->calculateAverage($song);
                 }
 

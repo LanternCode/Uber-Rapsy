@@ -1,17 +1,22 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
 
-if(!isset($_SESSION)){
+if (!isset($_SESSION)) {
     session_start();
 }
 
 /**
- * Controller responsible for handling views related with user's account.
+ * Controller responsible for handling views related to accounts.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
  * @version Pre-release
  * @link https://lanterncode.com/Uber-Rapsy/
+ *
+ * @property PlaylistModel $PlaylistModel
+ * @property AccountModel $AccountModel
+ * @property SecurityModel $SecurityModel
+ * @property CI_DB_mysqli_driver $db
+ * @property CI_Input $input
  */
 class Account extends CI_Controller
 {
@@ -20,95 +25,103 @@ class Account extends CI_Controller
         parent::__construct();
         $this->load->model('AccountModel');
         $this->load->model('PlaylistModel');
+        $this->load->model('SecurityModel');
         $this->load->helper('cookie');
     }
 
     /**
-     * Handles logins.
+     * Opens and processes the login form
      *
      * @return void
      */
-    public function index()
+    public function login(): void
     {
-        $data = [];
-        $data['body'] = 'login';
+        //If the user is already logged in, reset the session
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
+        if ($userLoggedIn)
+            redirect('logout');
 
-        if (!$userLoggedIn) {
-            if (isset($_COOKIE["login"])) {
-                $email = json_decode($_COOKIE["login"])->userEmail;
-                $password = json_decode($_COOKIE["login"])->userPassword;
-            }
-            else {
-                $email = isset($_POST['userEmail']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userEmail'])) : NULL;
-                $password = isset($_POST['userPassword']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['userPassword'])) : NULL;
+        //Fetch the credentials from the form or the pre-set cookie
+        $email = isset($_COOKIE["login"]) ? json_decode($_COOKIE["login"])->userEmail : $this->input->post('userEmail');
+        $password = isset($_COOKIE["login"]) ? json_decode($_COOKIE["login"])->userPassword : $this->input->post('userPassword');
+
+        //Only attempt the login if the form was submitted or the cookie is set
+        if (filter_var($email ?? '', FILTER_VALIDATE_EMAIL)) {
+            $loginSuccess = $this->AccountModel->SignIn($email, $password);
+            if ($loginSuccess) {
+                //Save the session if the user pressed the 'do not logout' button
                 $doNotLogout = $this->input->post('doNotLogout');
-            }
-
-            //Only attempt the login once the form is submitted or the cookie is set
-            if (isset($email) && $email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $loginSuccess = $this->AccountModel->SignIn($email, $password);
-                if ($loginSuccess) {
+                if ($doNotLogout) {
                     $loginSessionDetails = array(
                         'userEmail' => $email,
                         'userPassword' => $password
                     );
-
-                    if ($doNotLogout)
-                        setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 7), "/");
-
-                    redirect(base_url());
+                    setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 7), "/");
                 }
-                else $data['invalidCredentials'] = 1;
+
+                redirect(base_url());
             }
+            else
+                $data['invalidCredentials'] = 1;
         }
+
+        $data['body'] = 'login';
         $this->load->view('templates/main', $data);
     }
 
     /**
-     * Handles new account registrations.
+     * Handles new account registrations
      *
      * @return void
      */
-    public function newAccount()
+    public function newAccount(): void
     {
-        $data = [];
-        $data['body'] = 'register';
+        //If the user is already logged in, reset the session
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
-        $formSubmitted = isset($_POST['formSubmitted']);
+        if ($userLoggedIn)
+            redirect('logout');
 
-        if (!$userLoggedIn && $formSubmitted) {
-            $username		= isset($_POST['register--username']) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['register--username'] ) ) : "";
-            $email			= isset($_POST['register--email']) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['register--email'] ) ) : 0;
-            $password		= isset($_POST['register--password']) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['register--password'] ) ) : 0;
-            $passwordRep 	= isset($_POST['register--password__repetition']) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['register--password__repetition'] ) ) : 0;
-            $termsOfService	= isset($_POST['register--TOS']) ? trim( mysqli_real_escape_string( $this->db->conn_id, $_POST['register--TOS'] ) ) : 0;
+        //Process the form if it was submitted, otherwise just show the form
+        $data['body'] = 'register';
+        $formSubmitted = $this->input->post('formSubmitted');
+        if ($formSubmitted) {
+            //Fetch form data
+            $username		= $this->input->post('register--username');
+            $email			= $this->input->post('register--email');
+            $password		= $this->input->post('register--password');
+            $passwordRep 	= $this->input->post('register--password__repetition');
+            $termsOfService	= $this->input->post('register--TOS');
 
-            $data['usernameTooShort'] = strlen( $username ) > 0  ? 0 : "Nazwa użytkownika jest wymagana!";
-            $data['usernameTooLong']  = strlen( $username ) > 20 ? "Nazwa użytkownika nie może być dłuższa niż 20 znaków." : 0;
+            //Username filters
+            $data['usernameTooShort'] = strlen($username) > 0  ? 0 : "Nazwa użytkownika jest wymagana!";
+            $data['usernameTooLong']  = strlen($username) > 20 ? "Nazwa użytkownika nie może być dłuższa niż 20 znaków." : 0;
 
-            $data['emailFormatInvalid'] = filter_var( $email, FILTER_VALIDATE_EMAIL ) ? 0 : "Adres email jest wymagany!";
-            $data['emailTooLong'] 		= strlen( $email ) > 50 ? "Adres email nie może być dłuższy niż 50 znaków." : 0;
-            $data['emailRepeated'] 		= $this->AccountModel->isEmailUnique( $email ) ? 0 : "Istnieje już konto zarejestrowane na ten adres email. Jeżeli jest Twoje, wróć do ekranu logowania i wciśnij 'przypomnij hasło'.";
+            //Email filters
+            $data['emailFormatInvalid'] = filter_var($email, FILTER_VALIDATE_EMAIL) ? 0 : "Adres email jest wymagany!";
+            $data['emailTooLong'] 		= strlen($email) > 50 ? "Adres email nie może być dłuższy niż 50 znaków." : 0;
+            $data['emailRepeated'] 		= $this->AccountModel->isEmailUnique($email) ? 0 : "Istnieje już konto zarejestrowane na ten adres email. Jeżeli jest Twoje, wróć do ekranu logowania i wciśnij 'przypomnij hasło'.";
 
-            $data['passwordTooShort'] = strlen( $password ) > 3 ? 0 : "Hasło musi zawierać przynajmniej 4 znaki!";
-            $data['passwordTooLong']  = strlen( $password ) > 25 ? "Hasło nie może być dłuższe niż 25 znaków." : 0;
-
+            //Password filters
+            $data['passwordTooShort'] = strlen($password) > 3 ? 0 : "Hasło musi zawierać przynajmniej 4 znaki!";
+            $data['passwordTooLong']  = strlen($password) > 25 ? "Hasło nie może być dłuższe niż 25 znaków." : 0;
             $data['passwordRepetitionNotMatching'] = $password == $passwordRep ? 0 : "Wpisane hasła nie są identyczne!";
 
+            //ToS filter
             $data['termsOfServiceDenied'] = !$termsOfService ? "Aby kontynuować musisz zaakceptować zasady korzystania z serwisu." : 0;
 
-            if( $data['usernameTooShort'] || $data['usernameTooLong'] ||
+            //Validate the form inputs
+            if ($data['usernameTooShort'] || $data['usernameTooLong'] ||
                 $data['emailFormatInvalid'] || $data['emailTooLong'] || $data['emailRepeated'] ||
                 $data['passwordTooShort'] || $data['passwordTooLong'] ||
                 $data['passwordRepetitionNotMatching'] ||
-                $data['termsOfServiceDenied'] )
+                $data['termsOfServiceDenied'])
             {
-
+                //Construct the feedback message, exclude the array 'body' index
                 $dataKeys = array_keys($data);
                 for ($i = 0; $i < count($dataKeys); ++$i) {
-                    if (!$data[$dataKeys[$i]]) $data[$dataKeys[$i]] = "";
-                    else if ($data[$dataKeys[$i]] != "register") { //Exclude the 'body' param
+                    if (!$data[$dataKeys[$i]])
+                        $data[$dataKeys[$i]] = "";
+                    elseif ($data[$dataKeys[$i]] != "register") {
                         $addInFront = "<h4 class='registrationError'>";
                         $addInFront .= $data[$dataKeys[$i]];
                         $addInFront .= "</h4>";
@@ -116,6 +129,7 @@ class Account extends CI_Controller
                     }
                 }
 
+                //Refill the correct form fields in case the form was not validated
                 $data['setUsername']      	   = ($data['usernameTooShort'] || $data['usernameTooLong']) ? "" : $username;
                 $data['setEmail']			   = ($data['emailFormatInvalid'] || $data['emailTooLong'] || $data['emailRepeated']) ? "" : $email;
                 $data['setPassword']	  	   = ($data['passwordTooShort'] || $data['passwordTooLong']) ? "" : $password;
@@ -123,16 +137,20 @@ class Account extends CI_Controller
                 $data['setTOS']                = $data['termsOfServiceDenied'] ? "" : "checked";
             }
             else {
-                $passwordHash = password_hash($password, PASSWORD_BCRYPT);
-                $data['userHasRegistered'] = 1;
+                //Success view and message
                 $data['body'] = 'registrationSuccessful';
+                $data['userHasRegistered'] = 1;
+
+                //Collect the required account information
                 $queryData['username'] = $email;
                 $queryData['email'] = $email;
-                $queryData['password'] = $passwordHash;
+                $queryData['password'] = password_hash($password, PASSWORD_BCRYPT);;
                 $queryData['role'] = "user";
+
+                //Create account
                 $this->AccountModel->registerNewUser($queryData);
 
-                //Automatically sign the user in after registration
+                //Automatically sign the user in for 7 days after registration
                 session_unset();
                 session_destroy();
                 $authSuccess = $this->AccountModel->SignIn($email, $password);
@@ -143,8 +161,6 @@ class Account extends CI_Controller
                 setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 7), "/");
             }
         }
-        else if ($userLoggedIn)
-            redirect('logout');
 
         $this->load->view('templates/main', $data);
     }
@@ -154,12 +170,8 @@ class Account extends CI_Controller
      *
      * @return void
      */
-    public function logout()
+    public function logout(): void
     {
-        $data = array(
-            'body' => 'logout'
-        );
-
         //Delete the user session
         session_unset();
         session_destroy();
@@ -168,12 +180,20 @@ class Account extends CI_Controller
         if (isset($_COOKIE['login'])) {
             unset($_COOKIE['login']);
         }
+
+        //Override the login cookie with an expired one
         setcookie("login", "", time() - 3600, "/");
 
+        $data['body'] = "logout";
         $this->load->view('templates/main', $data);
     }
 
-    public function forgottenPassword()
+    /**
+     * Handles the forgotten password form.
+     *
+     * @return void
+     */
+    public function forgottenPassword(): void
     {
         //If the user is already logged in, reset the session
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
@@ -186,16 +206,20 @@ class Account extends CI_Controller
         );
 
         //Verify the provided email address
-        $enteredEmail = isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['email'])) : "";
+        $enteredEmail = $this->input->post('email');
+        $enteredEmail = filter_var($enteredEmail, FILTER_VALIDATE_EMAIL);
         if ($enteredEmail) {
             if (!$this->AccountModel->isEmailUnique($enteredEmail)) {
-                if($resetKey = $this->AccountModel->insertPasswordUpdateLink($enteredEmail)) {
+                $resetKey = $this->AccountModel->insertPasswordUpdateLink($enteredEmail);
+                if ($resetKey) {
                     $this->AccountModel->sendPasswordChangeEmail($enteredEmail, $resetKey);
-                    $data['actionNotification'] = "<span class='universal--successMessage'>Jeżeli istnieje konto założone na ten adres email, została na niego wysłana wiadomość z linkiem resetującym hasło.</span>";
+                    $data['actionNotification'] = "<span>Jeżeli istnieje konto założone na ten adres email, została na niego wysłana wiadomość z linkiem resetującym hasło.</span>";
                 }
-                else $data['actionNotification'] = "Nie udało się wysłać linku resetującego hasło. Spróbuj ponownie później bądź skontaktuj się z administracją RAPPAR.";
+                else
+                    $data['actionNotification'] = "Nie udało się wysłać linku resetującego hasło. Spróbuj ponownie później bądź skontaktuj się z administracją RAPPAR.";
             }
-            else $data['actionNotification'] = "<span class='universal--successMessage'>Jeżeli istnieje konto założone na ten adres email, została na niego wysłana wiadomość z linkiem resetującym hasło.</span>";
+            else
+                $data['actionNotification'] = "<span>Jeżeli istnieje konto założone na ten adres email, została na niego wysłana wiadomość z linkiem resetującym hasło.</span>";
         }
         elseif (isset($_POST['email']))
             $data['actionNotification'] = "Wpisano niepoprawny adres email.";
@@ -203,7 +227,13 @@ class Account extends CI_Controller
         $this->load->view('templates/main', $data);
     }
 
-    public function resetPassword()
+    /**
+     * Handles the password reset form.
+     * This form is accessed through the link emailed to the user.
+     *
+     * @return void
+     */
+    public function resetPassword(): void
     {
         //If the user is already logged in, reset the session
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
@@ -214,14 +244,14 @@ class Account extends CI_Controller
             'title' => 'Zresetuj Hasło | Uber Rapsy',
             'body' => 'account/resetPassword',
             'errorMessage' => '',
-            'key' => isset($_GET['qs']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['qs'])) : ""
+            'key' => $this->input->get('qs')
         );
 
         //Check if a valid password reset key was provided
         $userId = $this->AccountModel->validatePasswordResetString($data['key']);
         if ($userId) {
-            $password = isset($_POST['newPassword']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['newPassword'])) : null;
-            $passwordRepeat = isset($_POST['newPasswordRepeated']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['newPasswordRepeated'])) : null;
+            $password = $this->input->post('newPassword');
+            $passwordRepeat = $this->input->post('newPasswordRepeated');
 
             //Process the form if it was submitted
             if ($password && $passwordRepeat && strlen($password) > 7 && $password == $passwordRepeat) {
@@ -236,7 +266,7 @@ class Account extends CI_Controller
                     $data['errorMessage'] = "Nowe hasło musi zawierać przynajmniej osiem (8) znaków.";
                 elseif (!$passwordRepeat)
                     $data['errorMessage'] = "Musisz ponownie wpisać nowe hasło.";
-                elseif ($password !== $passwordRepeat)
+                elseif ($password != $passwordRepeat)
                     $data['errorMessage'] = "Wpisane hasła nie są identyczne.";
 
                 $data['errorMessage'] .= "<br />";
@@ -244,21 +274,21 @@ class Account extends CI_Controller
         }
         else {
             $data['body'] = 'account/resetPasswordResult';
-            $data['result'] = "Podany link jest niepoprawny. Spróbuj jeszcze raz lub ponownie kliknij przycisk przypomnij hasło w panelu logowania i wpisz swój adres email.";
+            $data['result'] = "Podany link jest niepoprawny. Spróbuj jeszcze raz lub ponownie kliknij przycisk przypomnij hasło w panelu logowania i postępuj zgodnie z instrukcjami.";
         }
 
         $this->load->view('templates/main', $data);
     }
 
     /**
-     * Opens the users dashboard (with only safe data presented)
+     * Opens the users dashboard (with only safe data presented).
      *
      * @return void
      */
-    public function usersDashboard()
+    public function usersDashboard(): void
     {
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
-        if($userAuthenticated) {
+        if ($userAuthenticated) {
             $data = array(
                 'body' => 'admin/usersDashboard',
                 'title' => 'Uber Rapsy | Centrum Zarządzania Użytkownikami',

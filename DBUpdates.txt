@@ -1,2 +1,83 @@
 CREATE TABLE `lanternc_uberrapsy`.`song_rating` (`id` INT NOT NULL AUTO_INCREMENT , `songId` INT NOT NULL , `userId` INT NOT NULL , `songGrade` DECIMAL(2, 2) NOT NULL , PRIMARY KEY (`id`)) ENGINE = MyISAM;
 ALTER TABLE song_rating ADD UNIQUE KEY unique_rating (userId, songId);
+CREATE TABLE `lanternc_uberrapsy`.`song_award` (`id` INT NOT NULL AUTO_INCREMENT , `songId` INT NOT NULL , `award` VARCHAR(22) NOT NULL , PRIMARY KEY (`id`)) ENGINE = MyISAM;
+
+================================================
+START TRANSACTION;
+
+CREATE TABLE IF NOT EXISTS playlist_song (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    songId INT NOT NULL,
+    listId INT NOT NULL,
+    SongGradeOwner DECIMAL(10, 2) NOT NULL,
+    SongComment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+    SongRehearsal BIT(1) NOT NULL DEFAULT 0,
+    SongDistinction BIT(1) NOT NULL DEFAULT 0,
+    SongMemorial BIT(1) NOT NULL DEFAULT 0,
+    SongXD BIT(1) NOT NULL DEFAULT 0,
+    SongNotRap BIT(1) NOT NULL DEFAULT 0,
+    SongDiscomfort BIT(1) NOT NULL DEFAULT 0,
+    SongTop BIT(1) NOT NULL DEFAULT 0,
+    SongNoGrade BIT(1) NOT NULL DEFAULT 0,
+    SongUber BIT(1) NOT NULL DEFAULT 0,
+    SongBelow BIT(1) NOT NULL DEFAULT 0,
+    SongBelTen BIT(1) NOT NULL DEFAULT 0,
+    SongBelNine BIT(1) NOT NULL DEFAULT 0,
+    SongBelEight BIT(1) NOT NULL DEFAULT 0,
+    SongBelFour BIT(1) NOT NULL DEFAULT 0,
+    SongDuoTen BIT(1) NOT NULL DEFAULT 0,
+    SongVeto BIT(1) NOT NULL DEFAULT 0,
+    SongBelHalfSeven BIT(1) NOT NULL DEFAULT 0,
+    SongBelHalfEight BIT(1) NOT NULL DEFAULT 0,
+    SongBelHalfNine BIT(1) NOT NULL DEFAULT 0,
+    SongDepA BIT(1) NOT NULL DEFAULT 0,
+    SongPlaylistItemsId VARCHAR(255) NOT NULL,
+    SongVisible BIT(1) NOT NULL DEFAULT 1,
+    FOREIGN KEY (songId) REFERENCES song(id)
+);
+
+INSERT INTO playlist_song (
+    songId, listId, SongGradeOwner, SongComment,
+    SongRehearsal, SongDistinction, SongMemorial, SongXD, SongNotRap,
+    SongDiscomfort, SongTop, SongNoGrade, SongUber, SongBelow,
+    SongBelTen, SongBelNine, SongBelEight, SongBelFour, SongDuoTen,
+    SongVeto, SongBelHalfSeven, SongBelHalfEight, SongBelHalfNine,
+    SongDepA, SongPlaylistItemsId
+)
+SELECT
+    SongId, ListId, SongGradeOwner, SongComment,
+    SongRehearsal, SongDistinction, SongMemorial, SongXD, SongNotRap,
+    SongDiscomfort, SongTop, SongNoGrade, SongUber, SongBelow,
+    SongBelTen, SongBelNine, SongBelEight, SongBelFour, SongDuoTen,
+    SongVeto, SongBelHalfSeven, SongBelHalfEight, SongBelHalfNine,
+    SongDepA, SongPlaylistItemsId
+FROM song;
+
+ALTER TABLE song
+DROP COLUMN listId,
+DROP COLUMN SongGradeOwner,
+DROP COLUMN SongComment,
+DROP COLUMN SongRehearsal,
+DROP COLUMN SongDistinction,
+DROP COLUMN SongMemorial,
+DROP COLUMN SongXD,
+DROP COLUMN SongNotRap,
+DROP COLUMN SongDiscomfort,
+DROP COLUMN SongTop,
+DROP COLUMN SongNoGrade,
+DROP COLUMN SongUber,
+DROP COLUMN SongBelow,
+DROP COLUMN SongBelTen,
+DROP COLUMN SongBelNine,
+DROP COLUMN SongBelEight,
+DROP COLUMN SongBelFour,
+DROP COLUMN SongDuoTen,
+DROP COLUMN SongVeto,
+DROP COLUMN SongBelHalfSeven,
+DROP COLUMN SongBelHalfEight,
+DROP COLUMN SongBelHalfNine,
+DROP COLUMN SongDepA,
+DROP COLUMN SongPlaylistItemsId;
+
+COMMIT;
+===================================

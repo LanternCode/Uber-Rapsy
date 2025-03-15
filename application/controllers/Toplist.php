@@ -36,13 +36,26 @@ class Toplist extends CI_Controller
      */
     public function songsToplist(): void
     {
+
+    }
+
+    /**
+     * Opens the individual song's page
+     *
+     * @return void
+     */
+    public function songPage(): void
+    {
         $data = array(
-            'body' => 'song/toplist',
-            'title' => 'Uber Rapsy | Toplista Nut',
-            'songs' => $this->SongModel->fetchSongsForToplist(),
-            'ratings' => $this->SongModel->fetchSongRating(7998, $_SESSION['userId']),
-            'averages' => $this->UtilityModel->TrimTrailingZeroes($this->SongModel->fetchSongAverage(7998))
+            'body' => 'song/songPage',
+            'title' => 'Uber Rapsy | Oceń nutę',
+            'song' => $this->SongModel->GetSongById(7998),
+            'myRating' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating(7998, $_SESSION['userId'])),
+            'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage(7998)),
+            'songAwards' => $this->SongModel->fetchSongAwards(7998)
         );
+        $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam);
+        $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie);
 
         $this->load->view('templates/toplist', $data);
     }
