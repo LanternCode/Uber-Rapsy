@@ -15,14 +15,14 @@
 <p>Playlista publiczna: <?=$playlist->ListPublic === "1" ? "Tak" : "Nie"?></p><br>
 <p>Playlista archiwalna: <?=$playlist->ListActive === "1" ? "Nie" : "Tak"?></p><br>
 <p>Link do playlisty na YT: <?=!empty($playlist->ListUrl) ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>https://www.youtube.com/playlist?list=$playlist->ListUrl</a>" : "Brak"?></p></br>
-<p>Link na Uber: <a target='_blank' href='<?=base_url('playlist?listId='.$playlist->ListId)?>'><?=base_url('playlist?listId='.$playlist->ListId)?></a></p></br>
+<p>Link na Uber: <a target='_blank' href='<?=base_url('playlist?playlistId='.$playlist->ListId)?>'><?=base_url('playlist?playlistId='.$playlist->ListId)?></a></p></br>
 <p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
 <p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br>
 <p>ID właściciela playlisty: <?=$playlist->ListOwnerId?></p><br>
 <p>Nazwa użytkownika właściciela playlisty: <?=$playlistOwnerUsername?></p><br><br>
 
 <h3>Zarządzaj playlistą</h3><br>
-<a href="<?=base_url('playlist/edit?listId='.$playlist->ListId.'&src='.$redirectSource)?>">Edytuj Playlistę</a><br><br>
+<a href="<?=base_url('playlist/edit?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Edytuj Playlistę</a><br><br>
 <a href="<?=base_url('playlist/hidePlaylist?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>"><?=$playlist->ListPublic === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br><br>
 <a href="<?=base_url('playlist/deleteLocal?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Usuń Playlistę</a><br><br>
 <a href="<?=base_url('playlist/showLog?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Pokaż ostatnie zmiany</a><br><br>

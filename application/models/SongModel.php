@@ -36,19 +36,6 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Fetch all songs from a list, no matter their visibility settings.
-     *
-     * @param int $listId  id of the list to get songs from
-     * @return array      returns an array containing the songs found
-     */
-    function GetAllSongsFromList(int $listId): array
-    {
-        $sql = "SELECT * FROM song WHERE ListId = $listId";
-
-        return $this->db->query($sql)->result();
-    }
-
-    /**
      * Fetch songs filtering by title.
      *
      * @param string $Search  title filter
@@ -91,17 +78,15 @@ class SongModel extends CI_Model
      * @param string $songURL  YT url of the song (without youtu.be/)
      * @param string $songThumbnailURL  YT URL of the song's thumbnail
      * @param string $songTitle title of the song on YT
-     * @param string $songPlaylistItemsId unique YT PlaylistItemsId (For API calls)
      * @param string $songChannelName the name of the YT channel that uploaded the song
      * @return int id of the inserted song
      */
-    function insertSong(string $songURL, string $songThumbnailURL, string $songTitle, string $songPlaylistItemsId, string $songChannelName): int
+    function insertSong(string $songURL, string $songThumbnailURL, string $songTitle, string $songChannelName): int
     {
         $queryData = array(
             'SongURL' => $songURL,
             'SongThumbnailURL' => $songThumbnailURL,
             'SongTitle' => $songTitle,
-            'SongPlaylistItemsId' => $songPlaylistItemsId,
             'SongChannelName' => $songChannelName
         );
 
@@ -114,13 +99,15 @@ class SongModel extends CI_Model
      *
      * @param int $listId  id of the playlist the song is inserted into
      * @param int $songId  id of the song
+     * @param string $songPlaylistItemsId unique YT PlaylistItemsId (For API calls)
      * @return int id of the inserted playlist_song
      */
-    public function insertPlaylistSong(int $listId, int $songId): int
+    public function insertPlaylistSong(int $listId, int $songId, string $songPlaylistItemsId): int
     {
         $queryData = array(
             'listId' => $listId,
-            'songId' => $songId
+            'songId' => $songId,
+            'SongPlaylistItemsId' => $songPlaylistItemsId,
         );
 
         $this->db->insert('playlist_song', $queryData);
@@ -138,8 +125,14 @@ class SongModel extends CI_Model
      */
     public function songExists(string $songURL, string $songTitle, string $songChannelName): int
     {
-        $sql = "SELECT SongId FROM song WHERE SongURL = '$songURL' AND SongTitle = '$songTitle' AND SongChannelName = '$songChannelName'";
-        return $this->db->query($sql)->row()->SongId ?? 0;
+        $query = $this->db->select('SongId')
+            ->from('song')
+            ->where('SongURL', $songURL)
+            ->where('SongTitle', $songTitle)
+            ->where('SongChannelName', $songChannelName)
+            ->get();
+
+        return $query->row()->SongId ?? 0;
     }
 
     /**

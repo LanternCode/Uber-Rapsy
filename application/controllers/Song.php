@@ -145,8 +145,8 @@ class Song extends CI_Controller
                 //Return to the playlist details view
                 $redirectSource = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : 0;
                 if ($redirectSource == 'pd')
-                    redirect('playlist/details?listId='.$song->ListId.'&src=pd');
-                else redirect('playlist/details?listId='.$song->ListId.'&src=mp');
+                    redirect('playlist/details?playlistId='.$song->ListId.'&src=pd');
+                else redirect('playlist/details?playlistId='.$song->ListId.'&src=mp');
             }
             else redirect('logout');
         }

@@ -8,5 +8,5 @@
     <h3>Pomyślnie załadowano utwory z playlisty na YT!</h3>
 <?php endif; ?>
 <br /><br />
-<a href="<?=base_url('/playlist?listId='.$listId)?>">Wróć do playlisty</a>
+<a href="<?=base_url('/playlist?playlistId='.$listId)?>">Wróć do playlisty</a>
 <br />

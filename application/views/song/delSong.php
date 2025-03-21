@@ -15,4 +15,4 @@
 Kontynuować?<br>
 
 <a href="<?=base_url('playlist/delSong?songId='.$song->SongId.'&src='.$redirectSource.'&delete=true')?>">Permanentnie usuń piosenkę</a><br>
-<a href="<?=base_url('playlist/details?listId='.$song->ListId.'&src='.$redirectSource)?>">Nie, Powrót</a>
+<a href="<?=base_url('playlist/details?playlistId='.$song->ListId.'&src='.$redirectSource)?>">Nie, Powrót</a>

@@ -54,7 +54,7 @@ class PlaylistItems extends CI_Controller {
         //Confirm a valid playlist id was passed
         $data = [];
         $data['body'] = 'playlist/insidePlaylist/playlist';
-        $data['listId'] = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
+        $data['listId'] = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
         $data['listId'] = is_numeric($data['listId']) ? $data['listId'] : 0;
         if ($data['listId']) {
             //Confirm the user is authorised or the playlist is public
@@ -115,10 +115,6 @@ class PlaylistItems extends CI_Controller {
                     default: {
                         //Fetch songs and filter by the search query if one was used
                         $data['songs'] = $this->SongModel->getPlaylistSongs($data['listId'], $data['searchQuery']);
-                        print_r('<pre>');
-                        print_r($data['songs']);
-                        print_r('</pre>');
-                        die();
                         break;
                     }
                 }
@@ -225,7 +221,7 @@ class PlaylistItems extends CI_Controller {
         //Verify whether a valid playlist id was submitted
         $data = [];
         $data['body'] = 'playlist/insidePlaylist/tierlist';
-        $data['listId'] = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
+        $data['listId'] = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
         $data['listId'] = is_numeric($data['listId']) ? $data['listId'] : 0;
         if ($data['listId']) {
             //Fetch the playlist and check if the user is authorised (or the list is public)
@@ -507,7 +503,7 @@ class PlaylistItems extends CI_Controller {
      */
     public function downloadSongs(): void
     {
-        $listId = isset($_GET['listId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['listId'])) : 0;
+        $listId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
         $listId = is_numeric($listId) ? $listId : 0;
         $data = array(
             'body' => 'downloadSongs',

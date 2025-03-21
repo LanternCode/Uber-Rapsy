@@ -14,6 +14,7 @@ if (!isset($_SESSION)) {
  *
  * @property LogModel $LogModel
  * @property SecurityModel $SecurityModel
+ * @property PlaylistModel $PlaylistModel
  * @property CI_Input $input
  */
 class Log extends CI_Controller
@@ -23,6 +24,7 @@ class Log extends CI_Controller
         parent::__construct();
         $this->load->model('SecurityModel');
         $this->load->model('LogModel');
+        $this->load->model('PlaylistModel');
     }
 
     /**

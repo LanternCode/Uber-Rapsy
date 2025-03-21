@@ -88,7 +88,7 @@ class Playlist extends CI_Controller {
                 $data = array(
                     'body' => 'playlist/details',
                     'title' => 'Uber Rapsy | Zarządzaj playlistą!',
-                    'songs' => $this->SongModel->GetAllSongsFromList($listId),
+                    'songs' => $this->SongModel->getPlaylistSongs($listId),
                     'playlist' => $this->PlaylistModel->fetchPlaylistById($listId),
                     'isReviewer' => $this->SecurityModel->authenticateReviewer(),
                     'redirectSource' => $this->input->get('src')

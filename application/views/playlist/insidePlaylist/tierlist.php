@@ -8,11 +8,11 @@
     <?php endif; ?>
     <select class="optionsURL redirectsBox" onchange="javascript:location.href = this.value;">
         <option value="">Pokaż oceny:</option>
-        <option value="<?=base_url("playlist?listId=".$listId)?>">Wszystkie Oceny</option>
-        <option value="<?=base_url("tierlist?listId=".$listId."&filter=Adam")?>">Najlepsze: Adam</option>
-        <option value="<?=base_url("tierlist?listId=".$listId."&filter=Churchie")?>">Najlepsze: Kościelny</option>
-        <option value="<?=base_url("tierlist?listId=".$listId."&filter=Owner")?>">Najlepsze: Właściciel</option>
-        <option value="<?=base_url("tierlist?listId=".$listId."&filter=Average")?>">Najlepsze: Średnia</option>
+        <option value="<?=base_url("playlist?playlistId=".$listId)?>">Wszystkie Oceny</option>
+        <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Adam")?>">Najlepsze: Adam</option>
+        <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Churchie")?>">Najlepsze: Kościelny</option>
+        <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Owner")?>">Najlepsze: Właściciel</option>
+        <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Average")?>">Najlepsze: Średnia</option>
     </select>
 </header>
 <br id="topoftherap"><br><br>

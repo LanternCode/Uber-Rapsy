@@ -4,7 +4,7 @@
 <?php if($searchQuery): ?>
     <a href="<?=base_url('search?SearchQuery='.$searchQuery)?>">Powrót do wyników wyszukiwania</a>
 <?php elseif (isset($playlistId) && is_numeric($playlistId)): ?>
-    <a href="<?=base_url('playlist?listId='.$playlistId)?>">Powrót do playlisty</a>
+    <a href="<?=base_url('playlist?playlistId='.$playlistId)?>">Powrót do playlisty</a>
 <?php else: ?>
     <a href="<?=base_url()?>">Powrót do strony głównej</a>
 <?php endif; ?>

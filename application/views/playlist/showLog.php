@@ -1,5 +1,5 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<a href="<?=base_url('playlist/details?listId='.$playlist->ListId.'&src='.$redirectSource)?>"><-- Wróć do playlisty</a><br><br>
+<a href="<?=base_url('playlist/details?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>"><-- Wróć do playlisty</a><br><br>
 
 <p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
 <p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br>

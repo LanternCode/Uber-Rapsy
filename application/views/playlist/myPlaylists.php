@@ -19,11 +19,11 @@
         </tr>
         <?php foreach($playlists as $playlist): ?>
             <tr>
-                <td><a target="_blank" href="<?=base_url('playlist?listId='.$playlist->ListId)?>">--></a></td>
+                <td><a target="_blank" href="<?=base_url('playlist?playlistId='.$playlist->ListId)?>">--></a></td>
                 <td><?=$playlist->ListName?></td>
-                <td><a href="<?=base_url('playlist/edit?listId='.$playlist->ListId.'&src=mp')?>">Edytuj</a></td>
+                <td><a href="<?=base_url('playlist/edit?playlistId='.$playlist->ListId.'&src=mp')?>">Edytuj</a></td>
                 <td><?=$playlist->ListPublic === "1" ? "Publiczna" : "Prywatna"?></td>
-                <td><a href="<?=base_url('playlist/details?listId='.$playlist->ListId.'&src=mp')?>">Szczegóły</a></td>
+                <td><a href="<?=base_url('playlist/details?playlistId='.$playlist->ListId.'&src=mp')?>">Szczegóły</a></td>
                 <td><?=$playlist->ListActive === "1" ? "Aktywna" : "Archiwalna"?></td>
             </tr>
         <?php endforeach; ?>

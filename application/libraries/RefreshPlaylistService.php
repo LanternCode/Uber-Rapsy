@@ -79,98 +79,96 @@ class RefreshPlaylistService
                     );
                 }
 
-                //How many songs total - assign 0 if null
-                $songsJsonArray[] = $response['items'];
-                $allResults = $response['pageInfo']['totalResults'] ?? 0;
+                if (isset($response)) {
+                    //How many songs total - assign 0 if null
+                    $err = false;
+                    $songsJsonArray[] = $response['items'];
+                    $allResults = $response['pageInfo']['totalResults'] ?? 0;
 
-                //If results were returned, continue the process
-                if ($allResults > 0) {
-                    //Keep loading songs until all are loaded
-                    for ($scannedResults = $response['pageInfo']['resultsPerPage'] ?? 150000;
-                         $scannedResults < $allResults;
-                         $scannedResults += $response['pageInfo']['resultsPerPage']) {
-                        //Get the token of the next page
-                        $pageToken = $response['nextPageToken'];
-                        //Perform calls to the PlaylistItems API until all items are retrieved
-                        $queryParams = [
-                            'maxResults' => 50,
-                            'pageToken' => $pageToken,
-                            'playlistId' => $this->CI->PlaylistModel->GetListUrlById($listId)
-                        ];
-                        $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
-                        //Save the songs into the local array
-                        $songsJsonArray[] = $response['items'];
-                    }
+                    //If results were returned, continue the process
+                    if ($allResults > 0) {
+                        //Keep loading songs until all are loaded
+                        for ($scannedResults = $response['pageInfo']['resultsPerPage'] ?? 150000;
+                             $scannedResults < $allResults;
+                             $scannedResults += $response['pageInfo']['resultsPerPage']) {
+                            //Get the token of the next page
+                            $pageToken = $response['nextPageToken'];
+                            //Perform calls to the PlaylistItems API until all items are retrieved
+                            $queryParams = [
+                                'maxResults' => 50,
+                                'pageToken' => $pageToken,
+                                'playlistId' => $this->CI->PlaylistModel->GetListUrlById($listId)
+                            ];
+                            $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
+                            //Save the songs into the local array
+                            $songsJsonArray[] = $response['items'];
+                        }
 
-                    //Get the URLs of all songs that are currently in the playlist
-                    $songURLs = $this->CI->SongModel->getURLsOfPlaylistSongs($listId);
-                    $songURLsArray = [];
-                    foreach ($songURLs as $songURL) {
-                        $songURLsArray[] = $songURL->SongURL;
-                    }
+                        //Get the URLs of all songs that are currently in the playlist
+                        $songURLs = $this->CI->SongModel->getURLsOfPlaylistSongs($listId);
+                        $songURLsArray = [];
+                        foreach ($songURLs as $songURL) {
+                            $songURLsArray[] = $songURL->SongURL;
+                        }
 
-                    print('<pre>');
-                    print($songsJsonArray);
-                    print("</pre>");
-                    die();
+                        //Perform the reloading process - The main array is composed of parsed song arrays
+                        $refreshReport = "<pre>";
+                        foreach ($songsJsonArray as $songArrays) {
+                            //Each of these arrays contains a song object
+                            foreach ($songArrays as $song) {
+                                //Get all required data to save a song in the database
+                                $songURL = $song['snippet']['resourceId']['videoId'];
+                                $songPublic = isset($song['snippet']['thumbnails']['medium']['url']);
+                                $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
+                                $songChannelName = $song['snippet']['videoOwnerChannelTitle'];
+                                $songTitle = $song['snippet']['title'];
+                                $songPlaylistItemsId = $song['id'];
 
-                    //Perform the reloading process - The main array is composed of parsed song arrays
-                    $refreshReport = "<pre>";
-                    foreach ($songsJsonArray as $songArrays) {
-                        //Each of these arrays contains a song object
-                        foreach ($songArrays as $song) {
-                            //Get all required data to save a song in the database
-                            $songURL = $song['snippet']['resourceId']['videoId'];
-                            $songPublic = isset($song['snippet']['thumbnails']['medium']['url']);
-                            $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
-                            $songChannelName = '';
-                            $songTitle = mysqli_real_escape_string($this->CI->db->conn_id, $song['snippet']['title']);
-                            $songPlaylistItemsId = $song['id'];
+                                //Discard incorrect and empty entries
+                                if (isset($songURL) && isset($songThumbnailURL) && isset($songChannelName) && strlen($songTitle) > 0 && isset($songPlaylistItemsId)) {
+                                    //Check if the song is public in YouTube
+                                    if (!$songPublic) {
+                                        //the entry is private/deleted from YT
+                                        $refreshReport .= $songURL . " jest prywatna - ❌<br />";
+                                        continue;
+                                    }
 
-                            //Discard incorrect and empty entries
-                            if (isset($songURL) && isset($songThumbnailURL) && isset($songChannelName) && strlen($songTitle) > 0 && isset($songPlaylistItemsId)) {
-                                //Check if the song is public in YouTube
-                                if (!$songPublic) {
-                                    //the entry is private/deleted from YT
-                                    $refreshReport .= $songURL . " jest prywatna - ❌<br />";
-                                    continue;
-                                }
-
-                                //Check if the song already exists in the database
-                                $existingSongId = $this->CI->SongModel->songExists($songURL, $songTitle, $songChannelName);
-                                if ($existingSongId) {
-                                    //Check if the playlist_song already exists in the database
-                                    $existingPlaylistSongId = $this->CI->SongModel->playlistSongExists($listId, $existingSongId);
-                                    if ($existingPlaylistSongId <= 0) {
-                                        //Insert the song into the playlist
-                                        $playlistSongId = $this->CI->SongModel->insertPlaylistSong($listId, $existingSongId);
-                                        $refreshReport .= $songTitle . " - ✔<br />";
+                                    //Check if the song already exists in the database
+                                    $existingSongId = $this->CI->SongModel->songExists($songURL, $songTitle, $songChannelName);
+                                    if ($existingSongId) {
+                                        //Check if the playlist_song already exists in the database
+                                        $existingPlaylistSongId = $this->CI->SongModel->playlistSongExists($listId, $existingSongId);
+                                        if ($existingPlaylistSongId <= 0) {
+                                            //Insert the song into the playlist
+                                            $playlistSongId = $this->CI->SongModel->insertPlaylistSong($listId, $existingSongId, $songPlaylistItemsId);
+                                            $refreshReport .= $songTitle . " - ✔<br />";
+                                        }
+                                        else {
+                                            $refreshReport .= $songTitle . " - ⏸<br />";
+                                        }
                                     }
                                     else {
-                                        $refreshReport .= $songTitle . " - ⏸<br />";
-                                    }
-                                }
-                                else {
-                                    //Insert the song into the database
-                                    $songId = $this->CI->SongModel->insertSong($songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId, $songChannelName);
+                                        //Insert the song into the database
+                                        $songId = $this->CI->SongModel->insertSong($songURL, $songThumbnailURL, $songTitle, $songChannelName);
 
-                                    //Insert the song into the playlist
-                                    $playlistSongId = $this->CI->SongModel->insertPlaylistSong($listId, $songId);
-                                    $refreshReport .= $songTitle . " - ✔<br />";
+                                        //Insert the song into the playlist
+                                        $playlistSongId = $this->CI->SongModel->insertPlaylistSong($listId, $songId, $songPlaylistItemsId);
+                                        $refreshReport .= $songTitle . " - ✔<br />";
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    //Songs were loaded correctly - submit a report
-                    $refreshReport .= "</pre>";
-                    $newReportId = $this->CI->LogModel->SubmitReport(htmlspecialchars($refreshReport));
-                    //Create a log with the report
-                    $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
-                    $logMessage = "Załadowano nowe nuty na playlistę" . $reportSuccessful;
-                    $this->CI->LogModel->createLog('playlist', $listId, $logMessage, $newReportId);
-                    $err = true;
-                } else $err = false;
+                        //Songs were loaded correctly - submit a report
+                        $refreshReport .= "</pre>";
+                        $newReportId = $this->CI->LogModel->SubmitReport(htmlspecialchars($refreshReport));
+                        //Create a log with the report
+                        $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
+                        $logMessage = "Załadowano nowe nuty na playlistę" . $reportSuccessful;
+                        $this->CI->LogModel->createLog('playlist', $listId, $logMessage, $newReportId);
+                        $err = true;
+                    }
+                }
             }
         }
         else {

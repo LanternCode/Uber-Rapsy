@@ -8,11 +8,11 @@
     <?php endif; ?>
     <select class="optionsURL redirectsBox" onchange="javascript:location.href = this.value;">
         <option value="">Pokaż oceny:</option>
-        <option value="<?=base_url("playlist?listId=".$listId)?>">Wszystkie Oceny</option>
-        <option value="<?=base_url("tierlist?listId=".$listId."&filter=Adam")?>">Najlepsze: Adam</option>
-        <option value="<?=base_url("tierlist?listId=".$listId."&filter=Churchie")?>">Najlepsze: Kościelny</option>
-        <option value="<?=base_url("tierlist?listId=".$listId."&filter=Owner")?>">Najlepsze: Właściciel</option>
-        <option value="<?=base_url("tierlist?listId=".$listId."&filter=Average")?>">Najlepsze: Średnia</option>
+        <option value="<?=base_url("playlist?playlistId=".$listId)?>">Wszystkie Oceny</option>
+        <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Adam")?>">Najlepsze: Adam</option>
+        <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Churchie")?>">Najlepsze: Kościelny</option>
+        <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Owner")?>">Najlepsze: Właściciel</option>
+        <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Average")?>">Najlepsze: Średnia</option>
         <option value="<?=base_url("playlist?listId=".$listId."&filter=Unrated")?>">Nieocenione</option>
         <?php foreach($checkboxPropertiesDetails as $propDetails):
             if ($playlist->{$propDetails[1]}): ?>
@@ -51,8 +51,8 @@
             <?php if($isReviewer): ?>
                 <li class="optionsURL">Zintegrowana: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>Tak</a>" : "Nie"?></li><br>
             <?php endif; ?>
-            <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url("downloadSongs?listId=".$listId)?>">Załaduj nowe nuty</a></li><br>
-            <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url('playlist/details?listId='.$listId.'&src=mp')?>">Statystyki i Ustawienia</a></li>
+            <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url("downloadSongs?playlistId=".$listId)?>">Załaduj nowe nuty</a></li><br>
+            <li class="optionsURL menuURL"><a class="blackBar" href="<?=base_url('playlist/details?playlistId='.$listId.'&src=mp')?>">Statystyki i Ustawienia</a></li>
         </ul>
 	<?php endif; ?>
     <?php if(count($songs) > 0):
@@ -62,7 +62,7 @@
 				<img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft">
 				<div class="dataContainerBox">
                     <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
-                    <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
+                    <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=htmlspecialchars($song->SongTitle, ENT_QUOTES, 'UTF-8')?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
                     <div class="dataContainerBox--split">
                         <div class="dataContainerBox--split__left">
                             <h4 class="dataContainer--gradeContainer">
