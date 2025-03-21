@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS playlist_song (
     id INT AUTO_INCREMENT PRIMARY KEY,
     songId INT NOT NULL,
     listId INT NOT NULL,
+    SongGradeAdam DECIMAL(10, 2) NOT NULL,
+    SongGradeChurchie DECIMAL(10, 2) NOT NULL,
     SongGradeOwner DECIMAL(10, 2) NOT NULL,
     SongComment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     SongRehearsal BIT(1) NOT NULL DEFAULT 0,
@@ -33,11 +35,12 @@ CREATE TABLE IF NOT EXISTS playlist_song (
     SongDepA BIT(1) NOT NULL DEFAULT 0,
     SongPlaylistItemsId VARCHAR(255) NOT NULL,
     SongVisible BIT(1) NOT NULL DEFAULT 1,
+    SongDeleted BIT(1) NOT NULL DEFAULT 0,
     FOREIGN KEY (songId) REFERENCES song(id)
 );
 
 INSERT INTO playlist_song (
-    songId, listId, SongGradeOwner, SongComment,
+    songId, listId, SongGradeAdam, SongGradeChurchie, SongGradeOwner, SongComment,
     SongRehearsal, SongDistinction, SongMemorial, SongXD, SongNotRap,
     SongDiscomfort, SongTop, SongNoGrade, SongUber, SongBelow,
     SongBelTen, SongBelNine, SongBelEight, SongBelFour, SongDuoTen,
@@ -45,7 +48,7 @@ INSERT INTO playlist_song (
     SongDepA, SongPlaylistItemsId
 )
 SELECT
-    SongId, ListId, SongGradeOwner, SongComment,
+    SongId, ListId, SongGradeAdam, SongGradeChurchie, SongGradeOwner, SongComment,
     SongRehearsal, SongDistinction, SongMemorial, SongXD, SongNotRap,
     SongDiscomfort, SongTop, SongNoGrade, SongUber, SongBelow,
     SongBelTen, SongBelNine, SongBelEight, SongBelFour, SongDuoTen,
@@ -55,6 +58,8 @@ FROM song;
 
 ALTER TABLE song
 DROP COLUMN listId,
+DROP COLUMN SongGradeAdam,
+DROP COLUMN SongGradeChurchie,
 DROP COLUMN SongGradeOwner,
 DROP COLUMN SongComment,
 DROP COLUMN SongRehearsal,
@@ -77,7 +82,9 @@ DROP COLUMN SongBelHalfSeven,
 DROP COLUMN SongBelHalfEight,
 DROP COLUMN SongBelHalfNine,
 DROP COLUMN SongDepA,
-DROP COLUMN SongPlaylistItemsId;
+DROP COLUMN SongPlaylistItemsId,
+ADD `SongChannelName` VARCHAR(50) NOT NULL AFTER `SongTitle`;
+
 
 COMMIT;
 ===================================

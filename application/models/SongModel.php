@@ -15,18 +15,22 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Fetch songs from a list filtering by title.
-     * Only visible songs are returned, that is, not manually hidden by the user.
+     * Fetch songs from a playlist, filtering by the song title.
+     * Only visible songs, that is, not manually hidden by the user, are returned.
      *
-     * @param int $listId  id of the list to get songs from
+     * @param int $listId  id of the playlist to get songs from
      * @param string $Search  title filter
-     * @return array      returns an array containing the songs found
+     * @return array returns an array containing the songs found
      */
-    function GetSongsFromList(int $listId, string $Search = "" ): array
+    function getPlaylistSongs(int $listId, string $Search = ""): array
     {
-        $searchQuery = " AND SongTitle LIKE '%$Search%'";
-        $sql = "SELECT * FROM song WHERE ListId = $listId AND SongVisible = 1";
-        if($Search != "") $sql = $sql . $searchQuery;
+        $sql = "SELECT * FROM playlist_song AS ps JOIN song AS s ON ps.songId = s.SongId WHERE ps.listId = $listId AND ps.SongVisible = 1 AND ps.SongDeleted = 0";
+        
+        //Apply the search filter
+        if ($Search != "") {
+            $searchQuery = " AND SongTitle LIKE '%$Search%'";
+            $sql .= $searchQuery;
+        }
 
         return $this->db->query($sql)->result();
     }
@@ -72,44 +76,84 @@ class SongModel extends CI_Model
      * @param int $listId  id of the list to fetch URLs from
      * @return array      returns an array containing the URLs found
      */
-    function GetURLsOfAllSongsInList(int $listId): array
+    function getURLsOfPlaylistSongs(int $listId): array
     {
-        $sql = "SELECT SongURL FROM song WHERE ListId = $listId";
-        return $this->db->query( $sql )->result();
+        $sql = "SELECT s.SongURL FROM song AS s JOIN playlist_song AS ps ON ps.songId = s.SongId WHERE ps.listId = $listId";
+        return $this->db->query($sql)->result();
     }
 
     /**
-     * Insert a song into our database.
+     * Insert a song into the local database.
      *
      * Every song fetched from our YT playlist is next fetched using YT API
-     * and saved into out database, so it is never lost
+     * and saved into the database, so it is never lost
      *
-     * @param int $listId  id of the list the song is inserted into
      * @param string $songURL  YT url of the song (without youtu.be/)
      * @param string $songThumbnailURL  YT URL of the song's thumbnail
      * @param string $songTitle title of the song on YT
      * @param string $songPlaylistItemsId unique YT PlaylistItemsId (For API calls)
-     * @return boolean           true if query worked, false if it failed
+     * @param string $songChannelName the name of the YT channel that uploaded the song
+     * @return int id of the inserted song
      */
-    function InsertSong(int $listId, string $songURL, string $songThumbnailURL, string $songTitle, string $songPlaylistItemsId): bool
+    function insertSong(string $songURL, string $songThumbnailURL, string $songTitle, string $songPlaylistItemsId, string $songChannelName): int
     {
-        $sql = "INSERT INTO song (ListId, SongURL, SongThumbnailURL, SongTitle, SongPlaylistItemsId)VALUES('$listId', '$songURL', '$songThumbnailURL', '$songTitle', '$songPlaylistItemsId')";
+        $queryData = array(
+            'SongURL' => $songURL,
+            'SongThumbnailURL' => $songThumbnailURL,
+            'SongTitle' => $songTitle,
+            'SongPlaylistItemsId' => $songPlaylistItemsId,
+            'SongChannelName' => $songChannelName
+        );
 
-        if($this->db->simple_query($sql)) return true;
-        else return false;
+        $this->db->insert('song', $queryData);
+        return $this->db->conn_id->insert_id;
     }
 
     /**
-     * Inserts a new song into the database based on the complete song array
+     * Insert a song into a playlist
      *
-     * @param array $queryData  song to be inserted
-     * @return int new song's id
+     * @param int $listId  id of the playlist the song is inserted into
+     * @param int $songId  id of the song
+     * @return int id of the inserted playlist_song
      */
-    function InsertSongFromArray(array $queryData = []): int
+    public function insertPlaylistSong(int $listId, int $songId): int
     {
-        if($this->db->insert('song', $queryData))
-            return $this->db->conn_id->insert_id;
-        else return false;
+        $queryData = array(
+            'listId' => $listId,
+            'songId' => $songId
+        );
+
+        $this->db->insert('playlist_song', $queryData);
+        return $this->db->conn_id->insert_id;
+    }
+
+    /**
+     * The method checks if the song with the selected URL, title and coming from the same channel
+     *  already exists in the database. If it does, it returns its id.
+     *
+     * @param string $songURL  YT url of the song (without youtu.be/)
+     * @param string $songTitle  YT title of the song
+     * @param string $songChannelName  YT channel name that uploaded the song
+     * @return int song id (or 0 if not found)
+     */
+    public function songExists(string $songURL, string $songTitle, string $songChannelName): int
+    {
+        $sql = "SELECT SongId FROM song WHERE SongURL = '$songURL' AND SongTitle = '$songTitle' AND SongChannelName = '$songChannelName'";
+        return $this->db->query($sql)->row()->SongId ?? 0;
+    }
+
+    /**
+     * The method checks if the song with the selected URL, title and coming from the same channel
+     *  already exists in the database. If it does, it returns its id.
+     *
+     * @param int $listId id of the playlist the song is inserted into
+     * @param int $songId id of the song
+     * @return int playlist_song id (or 0 if not found)
+     */
+    public function playlistSongExists(int $listId, int $songId): int
+    {
+        $sql = "SELECT id FROM playlist_song WHERE listId = $listId AND songId = $songId";
+        return $this->db->query($sql)->row()->id ?? 0;
     }
 
     /**
@@ -349,19 +393,20 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Fetches songs that are not yet fully rated
+     * Fetches playlist songs that are not yet rated
      *
      * @param int $listId Current playlist id
      * @return Array songs returned
      */
-    function FilterUnrated(int $listId): Array
+    function filterUnrated(int $listId): Array
     {
-        $sql = "SELECT * FROM song WHERE SongGradeAdam = 0 AND SongGradeChurchie = 0 AND ListId = $listId AND SongVisible = 1
-                     AND SongDistinction = 0 AND SongMemorial = 0 AND SongXD = 0 AND SongNotRap = 0
+        $sql = "SELECT * FROM playlist_song WHERE SongGradeAdam = 0 AND SongGradeChurchie = 0 AND SongGradeOwner = 0
+                     AND ListId = $listId AND SongVisible = 1 AND SongDeleted = 0
+                     AND SongRehearsal = 0 AND SongDistinction = 0 AND SongMemorial = 0 AND SongXD = 0 AND SongNotRap = 0
                      AND SongDiscomfort = 0 AND SongTop = 0 AND SongNoGrade = 0 AND SongUber = 0 AND SongBelow = 0
                      AND SongBelTen = 0 AND SongBelNine = 0 AND SongBelEight = 0 AND SongBelFour = 0
                      AND SongDuoTen = 0 AND SongVeto = 0 AND SongBelHalfSeven = 0 AND SongBelHalfEight = 0
-                     AND SongBelHalfNine = 0 AND SongRehearsal = 0";
+                     AND SongBelHalfNine = 0 AND SongDepA = 0 AND SongComment = ''";
         return $this->db->query($sql)->result();
     }
 
@@ -386,15 +431,15 @@ class SongModel extends CI_Model
 
     /**
      * There are a lot of checkboxes for each song entry, and this function makes it possible
-     * to filter songs in a given playlist by specifying the checked checkbox.
+     * to filter songs in a given playlist by specifying the required checked checkboxes.
      *
      * @param $listId int the id of the list to fetch the songs from
      * @param $propertyName string the name of the checkbox property to filter by
      * @return array
      */
-    function FilterSongsByCheckboxProperty(int $listId, string $propertyName): array
+    function filterSongsByCheckboxProperty(int $listId, string $propertyName): array
     {
-        $sql = "SELECT * FROM song WHERE $propertyName = 1 AND ListId = $listId AND SongVisible = 1";
+        $sql = "SELECT * FROM playlist_song WHERE $propertyName = 1 AND listId = $listId AND SongVisible = 1 AND SongDeleted = 0";
 
         return $this->db->query($sql)->result();
     }

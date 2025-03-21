@@ -19,6 +19,7 @@ if (!isset($_SESSION)) {
  * @property SecurityModel $SecurityModel
  * @property RefreshPlaylistService $RefreshPlaylistService
  * @property CI_DB_mysqli_driver $db
+ * @property CI_Input $input
  */
 class PlaylistItems extends CI_Controller {
     public function __construct() {
@@ -98,9 +99,9 @@ class PlaylistItems extends CI_Controller {
                     case "Checkbox": {
                         //A 'checkbox selected' filter is in use
                         $checkboxProperty = isset($_GET['prop']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['prop'])) : "none";
-                        foreach($data['checkboxPropertiesDetails'] as $checkboxProperties) {
+                        foreach ($data['checkboxPropertiesDetails'] as $checkboxProperties) {
                             if (in_array($checkboxProperty, $checkboxProperties)) {
-                                $data['songs'] = $this->SongModel->FilterSongsByCheckboxProperty($data['listId'], $checkboxProperty);
+                                $data['songs'] = $this->SongModel->filterSongsByCheckboxProperty($data['listId'], $checkboxProperty);
                                 break;
                             }
                         }
@@ -108,12 +109,16 @@ class PlaylistItems extends CI_Controller {
                     }
                     case "Unrated": {
                         //The 'unrated' filter is in use
-                        $data['songs'] = $this->SongModel->FilterUnrated($data['listId']);
+                        $data['songs'] = $this->SongModel->filterUnrated($data['listId']);
                         break;
                     }
                     default: {
                         //Fetch songs and filter by the search query if one was used
-                        $data['songs'] = $this->SongModel->GetSongsFromList($data['listId'], $data['searchQuery']);
+                        $data['songs'] = $this->SongModel->getPlaylistSongs($data['listId'], $data['searchQuery']);
+                        print_r('<pre>');
+                        print_r($data['songs']);
+                        print_r('</pre>');
+                        die();
                         break;
                     }
                 }
@@ -506,7 +511,7 @@ class PlaylistItems extends CI_Controller {
         $listId = is_numeric($listId) ? $listId : 0;
         $data = array(
             'body' => 'downloadSongs',
-            'title' => 'Aktualizacja listy!',
+            'title' => 'Aktualizacja playlisty!',
             'listId' => $listId,
             'displayErrorMessage' => ''
         );
@@ -514,10 +519,10 @@ class PlaylistItems extends CI_Controller {
         //Check if the user is logged in and has the required permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
         $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
-        if($userAuthorised) {
+        if ($userAuthorised) {
             //Check if the playlist has a YouTube link.
             $playlistUrl = $this->PlaylistModel->GetListUrlById($data['listId']);
-            if(!empty($playlistUrl)) {
+            if (!empty($playlistUrl)) {
                 //Refresh the playlist - if everything went well, the message will be empty
                 $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($data['listId']);
             }

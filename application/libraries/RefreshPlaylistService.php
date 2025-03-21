@@ -103,37 +103,60 @@ class RefreshPlaylistService
                     }
 
                     //Get the URLs of all songs that are currently in the playlist
-                    $songURLs = $this->CI->SongModel->GetURLsOfAllSongsInList($listId);
+                    $songURLs = $this->CI->SongModel->getURLsOfPlaylistSongs($listId);
                     $songURLsArray = [];
                     foreach ($songURLs as $songURL) {
                         $songURLsArray[] = $songURL->SongURL;
                     }
 
+                    print('<pre>');
+                    print($songsJsonArray);
+                    print("</pre>");
+                    die();
+
                     //Perform the reloading process - The main array is composed of parsed song arrays
                     $refreshReport = "<pre>";
-                    foreach ($songsJsonArray as $songarrays) {
+                    foreach ($songsJsonArray as $songArrays) {
                         //Each of these arrays contains a song object
-                        foreach ($songarrays as $song) {
+                        foreach ($songArrays as $song) {
                             //Get all required data to save a song in the database
                             $songURL = $song['snippet']['resourceId']['videoId'];
                             $songPublic = isset($song['snippet']['thumbnails']['medium']['url']);
                             $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
+                            $songChannelName = '';
                             $songTitle = mysqli_real_escape_string($this->CI->db->conn_id, $song['snippet']['title']);
                             $songPlaylistItemsId = $song['id'];
 
                             //Discard incorrect and empty entries
-                            if (isset($songURL) && isset($songThumbnailURL) && strlen($songTitle) > 0 && isset($songPlaylistItemsId)) {
-                                //Check if the song already exists in the database
-                                if (in_array($songURL, $songURLsArray)) {
-                                    $refreshReport .= $songTitle . " - ⏸<br />";
+                            if (isset($songURL) && isset($songThumbnailURL) && isset($songChannelName) && strlen($songTitle) > 0 && isset($songPlaylistItemsId)) {
+                                //Check if the song is public in YouTube
+                                if (!$songPublic) {
+                                    //the entry is private/deleted from YT
+                                    $refreshReport .= $songURL . " jest prywatna - ❌<br />";
+                                    continue;
                                 }
-                                else if ($songPublic && $this->CI->SongModel->InsertSong($listId, $songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId)) {
-                                    //Attempt to insert the song to the database
-                                    $refreshReport .= $songTitle . " - ✔<br />";
+
+                                //Check if the song already exists in the database
+                                $existingSongId = $this->CI->SongModel->songExists($songURL, $songTitle, $songChannelName);
+                                if ($existingSongId) {
+                                    //Check if the playlist_song already exists in the database
+                                    $existingPlaylistSongId = $this->CI->SongModel->playlistSongExists($listId, $existingSongId);
+                                    if ($existingPlaylistSongId <= 0) {
+                                        //Insert the song into the playlist
+                                        $playlistSongId = $this->CI->SongModel->insertPlaylistSong($listId, $existingSongId);
+                                        $refreshReport .= $songTitle . " - ✔<br />";
+                                    }
+                                    else {
+                                        $refreshReport .= $songTitle . " - ⏸<br />";
+                                    }
                                 }
                                 else {
-                                    //If the insertion failed
-                                    $refreshReport .= $songURL . " is private - ❌<br />";
+                                    //Insert the song into the database
+                                    $songId = $this->CI->SongModel->insertSong($songURL, $songThumbnailURL, $songTitle, $songPlaylistItemsId, $songChannelName);
+
+                                    //Insert the song into the playlist
+                                    $playlistSongId = $this->CI->SongModel->insertPlaylistSong($listId, $songId);
+                                    $refreshReport .= $songTitle . " - ✔<br />";
                                 }
                             }
                         }
@@ -161,11 +184,11 @@ class RefreshPlaylistService
         if ($err === false) {
             return "Wskazana na YT playlista jest pusta! Sprawdź w ustawieniach czy podano poprawny link!";
         }
-        else if (isset($err['code'])) {
+        elseif (isset($err['code'])) {
             if (in_array($err['code'], ["LNF", "TNF"])) {
                 return $err['displayMessage'];
             }
-            else if ($err['code'] === "RF") {
+            elseif ($err['code'] === "RF") {
                 return $err['displayMessage'];
             }
         }

@@ -1,5 +1,4 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 if(!isset($_SESSION)){
     session_start();
@@ -114,34 +113,6 @@ class Song extends CI_Controller
                 }
                 else if (isset($_POST['reviewMusic']) && !$owner)
                     redirect('logout');
-
-                $this->load->view('templates/main', $data);
-            }
-            else redirect('logout');
-        }
-        else redirect('logout');
-    }
-
-    /**
-     * Allows the user to see the logs of a song
-     *
-     * @return void
-     */
-    public function showLog()
-    {
-        //Validate the submitted song id
-        $data = [];
-        $songId = isset($_GET['songId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['songId'])) : 0;
-        $data['song'] = is_numeric($songId) ? $this->SongModel->GetSongById($songId) : false;
-        if ($data['song'] !== false) {
-            //Check if the user is logged in and has the required permissions
-            $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['song']->ListId) == $_SESSION['userId'];
-            if ($userAuthorised) {
-                $data['body']  = 'song/showLog';
-                $data['title'] = "Uber Rapsy | Historia nuty";
-                $data['songLog'] = $this->LogModel->GetSongLog($songId);
-                $data['redirectSource'] = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : 0;
 
                 $this->load->view('templates/main', $data);
             }

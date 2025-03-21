@@ -469,32 +469,4 @@ class Playlist extends CI_Controller {
         }
         else redirect('logout');
     }
-
-	/**
-     * Allows the user to see the logs of the playlist
-     *
-     * @return void
-     */
-    public function showPlaylistLog(): void
-    {
-        $playlistId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
-        if ($playlistId) {
-            //Check if the user is logged in and has the required permissions
-            $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
-            if ($userAuthorised) {
-                $data = array(
-                    'body' => 'playlist/showLog',
-                    'title' => 'Uber Rapsy | Historia playlisty',
-                    'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
-                    'playlistLog' => $this->LogModel->GetPlaylistLog($playlistId),
-                    'redirectSource' => $this->input->get('src')
-                );
-
-                $this->load->view('templates/main', $data);
-            }
-            else redirect('logout');
-        }
-        else redirect('logout');
-    }
 }

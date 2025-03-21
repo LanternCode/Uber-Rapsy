@@ -24,10 +24,10 @@ $route['playlist/edit'] = 'Playlist/editPlaylist';
 $route['playlist/hidePlaylist'] = 'Playlist/switchPlaylistPublicStatus';
 $route['playlist/deleteLocal'] = 'Playlist/deleteLocalPlaylist';
 $route['playlist/integrate'] = 'Playlist/integratePlaylist';
-$route['playlist/showLog'] = 'Playlist/showPlaylistLog';
+$route['playlist/showLog'] = 'Log/showPlaylistLog';
 
 $route['song/rev'] = 'Song/reviewSong';
-$route['song/showLog'] = 'Song/showLog';
+$route['song/showLog'] = 'Log/showPlaylistSongLog';
 $route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
 
 $route['songsToplist'] = 'Toplist/songPage';
