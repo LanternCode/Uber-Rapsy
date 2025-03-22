@@ -58,18 +58,6 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Fetch URL of every song in a playlist.
-     *
-     * @param int $listId  id of the list to fetch URLs from
-     * @return array      returns an array containing the URLs found
-     */
-    function getURLsOfPlaylistSongs(int $listId): array
-    {
-        $sql = "SELECT s.SongURL FROM song AS s JOIN playlist_song AS ps ON ps.songId = s.SongId WHERE ps.listId = $listId";
-        return $this->db->query($sql)->result();
-    }
-
-    /**
      * Insert a song into the local database.
      *
      * Every song fetched from our YT playlist is next fetched using YT API
@@ -494,5 +482,18 @@ class SongModel extends CI_Model
             'songId' => $songId
         ]);
         return $query->result();
+    }
+
+    /**
+     * Fetch songs, filtering by the song title.
+     * Only visible songs, that is, not hidden by staff, are visible
+     *
+     * @param string $search title filter
+     * @return array returns an array containing the songs found
+     */
+    public function searchSongs(string $search = ""): array
+    {
+        $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$search%' AND SongVisible = 1 AND SongDeleted = 0";
+        return $this->db->query($sql)->result();
     }
 }

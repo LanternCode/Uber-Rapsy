@@ -32,6 +32,7 @@ $route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
 
 $route['songsToplist'] = 'Toplist/songPage';
 $route['songsToplist/saveGrades'] = 'Toplist/saveGradesFromToplist';
+$route['songSearch'] = 'Toplist/songSearch';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';

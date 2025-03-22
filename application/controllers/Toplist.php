@@ -46,18 +46,22 @@ class Toplist extends CI_Controller
      */
     public function songPage(): void
     {
-        $data = array(
-            'body' => 'song/songPage',
-            'title' => 'Uber Rapsy | Oceń nutę',
-            'song' => $this->SongModel->GetSongById(7998),
-            'myRating' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating(7998, $_SESSION['userId'])),
-            'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage(7998)),
-            'songAwards' => $this->SongModel->fetchSongAwards(7998)
-        );
-        $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam);
-        $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie);
+        $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        if ($songId) {
+            $data = array(
+                'body' => 'song/songPage',
+                'title' => 'Uber Rapsy | Oceń nutę',
+                'song' => $this->SongModel->GetSongById($songId),
+                'myRating' => isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $_SESSION['userId'])) : 0,
+                'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
+                'songAwards' => $this->SongModel->fetchSongAwards($songId)
+            );
+            $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
+            $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
 
-        $this->load->view('templates/toplist', $data);
+            $this->load->view('templates/toplist', $data);
+        }
+        else redirect('logout');
     }
 
     /**
@@ -85,6 +89,45 @@ class Toplist extends CI_Controller
             redirect('songsToplist');
         }
         else redirect('logout');
+    }
+
+    /**
+     * This method handles the normal loading of playlist items
+     * By default all songs in the playlists are loaded
+     * If filters are used, only the songs that match the filter are shown
+     * Search query is a text-based filter that is empty by default and not
+     *      included as a separate filter (those are based on checkboxes)
+     *
+     * The specific filters are:
+     * repeat - only show songs with the repeat checkbox checked
+     * unrated - only show songs that are unrated by at least one reviewer
+     * checkbox property - only show songs with the specified checkbox property checked
+     *
+     * @return void
+     */
+    public function songSearch(): void
+    {
+        $data = array(
+            'body' => 'toplist/songSearch',
+            'title' => 'Wyniki Wyszukiwania Nut | Uber Rapsy',
+            'songs' => array(),
+            'searchQuery' => trim($this->input->get('searchQuery') ?? '')
+        );
+
+        //Fetch songs filtered by a valid search query
+        if (strlen($data['searchQuery']) >= 1) {
+            //Fetch per-song properties if there were 300 or less songs returned
+            $data['songs'] = $this->SongModel->searchSongs($data['searchQuery']);
+            if (count($data['songs']) <= 300) {
+                foreach ($data['songs'] as $song) {
+                    $song->myGrade = isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($song->SongId, $_SESSION['userId'])) : 0;
+                    $song->communityAverage = $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($song->SongId));
+                    $song->awards = $this->SongModel->fetchSongAwards($song->SongId);
+                }
+            }
+        }
+
+        $this->load->view('templates/toplist', $data);
     }
 
 }

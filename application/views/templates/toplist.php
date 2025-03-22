@@ -12,21 +12,26 @@
     <body>
         <header class="optionsHeader">
             <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
-            <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+            <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
                 <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Playlisty</a>
-                <?php if($_SESSION['userRole'] === 'reviewer'): ?>
-                    <a class="optionsURL" href="<?=base_url("songsToplist")?>">Nuta Roku</a>
-                    <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
-                <?php endif; ?>
+            <?php endif; ?>
+            <a class="optionsURL" href="<?=base_url("songsToplist")?>">Toplisty RAPPAR</a>
+            <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+                <a class="optionsURL" href="<?=base_url("")?>">Dodaj Nowe Nuty</a>
+            <?php endif; ?>
+            <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+                <a class="optionsURL" href="<?=base_url("")?>">Dodaj Toplistę</a>
+                <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
+            <?php endif; ?>
+            <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
                 <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
                 <input type="submit" form="toplist" value="Zapisz Oceny" class="optionsURL" />
             <?php else: ?>
                 <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>
             <?php endif; ?>
-            <form class="optionsURL optionsRight" method="get" action="<?=base_url("search")?>" target="_blank">
+            <form class="optionsURL optionsRight" method="get" action="<?=base_url("songSearch")?>">
                 <label class="optionsSearchLabel">Szukaj nuty</label>
-                <input type="text" placeholder="Rajaner" name="SearchQuery" />
-                <input type="hidden" value="true" name="GlobalSearch" />
+                <input type="text" placeholder="Strumień" name="searchQuery" required/>
                 <input type="submit" value="Szukaj" />
             </form>
         </header>

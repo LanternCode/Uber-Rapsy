@@ -360,14 +360,17 @@ html {
     align-items: flex-start;
     margin-bottom: 20px;
 }
+
 .song-title {
     margin: 0;
     font-size: 1.7rem;
 }
+
 .song-authors {
     font-size: 1rem;
     color: #555;
 }
+
 .song-awards {
     text-align: right;
     font-size: 1rem;
@@ -384,16 +387,19 @@ html {
     gap: 20px;
     margin-bottom: 20px;
 }
+
 .song-thumbnail {
     width: 320px;
     height: 180px;
     object-fit: cover;
     border: 2px solid #000;
 }
+
 .song-grades {
     text-align: center;
     flex: 1;
 }
+
 .song-grades p {
     margin-bottom: 8px;
     font-size: 1.2rem; /* slightly larger text for grades */
@@ -484,4 +490,20 @@ html {
     position: absolute;
     transform: translateX(-50%);
     font-size: 14px;
+}
+
+table {
+    width: 100%;
+    border-collapse: separate; /* Allows border-spacing to work */
+    border-spacing: 10px;      /* Creates space between cells (simulating row margins) */
+}
+
+th, td {
+    padding: 8px;
+    text-align: center;        /* Centers the text */
+    border: 1px solid #ccc;    /* Optional: visible borders for clarity */
+}
+
+th {
+    background-color: #f2f2f2;
 }

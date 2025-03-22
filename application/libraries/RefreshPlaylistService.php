@@ -104,13 +104,6 @@ class RefreshPlaylistService
                             $songsJsonArray[] = $response['items'];
                         }
 
-                        //Get the URLs of all songs that are currently in the playlist
-                        $songURLs = $this->CI->SongModel->getURLsOfPlaylistSongs($listId);
-                        $songURLsArray = [];
-                        foreach ($songURLs as $songURL) {
-                            $songURLsArray[] = $songURL->SongURL;
-                        }
-
                         //Perform the reloading process - The main array is composed of parsed song arrays
                         $refreshReport = "<pre>";
                         foreach ($songsJsonArray as $songArrays) {
