@@ -21,8 +21,10 @@ if (!isset($_SESSION)) {
  * @property CI_DB_mysqli_driver $db
  * @property CI_Input $input
  */
-class PlaylistItems extends CI_Controller {
-    public function __construct() {
+class PlaylistItems extends CI_Controller
+{
+    public function __construct()
+    {
         parent::__construct();
         $this->load->model('PlaylistModel');
         $this->load->model('SongModel');
@@ -49,23 +51,21 @@ class PlaylistItems extends CI_Controller {
      *
      * @return void
      */
-    public function loadPlaylist()
+    public function loadPlaylist(): void
     {
-        //Confirm a valid playlist id was passed
-        $data = [];
-        $data['body'] = 'playlist/insidePlaylist/playlist';
-        $data['listId'] = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
-        $data['listId'] = is_numeric($data['listId']) ? $data['listId'] : 0;
+        $data = array(
+            'body' => 'playlist/insidePlaylist/playlist',
+            'listId' => filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT)
+        );
         if ($data['listId']) {
             //Confirm the user is authorised or the playlist is public
             $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['listId']);
-            $data['title'] = $data['playlist']->ListName." | Playlista Uber Rapsy";
+            $data['title'] = $data['playlist']->ListName . " | Playlista Uber Rapsy";
             $data['isOwner'] = isset($_SESSION['userId']) && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
-                //Fetch the required playlist properties
-                $data['searchQuery'] = isset($_GET['SearchQuery']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['SearchQuery'])) : "";
+                $data['searchQuery'] = $this->input->get('SearchQuery');
                 $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer";
                 $data['allPlaylists'] = $this->PlaylistModel->GetListsIdsAndNames();
                 $data['songs'] = [];
@@ -94,11 +94,12 @@ class PlaylistItems extends CI_Controller {
                 ];
 
                 //Apply a filter if one was selected by the user (proceed to the default case if not)
-                $filter = isset($_GET['filter']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['filter'])) : "";
+                $filter = $this->input->get('filter');
                 switch ($filter) {
-                    case "Checkbox": {
+                    case "Checkbox":
+                    {
                         //A 'checkbox selected' filter is in use
-                        $checkboxProperty = isset($_GET['prop']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['prop'])) : "none";
+                        $checkboxProperty = $this->input->get('prop');
                         foreach ($data['checkboxPropertiesDetails'] as $checkboxProperties) {
                             if (in_array($checkboxProperty, $checkboxProperties)) {
                                 $data['songs'] = $this->SongModel->filterSongsByCheckboxProperty($data['listId'], $checkboxProperty);
@@ -107,12 +108,14 @@ class PlaylistItems extends CI_Controller {
                         }
                         break;
                     }
-                    case "Unrated": {
+                    case "Unrated":
+                    {
                         //The 'unrated' filter is in use
                         $data['songs'] = $this->SongModel->filterUnrated($data['listId']);
                         break;
                     }
-                    default: {
+                    default:
+                    {
                         //Fetch songs and filter by the search query if one was used
                         $data['songs'] = $this->SongModel->getPlaylistSongs($data['listId'], $data['searchQuery']);
                         break;
@@ -130,18 +133,15 @@ class PlaylistItems extends CI_Controller {
                 $ratedTotal = 0;
 
                 //Compute the average grades song-by-song
-                foreach($data['songs'] as $song) {
+                foreach ($data['songs'] as $song) {
                     //Display values without decimals at the end if the decimals are zeros
-                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
-                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);
-                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->trimTrailingZeroes($song->SongGradeOwner);
-                    $song->Average = $this->calculateAverage($song);
+                    $this->setSongGrades($song);
 
                     //Check per-reviewer averages to add to the playlist statistics
                     $includeAdam = $song->SongGradeAdam > 0 && !($song->SongDuoTen && $song->SongGradeAdam == 10);
                     $includeChurchie = $song->SongGradeChurchie > 0 && !($song->SongDuoTen && $song->SongGradeChurchie == 10);
                     $includeOwner = $song->SongGradeOwner > 0 && !($song->SongDuoTen && $song->SongGradeOwner == 10);
-                    if($includeAdam || $includeChurchie || $includeOwner) {
+                    if ($includeAdam || $includeChurchie || $includeOwner) {
                         $avgAdam += $includeAdam ? $song->SongGradeAdam : 0;
                         $avgChurchie += $includeChurchie ? $song->SongGradeChurchie : 0;
                         $avgOwner += $includeOwner ? $song->SongGradeOwner : 0;
@@ -154,20 +154,18 @@ class PlaylistItems extends CI_Controller {
                 }
 
                 //Calculate playlist averages for each reviewer
-                $data['avgOverall'] = $ratedTotal > 0 ? $avgOverall/$ratedTotal : 0;
-                $data['avgAdam'] = $ratedAdam > 0 ? $avgAdam/$ratedAdam : 0;
-                $data['avgChurchie'] = $ratedChurchie > 0 ? $avgChurchie/$ratedChurchie : 0;
-                $data['avgOwner'] = $ratedOwner > 0 ? $avgOwner/$ratedOwner : 0;
+                $data['avgOverall'] = $ratedTotal > 0 ? $avgOverall / $ratedTotal : 0;
+                $data['avgAdam'] = $ratedAdam > 0 ? $avgAdam / $ratedAdam : 0;
+                $data['avgChurchie'] = $ratedChurchie > 0 ? $avgChurchie / $ratedChurchie : 0;
+                $data['avgOwner'] = $ratedOwner > 0 ? $avgOwner / $ratedOwner : 0;
                 $data['ratedOverall'] = $ratedTotal;
                 $data['ratedAdam'] = $ratedAdam;
                 $data['ratedChurchie'] = $ratedChurchie;
                 $data['ratedOwner'] = $ratedOwner;
-            }
-            else redirect('logout');
-        }
-        else redirect('logout');
 
-        $this->load->view('templates/customNav', $data);
+                $this->load->view('templates/customNav', $data);
+            } else redirect('logout');
+        } else redirect('logout');
     }
 
     /**
@@ -179,26 +177,22 @@ class PlaylistItems extends CI_Controller {
      */
     public function globalSearch(): void
     {
-        $data = [];
-        $data['searchQuery'] = isset($_GET['SearchQuery']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['SearchQuery'])) : 0;
-        $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] === "reviewer";
-        $data['body'] = 'playlist/insidePlaylist/searchResults';
-        $data['title'] = "Wyniki Wyszukiwania | Uber Rapsy";
-        $data['songs'] = [];
-
-        //Handle global search
+        $data = array(
+            'isReviewer' => isset($_SESSION['userRole']) && $_SESSION['userRole'] === "reviewer",
+            'searchQuery' => $this->input->get('SearchQuery'),
+            'body' => 'playlist/insidePlaylist/searchResults',
+            'title' => "Wyniki Wyszukiwania | Uber Rapsy",
+            'songs' => array(),
+            'playlist' => array()
+        );
         if (strlen($data['searchQuery']) > 0) {
-            $data['playlist'] = [];
             $data['songs'] = $this->SongModel->GetSongsFromSearch($data['searchQuery']);
             if (count($data['songs']) > 0 && count($data['songs']) < 301) {
                 $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
                 $data['userOwnedPlaylists'] = isset($_SESSION['userId']) ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->FetchUserPlaylistsIDs($_SESSION['userId'])) : [];
                 foreach ($data['songs'] as $song) {
                     //Display values without decimals at the end if the decimals are only 0's (ex. 5.50 -> 5.5)
-                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
-                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);
-                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->trimTrailingZeroes($song->SongGradeOwner);
-                    $song->Average = $this->calculateAverage($song);
+                    $this->setSongGrades($song);
 
                     //Get song button information
                     $data['playlist'][] = $this->PlaylistModel->fetchPlaylistById($song->ListId);
@@ -219,10 +213,11 @@ class PlaylistItems extends CI_Controller {
     public function tierlist(): void
     {
         //Verify whether a valid playlist id was submitted
-        $data = [];
-        $data['body'] = 'playlist/insidePlaylist/tierlist';
-        $data['listId'] = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
-        $data['listId'] = is_numeric($data['listId']) ? $data['listId'] : 0;
+        $data = array(
+            'body' => 'playlist/insidePlaylist/tierlist',
+            'listId' => filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT),
+            'isReviewer' => isset($_SESSION['userRole']) && $_SESSION['userRole'] === "reviewer"
+        );
         if ($data['listId']) {
             //Fetch the playlist and check if the user is authorised (or the list is public)
             $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['listId']);
@@ -231,10 +226,8 @@ class PlaylistItems extends CI_Controller {
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
-                $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] === "reviewer";
-
                 //Define the tierlist owner
-                $data['filter'] = isset($_GET['filter']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['filter'])) : "none";
+                $data['filter'] = $this->input->get('filter');
                 $data['propName'] = $data['filter'] === "Adam" ? "SongGradeAdam" : ($data['filter'] === "Churchie" ? "SongGradeChurchie" : ($data['filter'] === "Owner" ? "SongGradeOwner" : "Average"));
 
                 //Fetch other relevant data to complete the tierlist
@@ -243,27 +236,24 @@ class PlaylistItems extends CI_Controller {
 
                 //Pre-compute every song's average and trim trailing zeros
                 foreach ($data['songs'] as $song) {
-                    if(is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
-                    if(is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);
-                    if(is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->trimTrailingZeroes($song->SongGradeOwner);
-                    $song->Average = $this->calculateAverage($song);
+                    $this->setSongGrades($song);
                 }
 
                 //Filter out songs without the reviewer's grade
-                $data['songs'] = array_filter($data['songs'], function($song) use ($data) {
+                $data['songs'] = array_filter($data['songs'], function ($song) use ($data) {
                     return $song->{$data['propName']} >= 1 && $song->{$data['propName']} <= 15;
                 });
 
                 //Sort the filtered array by the reviewer's grade in descending order
-                usort($data['songs'], function($a, $b) use ($data) {
+                usort($data['songs'], function ($a, $b) use ($data) {
                     return $b->{$data['propName']} <=> $a->{$data['propName']};
                 });
+
+                $this->load->view('templates/customNav', $data);
             }
             else redirect('logout');
         }
         else redirect('logout');
-
-        $this->load->view('templates/customNav', $data);
     }
 
     /**
@@ -283,20 +273,21 @@ class PlaylistItems extends CI_Controller {
     public function updateSongRatingsInPlaylist(): void
     {
         //Check if the request comes from a valid playlist or the search engine
-        $playlistId = isset($_POST['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['playlistId'])) : 0;
-        $playlistId = is_numeric($playlistId) || $playlistId == "search" ? $playlistId : 0;
+        $playlistId = filter_var($this->input->post('playlistId'), FILTER_VALIDATE_INT);
+        $playlistId = $playlistId == "search" ? $playlistId : 0;
         if ($playlistId) {
-            //Check if the user is allowed to update grades from the playlist or the various songs founds through the search engine
+            //Check if the user is allowed to update grades from the playlist or the various songs found through the search engine
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userOwnedPlaylists = $userAuthenticated ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->FetchUserPlaylistsIDs($_SESSION['userId'])) : [];
             $userAuthorised = !($playlistId == "search") && $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
             $searchUpdateAuthenticated = $playlistId == "search" && count($userOwnedPlaylists) > 0;
             $reviewerAuthenticated = $this->SecurityModel->authenticateReviewer();
             if ($userAuthorised || $searchUpdateAuthenticated || $reviewerAuthenticated) {
-                $data = [];
-                $data['body']  = 'update';
-                $data['title'] = "Oceny Zapisane!";
-                $data['searchQuery'] = $playlistId == "search" ? $this->input->post('searchQuery') : false;
+                $data = array(
+                    'body' => 'update',
+                    'title' => 'Oceny Zapisane!',
+                    'searchQuery' => $playlistId == "search" ? $this->input->post('searchQuery') : false
+                );
                 $resultMessage = "<pre>";
 
                 //Fetch the playlist to access its settings
@@ -311,14 +302,14 @@ class PlaylistItems extends CI_Controller {
                 $i = 0;
                 $data['processedSongsCount'] = 0;
                 $data['processedAndUpdatedSongsCount'] = 0;
-                while (isset($_POST["songUpdated-" . $i+21])) {
+                while (isset($_POST["songUpdated-" . $i + 21])) {
                     $i += ($data['processedSongsCount'] == 0) ? 0 : 28;
                     $data['processedSongsCount'] += 1;
                     //Only process songs that were actually updated
-                    $songUpdated = isset($_POST["songUpdated-" . $i+21]) && $_POST["songUpdated-".$i+21];
+                    $songUpdated = $this->input->post('songUpdated-'.$i+21);
                     if ($songUpdated) {
                         //Fetch the song-to-update and check whether the user is allowed to update it (through search or playlist listing)
-                        $formInput['songId'] = $_POST["songId-" . $i];
+                        $formInput['songId'] = $this->input->post('songId-'.$i);
                         $currentSong = $this->SongModel->GetSongById($formInput['songId']);
                         $currentSongPlaylistPublicStatus = $this->PlaylistModel->getListPublicProperty($currentSong->ListId);
                         $updateAuthorised = $playlistId == "search" ? (in_array($currentSong->ListId, $userOwnedPlaylists) || ($reviewerAuthenticated && $currentSongPlaylistPublicStatus)) : ($userAuthorised || $reviewerAuthorised);
@@ -363,7 +354,7 @@ class PlaylistItems extends CI_Controller {
 
                             //Fatal Error - if the song was not fetched, note this and continue to the next song.
                             if ($currentSong === false) {
-                                $resultMessage .= "<br><br>\tNie znaleziono utworu o ID ".$formInput['songId']."<br><br>";
+                                $resultMessage .= "<br><br>\tNie znaleziono utworu o ID " . $formInput['songId'] . "<br><br>";
                                 continue;
                             }
 
@@ -385,11 +376,12 @@ class PlaylistItems extends CI_Controller {
                                 if (strlen($newAdamRating) > 0 && strlen($newChurchieRating) > 0 && strlen($newOwnerRating) > 0
                                     && is_numeric($newAdamRating) && is_numeric($newChurchieRating) && is_numeric($newOwnerRating)
                                     && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15) && $this->UtilityModel->InRange($newOwnerRating, 0, 15)
-                                    && fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0 && fmod($newOwnerRating, 0.5) == 0) {
+                                    && fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0 && fmod($newOwnerRating, 0.5) == 0)
+                                {
                                     $scoresSaved = $this->SongModel->UpdateSongScores($currentSong->SongId, $newAdamRating, $newChurchieRating, $newOwnerRating);
                                     if (!$scoresSaved) {
                                         //Fatal Error - if grades were not saved, note this and continue to the next song.
-                                        $resultMessage .= "<br><br>\tNie udało się zapisać ocen dla utworu ".$currentSong->SongTitle."<br><br>";
+                                        $resultMessage .= "<br><br>\tNie udało się zapisać ocen dla utworu " . $currentSong->SongTitle . "<br><br>";
                                         continue;
                                     }
 
@@ -405,11 +397,11 @@ class PlaylistItems extends CI_Controller {
                             }
 
                             //Update song comment
-                            if($commentUpdated) {
+                            if ($commentUpdated) {
                                 $commentSaved = $this->SongModel->UpdateSongComment($currentSong->SongId, $formInput['SongComment']);
                                 if (!$commentSaved) {
                                     //Fatal Error - if comment was not saved, note this and continue to the next song.
-                                    $resultMessage .= "<br><br>\tNie udało się zapisać komentarza do utworu ".$currentSong->SongTitle."<br><br>";
+                                    $resultMessage .= "<br><br>\tNie udało się zapisać komentarza do utworu " . $currentSong->SongTitle . "<br><br>";
                                     continue;
                                 }
                                 else {
@@ -425,12 +417,10 @@ class PlaylistItems extends CI_Controller {
                                     $propertyDisplayName = $this->GetPropertyDisplayName($prop);
                                     $updateSuccess = $this->SongModel->UpdateSongCheckboxProperty($currentSong->SongId, $prop, $formInput[$prop]);
                                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
-                                    if ($updateSuccess) {
+                                    if ($updateSuccess)
                                         $localResultMessage .= ($formInput[$prop] ? "Zaznaczono " : "Odznaczono ") . $propertyDisplayName;
-                                    }
-                                    else {
+                                    else
                                         $localResultMessage .= "Nie udało się zmienić wartości przycisku " . $propertyDisplayName;
-                                    }
                                     $createUpdateLog = true;
                                 }
                             }
@@ -448,11 +438,11 @@ class PlaylistItems extends CI_Controller {
                                     $sourceName = $playlistId === "search" ? "wyszukiwarki" : "playlisty " . $playlist->ListName;
                                     $targetName = $this->PlaylistModel->GetPlaylistNameById($formInput['copyToPlaylist']);
                                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
-                                    $localResultMessage .= "Skopiowano do: ".$targetName;
+                                    $localResultMessage .= "Skopiowano do: " . $targetName;
                                     $this->LogModel->createLog("song", $newSongId, "Nuta skopiowana z " . $sourceName . " do " . $targetName);
                                 }
                                 else {
-                                    $resultMessage .= "<br><br>\tNie udało się skopiować utworu ".$currentSong->SongTitle.", przeskoczono do następnego.<br><br>";
+                                    $resultMessage .= "<br><br>\tNie udało się skopiować utworu " . $currentSong->SongTitle . ", przeskoczono do następnego.<br><br>";
                                     continue;
                                 }
                             }
@@ -467,8 +457,7 @@ class PlaylistItems extends CI_Controller {
                             $copyRequired = $formInput['copyToPlaylist'] != $playlistId && $formInput['copyToPlaylist'] != 0;
                             $copyToIntegratedRequired = $copyRequired && $this->PlaylistModel->GetPlaylistIntegratedById($formInput['copyToPlaylist']);
                             if ($copyToIntegratedRequired) {
-                                $data['displayErrorMessage'] = ($data['displayErrorMessage'] ?? "") . "<br>" .
-                                    $this->InsertSongService->copySongToIntegratedPlaylist($currentSong, $formInput['copyToPlaylist'], $newSongId, $localResultMessage);
+                                $data['displayErrorMessage'] = ($data['displayErrorMessage'] ?? "") . "<br>" . $this->InsertSongService->copySongToIntegratedPlaylist($currentSong, $formInput['copyToPlaylist'], $newSongId, $localResultMessage);
                             }
 
                             //Save the result message and pass it to the report
@@ -485,7 +474,7 @@ class PlaylistItems extends CI_Controller {
                 //Create a log
                 $where = $playlistId === "search" ? "z wyszukiwarki" : "z playlisty";
                 $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
-                $logMessage = "Zapisano oceny ".$where.$reportSuccessful;
+                $logMessage = "Zapisano oceny " . $where . $reportSuccessful;
                 if (is_numeric($playlistId))
                     $this->LogModel->createLog('playlist', $playlistId, $logMessage, $newReportId);
 
@@ -498,6 +487,7 @@ class PlaylistItems extends CI_Controller {
 
     /**
      * Updates the playlist with new songs added to it on YouTube.
+     * CONTINUE HERE
      *
      * @return void
      */
@@ -522,7 +512,8 @@ class PlaylistItems extends CI_Controller {
                 //Refresh the playlist - if everything went well, the message will be empty
                 $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($data['listId']);
             }
-            else $data['displayErrorMessage'] = "Nie znaleziono linku do tej playlisty na YT!";
+            else
+                $data['displayErrorMessage'] = "Nie znaleziono linku do tej playlisty na YT!";
         }
         else redirect('logout');
 
@@ -556,18 +547,20 @@ class PlaylistItems extends CI_Controller {
                 $delSong = $this->input->get('delete');
                 if ($delSong) {
                     $this->LogModel->createLog('song', $songId, "Permanentnie usunięto nutę z playlisty.");
-                    $this->LogModel->createLog('playlist', $data['song']->ListId, "Permanentnie usunięto nutę ".$data['song']->SongTitle." z playlisty.");
+                    $this->LogModel->createLog(
+                        'playlist',
+                        $data['song']->ListId,
+                        "Permanentnie usunięto nutę " . $data['song']->SongTitle . " z playlisty."
+                    );
                     $this->SongModel->DeleteSong($songId);
                     if ($data['redirectSource'] == 'pd')
-                        redirect('playlist/details?listId='.$data['song']->ListId.'&src=pd');
-                    else redirect('playlist/details?listId='.$data['song']->ListId.'&src=mp');
+                        redirect('playlist/details?listId=' . $data['song']->ListId . '&src=pd');
+                    else redirect('playlist/details?listId=' . $data['song']->ListId . '&src=mp');
                 }
 
                 $this->load->view('templates/main', $data);
-            }
-            else redirect('logout');
-        }
-        else redirect('logout');
+            } else redirect('logout');
+        } else redirect('logout');
     }
 
     /**
@@ -609,15 +602,14 @@ class PlaylistItems extends CI_Controller {
         $flags['SongBelHalfNine'] = $currentSong->SongBelHalfNine != $formInput['SongBelHalfNine'];
 
         //If any of the flags is set (true), add it to the list
-        if(in_array(true, $flags, true)) {
+        if (in_array(true, $flags, true)) {
             $triggeredFlags = [];
             foreach ($flags as $key => $flag) {
-                if($flag)
+                if ($flag)
                     $triggeredFlags[] = $key;
             }
             return $triggeredFlags;
-        }
-        else return [];
+        } else return [];
     }
 
     /**
@@ -670,11 +662,25 @@ class PlaylistItems extends CI_Controller {
         ];
 
         // Filter out zero values
-        $nonZeroGrades = array_filter($grades, function($grade) {
+        $nonZeroGrades = array_filter($grades, function ($grade) {
             return $grade > 0;
         });
 
         // Calculate the average if there are non-zero grades, otherwise return 0
         return count($nonZeroGrades) > 0 ? round(array_sum($nonZeroGrades) / count($nonZeroGrades), 2) : 0;
+    }
+
+    /**
+     * Formats song grades and computes the average
+     *
+     * @param $song object song to set the grades for
+     * @return void the song object is updated by reference
+     */
+    public function setSongGrades(object $song): void
+    {
+        if (is_numeric($song->SongGradeAdam)) $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
+        if (is_numeric($song->SongGradeChurchie)) $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);
+        if (is_numeric($song->SongGradeOwner)) $song->SongGradeOwner = $this->UtilityModel->trimTrailingZeroes($song->SongGradeOwner);
+        $song->Average = $this->calculateAverage($song);
     }
 }

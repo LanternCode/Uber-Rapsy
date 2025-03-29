@@ -27,6 +27,8 @@ class Toplist extends CI_Controller
         $this->load->model('SecurityModel');
         $this->load->model('PlaylistModel');
         $this->load->model('UtilityModel');
+        $this->load->library('RefreshPlaylistService');
+        $this->RefreshPlaylistService = new RefreshPlaylistService();
     }
 
     /**
@@ -34,9 +36,19 @@ class Toplist extends CI_Controller
      *
      * @return void
      */
-    public function songsToplist(): void
+    public function frontpage(): void
     {
-
+        $data = array(
+            'body' => 'toplist/frontpage',
+            'title' => 'Nasze toplisty | Uber Rapsy',
+            'songs' => $this->SongModel->fetchTopSongs()
+        );
+        foreach ($data['songs'] as $song) {
+            $song->myRating = isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($song->SongId, $_SESSION['userId'])) : 0;
+            $song->communityAverage = $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($song->SongId));
+            $song->awards = $this->SongModel->fetchSongAwards($song->SongId);
+        }
+        $this->load->view('templates/toplist', $data);
     }
 
     /**
@@ -92,16 +104,7 @@ class Toplist extends CI_Controller
     }
 
     /**
-     * This method handles the normal loading of playlist items
-     * By default all songs in the playlists are loaded
-     * If filters are used, only the songs that match the filter are shown
-     * Search query is a text-based filter that is empty by default and not
-     *      included as a separate filter (those are based on checkboxes)
-     *
-     * The specific filters are:
-     * repeat - only show songs with the repeat checkbox checked
-     * unrated - only show songs that are unrated by at least one reviewer
-     * checkbox property - only show songs with the specified checkbox property checked
+     * This method filters visible songs to be displayed as search results
      *
      * @return void
      */
@@ -125,6 +128,36 @@ class Toplist extends CI_Controller
                     $song->awards = $this->SongModel->fetchSongAwards($song->SongId);
                 }
             }
+        }
+
+        $this->load->view('templates/toplist', $data);
+    }
+
+    public function importSongs(): void
+    {
+        $data = array(
+            'body' => 'song/importSongs',
+            'title' => 'Dodaj nowe utwory | Uber Rapsy',
+            'playlistLink' => $this->input->post('playlistLink'),
+            'songLink' => $this->input->post('songLink')
+        );
+
+        //The form is submitted when a link to a playlist or a song is supplied
+        if ($data['playlistLink'] || $data['songLink']) {
+            //Set a manual verification page for the author to review the contents
+            $data['body'] = 'song/verifyImport';
+
+            //Fetch the item(s) at the link
+            if ($data['playlistLink']) {
+                $remotePlaylistId = $this->UtilityModel->extractPlaylistIdFromLink($data['playlistLink']);
+                $playlistItems = $this->RefreshPlaylistService->fetchSongsFromYT($remotePlaylistId, "playlist");
+            }
+            if ($data['songLink']) {
+                $remoteVideoId = $this->UtilityModel->extractVideoIdFromLink($data['songLink']);
+                $video = $this->RefreshPlaylistService->fetchSongsFromYT($remoteVideoId, "video");
+            }
+
+
         }
 
         $this->load->view('templates/toplist', $data);

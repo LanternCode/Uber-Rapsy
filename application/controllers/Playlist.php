@@ -349,15 +349,7 @@ class Playlist extends CI_Controller {
                 );
 
                 //Obtain the unique playlist ID from the url given
-                $listPos = strpos($queryData['ListUrl'], "list=");
-                if ($listPos > 0) {
-                    $indexPos = strpos($queryData['ListUrl'], "&index=");
-                    $indexLength = strlen(substr($queryData['ListUrl'], $indexPos));
-                    if ($indexPos > 0)
-                        $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5, -$indexLength);
-                    else
-                        $queryData['ListUrl'] = substr($queryData['ListUrl'], $listPos+5);
-                }
+                $queryData['ListUrl'] = $this->UtilityModel->extractPlaylistIdFromLink($queryData['ListUrl']);
 
                 if ($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
                     //Insert the playlist to the local db

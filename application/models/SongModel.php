@@ -496,4 +496,21 @@ class SongModel extends CI_Model
         $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$search%' AND SongVisible = 1 AND SongDeleted = 0";
         return $this->db->query($sql)->result();
     }
+
+    /**
+     * Fetch the top 100 songs for the Top100 Rappar toplist
+     *
+     * @return array
+     */
+    function fetchTopSongs()
+    {
+        $this->db->select('song.SongId, song.SongTitle, AVG(song_rating.songGrade) as avg_rating');
+        $this->db->from('song_rating');
+        $this->db->join('song', 'song.SongId = song_rating.songId');
+        $this->db->group_by('song_rating.songId');
+        $this->db->order_by('avg_rating', 'DESC');
+        $this->db->limit(100);
+        $query = $this->db->get();
+        return $query->result();
+    }
 }

@@ -15,9 +15,9 @@
             <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
                 <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Playlisty</a>
             <?php endif; ?>
-            <a class="optionsURL" href="<?=base_url("songsToplist")?>">Toplisty RAPPAR</a>
+            <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
             <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-                <a class="optionsURL" href="<?=base_url("")?>">Dodaj Nowe Nuty</a>
+                <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
             <?php endif; ?>
             <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
                 <a class="optionsURL" href="<?=base_url("")?>">Dodaj Toplistę</a>

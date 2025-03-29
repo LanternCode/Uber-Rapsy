@@ -30,9 +30,12 @@ $route['song/rev'] = 'Song/reviewSong';
 $route['song/showLog'] = 'Log/showPlaylistSongLog';
 $route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
 
-$route['songsToplist'] = 'Toplist/songPage';
+$route['frontpage'] = 'Toplist/frontpage';
 $route['songsToplist/saveGrades'] = 'Toplist/saveGradesFromToplist';
 $route['songSearch'] = 'Toplist/songSearch';
+$route['songPage'] = 'Toplist/songPage';
+$route['importSongs'] = 'Toplist/importSongs';
+
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';
