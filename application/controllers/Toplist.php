@@ -145,16 +145,32 @@ class Toplist extends CI_Controller
         //The form is submitted when a link to a playlist or a song is supplied
         if ($data['playlistLink'] || $data['songLink']) {
             //Set a manual verification page for the author to review the contents
-            $data['body'] = 'song/verifyImport';
+            $data['body'] = 'song/verifySongImport';
 
             //Fetch the item(s) at the link
             if ($data['playlistLink']) {
+                //Fetch the playlist items
+                $videoIds = [];
                 $remotePlaylistId = $this->UtilityModel->extractPlaylistIdFromLink($data['playlistLink']);
-                $playlistItems = $this->RefreshPlaylistService->fetchSongsFromYT($remotePlaylistId, "playlist");
+                $data['playlistItems'] = $this->RefreshPlaylistService->fetchPlaylistItemsFromYT($remotePlaylistId);
+                foreach ($data['playlistItems'] as $playlistItemsArray) {
+                    foreach ($playlistItemsArray as $playlistItem) {
+                        $videoIds[] = $playlistItem['snippet']['resourceId']['videoId'] ?? "";
+                    }
+                }
+
+                //For each playlist item, fetch the corresponding video item for the publishedAt date
+                $data['videoItems'] = $this->RefreshPlaylistService->fetchVideoItemsFromYT($videoIds);
+                foreach ($data['playlistItems'] as $groupIndex => &$playlistItemsGroup) {
+                    foreach ($playlistItemsGroup as $itemIndex => &$playlistItem) {
+                        //Access the corresponding video item at the same group and item index
+                        $playlistItem['videoPublishedAt'] = substr($data['videoItems']['items'][$itemIndex]['snippet']['publishedAt'], 0, 4);
+                    }
+                }
             }
             if ($data['songLink']) {
                 $remoteVideoId = $this->UtilityModel->extractVideoIdFromLink($data['songLink']);
-                $video = $this->RefreshPlaylistService->fetchSongsFromYT($remoteVideoId, "video");
+                $data['video'] = $this->RefreshPlaylistService->fetchVideoItemsFromYT($remoteVideoId);
             }
 
 

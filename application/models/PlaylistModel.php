@@ -65,10 +65,10 @@ class PlaylistModel extends CI_Model
     /**
      * Returns the URL of a playlist.
      *
-     * @param int $listId  id of the playlist
+     * @param string $listId local playlist id
      * @return string      returns the URL found
      */
-    function GetListUrlById(int $listId): string
+    function GetListUrlById(string $listId): string
     {
         $sql = "SELECT ListUrl FROM list WHERE ListId = '$listId'";
         return isset($this->db->query($sql)->row()->ListUrl) ? $this->db->query($sql)->row()->ListUrl : 0;

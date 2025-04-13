@@ -507,3 +507,14 @@ th, td {
 th {
     background-color: #f2f2f2;
 }
+
+.centered {
+    text-align: center;
+}
+
+.big-button {
+    font-size: 22px;
+    width: 20vw;
+    height: 8vh;
+    font-weight: bold;
+}

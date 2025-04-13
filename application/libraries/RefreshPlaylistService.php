@@ -20,23 +20,37 @@ class RefreshPlaylistService
 
     public function __construct() {
         $this->CI =& get_instance();
-
-        // Load models
         $this->CI->load->model('SongModel');
         $this->CI->load->model('SecurityModel');
         $this->CI->load->model('LogModel');
         $this->CI->load->model('PlaylistModel');
     }
 
+    public function fetchVideoItemsFromYT(array $songIds): mixed
+    {
+        //Fetch playlist items and video items to add new songs
+        //Fetch video items directly to add new songs
+        //For playlists, fetch playlist items specifically for playlistItemsId but also video items to add new songs
+
+
+        //Include the YT API library
+        $client = $this->CI->SecurityModel->initialiseLibrary();
+        //Define the service object for making YT API requests
+        $tokenExpired = $this->CI->SecurityModel->validateAuthToken($client);
+        $service = new Google_Service_YouTube($client);
+        $queryParams['id'] = $songIds;
+        $response = $service->videos->listVideos('snippet', $queryParams);
+        return $response ?? [];
+    }
+
     /**
-     * Fetches either all songs in a youtube playlist, or a single video
+     * Fetches all songs from a youtube playlist
      *
      * @param string $resourceId the local playlist id / remote playlist id, or video id
-     * @param string $resourceType "playlist" or "video"
      * @param bool $detailedReporting whether to return detailed error messages, or just an empty array of items []
      * @return mixed the items found, the error code and message array, or a bool
      */
-    public function fetchSongsFromYT(string $resourceId, string $resourceType, bool $detailedReporting = false): mixed
+    public function fetchPlaylistItemsFromYT(string $resourceId, bool $detailedReporting = false): mixed
     {
         //Include the YT API library
         $client = $this->CI->SecurityModel->initialiseLibrary();
@@ -57,61 +71,53 @@ class RefreshPlaylistService
                 //Define the service object for making YT API requests
                 $service = new Google_Service_YouTube($client);
 
-                //Fetch a single video or all videos in a playlist
-                if ($resourceType === "playlist") {
-                    //When done for a playlist, the url must be fetched first
-                    $resourceId = $detailedReporting ? $this->CI->PlaylistModel->GetListUrlById($resourceId) : $resourceId;
-                    $queryParams = [
-                        'maxResults' => 50,
-                        'playlistId' => $resourceId
-                    ];
+                //When done for a playlist, the url must be fetched first
+                $resourceId = $detailedReporting ? $this->CI->PlaylistModel->GetListUrlById($resourceId) : $resourceId;
+                $queryParams = [
+                    'maxResults' => 50,
+                    'playlistId' => $resourceId
+                ];
 
-                    //Load songs for the first time. If the request fails, return with an error
-                    $songsJsonArray = [];
-                    try {
-                        $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
-                    }
-                    catch (Google_Service_Exception | Throwable $e) {
-                        $err = array(
-                            'code' => "RF",
-                            'displayMessage' => "Wskazana playlista jest prywatna lub podano niepoprawny link. Zaktualizuj go i spróbuj jeszcze raz!",
-                            'errorType' => json_decode($e->getMessage())->error->errors[0]->reason ?? 'unknown',
-                            'errorObject' => json_decode($e) ?? 'unknown',
-                            'errorMessage' => json_decode($e->getMessage()) ?? 'unknown'
-                        );
-                    }
-
-                    if (isset($response)) {
-                        //How many songs total - assign 0 if null
-                        $songsJsonArray[] = $response['items'];
-                        $allResults = $response['pageInfo']['totalResults'] ?? 0;
-
-                        //If results were returned, continue the process
-                        if ($allResults > 0) {
-                            //Keep loading songs until all are loaded
-                            for (
-                                $scannedResults = $response['pageInfo']['resultsPerPage'] ?? 150000;
-                                $scannedResults < $allResults;
-                                $scannedResults += $response['pageInfo']['resultsPerPage']
-                            ) {
-                                //Get the token of the next page
-                                $pageToken = $response['nextPageToken'];
-                                //Perform calls to the PlaylistItems API until all items are retrieved
-                                $queryParams['pageToken'] = $pageToken;
-                                $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
-                                //Save the songs into the local array
-                                $songsJsonArray[] = $response['items'];
-                            }
-                        }
-                        else return false;
-
-                        return $songsJsonArray;
-                    }
+                //Load songs for the first time. If the request fails, return with an error
+                $songsJsonArray = [];
+                try {
+                    $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
                 }
-                elseif ($resourceType === "video") {
-                    $queryParams['id'] = $resourceId;
-                    $response = $service->videos->listVideos('snippet', $queryParams);
-                    return $response ?? [];
+                catch (Google_Service_Exception | Throwable $e) {
+                    $err = array(
+                        'code' => "RF",
+                        'displayMessage' => "Wskazana playlista jest prywatna lub podano niepoprawny link. Zaktualizuj go i spróbuj jeszcze raz!",
+                        'errorType' => json_decode($e->getMessage())->error->errors[0]->reason ?? 'unknown',
+                        'errorObject' => json_decode($e) ?? 'unknown',
+                        'errorMessage' => json_decode($e->getMessage()) ?? 'unknown'
+                    );
+                }
+
+                if (isset($response)) {
+                    //How many songs total - assign 0 if null
+                    $songsJsonArray[] = $response['items'];
+                    $allResults = $response['pageInfo']['totalResults'] ?? 0;
+
+                    //If results were returned, continue the process
+                    if ($allResults > 0) {
+                        //Keep loading songs until all are loaded
+                        for (
+                            $scannedResults = $response['pageInfo']['resultsPerPage'] ?? 150000;
+                            $scannedResults < $allResults;
+                            $scannedResults += $response['pageInfo']['resultsPerPage']
+                        ) {
+                            //Get the token of the next page
+                            $pageToken = $response['nextPageToken'];
+                            //Perform calls to the PlaylistItems API until all items are retrieved
+                            $queryParams['pageToken'] = $pageToken;
+                            $response = $service->playlistItems->listPlaylistItems('snippet', $queryParams);
+                            //Save the songs into the local array
+                            $songsJsonArray[] = $response['items'];
+                        }
+                    }
+                    else return false;
+
+                    return $songsJsonArray;
                 }
             }
         }
@@ -139,7 +145,7 @@ class RefreshPlaylistService
     public function refreshPlaylist(int $listId): string
     {
         //Fetch the playlist videos from YT
-        $songsJsonArray = $this->fetchSongsFromYT($listId, "playlist", true);
+        $songsJsonArray = $this->fetchPlaylistItemsFromYT($listId, "playlist", true);
 
         //Return an error message based on the content fetched - "" means everything went well
         if ($songsJsonArray === false) {
