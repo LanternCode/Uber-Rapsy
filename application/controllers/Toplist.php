@@ -147,7 +147,7 @@ class Toplist extends CI_Controller
             //Set a manual verification page for the author to review the contents
             $data['body'] = 'song/verifySongImport';
 
-            //Fetch the item(s) at the link
+            //Fetch the item(s) at the links
             if ($data['playlistLink']) {
                 //Fetch the playlist items
                 $videoIds = [];
@@ -169,12 +169,29 @@ class Toplist extends CI_Controller
                 }
             }
             if ($data['songLink']) {
-                $remoteVideoId = $this->UtilityModel->extractVideoIdFromLink($data['songLink']);
-                $data['video'] = $this->RefreshPlaylistService->fetchVideoItemsFromYT($remoteVideoId);
+                $data['remoteVideoId'] = $this->UtilityModel->extractVideoIdFromLink($data['songLink']);
+                $data['video'] = $this->RefreshPlaylistService->fetchVideoItemsFromYT([$data['remoteVideoId']]);
+                $data['playlistItems'][] = $data['video']['items'];
             }
 
-
+            //Save the videos fetched for 24 hours so the user can make changes
+            $this->session->set_tempdata('playlistItems', $data['playlistItems'], 86400);
         }
+
+        $this->load->view('templates/toplist', $data);
+    }
+
+    public function approveSongImport()
+    {
+        $data['body'] = 'song/approveSongImport';
+        $songItems = $this->session->tempdata('playlistItems');
+
+        print_r("<pre>");
+        print_r($songItems);
+        
+        //$this->input->post("songChannelName-".$i);
+
+        //$this->session->unset_tempdata('playlistItems');
 
         $this->load->view('templates/toplist', $data);
     }

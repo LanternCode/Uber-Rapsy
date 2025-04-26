@@ -35,6 +35,7 @@ $route['songsToplist/saveGrades'] = 'Toplist/saveGradesFromToplist';
 $route['songSearch'] = 'Toplist/songSearch';
 $route['songPage'] = 'Toplist/songPage';
 $route['importSongs'] = 'Toplist/importSongs';
+$route['confirmImporting'] = 'Toplist/approveSongImport';
 
 
 $route['newAccount'] = 'Account/newAccount';

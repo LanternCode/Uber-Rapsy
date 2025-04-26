@@ -4,19 +4,23 @@
     Utwory importowane z YT nie zawierają informacji o autorze (poza nazwą kanału, który przesłał go na YT), ani daty przesłania go na YT.
     <br>Te informacje możesz dodać w tym momencie, zmieniając lub wpisując ją w podane poniżej pola.
     <br>Kiedy już dodasz wszystko i upewnisz się że znalezione utwory są poprawne, wciśnij przycisk na samym dole listy żeby zatwierdzić zmiany.</h3>
-<?php foreach ($playlistItems as $itemPages) {
+<form method="post" action="<?=base_url('confirmImporting')?>">
+    <?php
+    $i = 0;
+    foreach ($playlistItems as $itemPages) {
         foreach ($itemPages as $song) {
+            $songUrl = isset($song['snippet']['resourceId']['videoId']) ? $song['snippet']['resourceId']['videoId'] : $remoteVideoId;
             $songPublic = isset($song['snippet']['thumbnails']['medium']['url']);
             $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
-            $songChannelName = $song['snippet']['videoOwnerChannelTitle'];
+            $songChannelName = isset($song['snippet']['videoOwnerChannelTitle']) ? $song['snippet']['videoOwnerChannelTitle'] : $song['snippet']['channelTitle'];
             $songTitle = $song['snippet']['title'];
-            $songPublishedAt = $song['videoPublishedAt'];
+            $songPublishedAt = isset($song['videoPublishedAt']) ? $song['videoPublishedAt'] : substr($song['snippet']['publishedAt'], 0, 4);
             if ($songPublic): ?>
                 <div class="song-container songBackground">
                     <div class="song-header songBackground">
                         <div class="songBackground">
                             <h2 class="song-title songBackground"><?=$songTitle?></h2>
-                            <p class="song-authors songBackground"><input type="text" value="<?=$songChannelName?>"> (<?=$songPublishedAt?>)</p>
+                            <p class="song-authors songBackground"><input type="text" name="songChannelName-<?=$i?>" value="<?=$songChannelName?>"> (<?=$songPublishedAt?>)</p>
                         </div>
                         <div class="song-awards songBackground">
                             <p>Nagrody Społeczności</p>
@@ -32,9 +36,12 @@
                         </div>
                     </div>
                 </div>
-            <?php endif; ?>
-        <?php } ?>
-<?php } ?>
-<div class="centered">
-    <input class="big-button" type="submit" value="Dodaj wszystko do RAPPAR">
-</div>
+            <?php
+                $i += 1;
+                endif;
+        }
+    } ?>
+    <div class="centered">
+        <input class="big-button" type="submit" value="Dodaj wszystko do RAPPAR">
+    </div>
+</form>
