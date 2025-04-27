@@ -7,39 +7,32 @@
 <form method="post" action="<?=base_url('confirmImporting')?>">
     <?php
     $i = 0;
-    foreach ($playlistItems as $itemPages) {
-        foreach ($itemPages as $song) {
-            $songUrl = isset($song['snippet']['resourceId']['videoId']) ? $song['snippet']['resourceId']['videoId'] : $remoteVideoId;
-            $songPublic = isset($song['snippet']['thumbnails']['medium']['url']);
-            $songThumbnailURL = $songPublic ? $song['snippet']['thumbnails']['medium']['url'] : false;
-            $songChannelName = isset($song['snippet']['videoOwnerChannelTitle']) ? $song['snippet']['videoOwnerChannelTitle'] : $song['snippet']['channelTitle'];
-            $songTitle = $song['snippet']['title'];
-            $songPublishedAt = isset($song['videoPublishedAt']) ? $song['videoPublishedAt'] : substr($song['snippet']['publishedAt'], 0, 4);
-            if ($songPublic): ?>
-                <div class="song-container songBackground">
-                    <div class="song-header songBackground">
-                        <div class="songBackground">
-                            <h2 class="song-title songBackground"><?=$songTitle?></h2>
-                            <p class="song-authors songBackground"><input type="text" name="songChannelName-<?=$i?>" value="<?=$songChannelName?>"> (<?=$songPublishedAt?>)</p>
-                        </div>
-                        <div class="song-awards songBackground">
-                            <p>Nagrody Społeczności</p>
-                        </div>
+    foreach ($songItems as $song) {
+        $songPublic = true;//isset($song['snippet']['thumbnails']['medium']['url']);
+        if ($songPublic): ?>
+            <div class="song-container songBackground">
+                <div class="song-header songBackground">
+                    <div class="songBackground">
+                        <h2 class="song-title songBackground"><?=$song['songTitle']?></h2>
+                        <p class="song-authors songBackground"><input type="text" name="songChannelName-<?=$i?>" value="<?=$song['songChannelName']?>"> (<?=$song['songPublishedAt']?>)</p>
                     </div>
-                    <div class="song-content songBackground">
-                        <img src="<?=$songThumbnailURL?>" alt="Song Thumbnail" class="song-thumbnail" />
-                        <div class="song-grades">
-                            <p>Moja Ocena</p>
-                            <p>Ocena Adama</p>
-                            <p>Ocena Kościelnego</p>
-                            <p>Średnia Ocen Społeczności</p>
-                        </div>
+                    <div class="song-awards songBackground">
+                        <p>Nagrody Społeczności</p>
                     </div>
                 </div>
-            <?php
-                $i += 1;
-                endif;
-        }
+                <div class="song-content songBackground">
+                    <img src="<?=$song['songThumbnailLink']?>" alt="Song Thumbnail" class="song-thumbnail" />
+                    <div class="song-grades">
+                        <p>Moja Ocena</p>
+                        <p>Ocena Adama</p>
+                        <p>Ocena Kościelnego</p>
+                        <p>Średnia Ocen Społeczności</p>
+                    </div>
+                </div>
+            </div>
+        <?php
+            $i += 1;
+            endif;
     } ?>
     <div class="centered">
         <input class="big-button" type="submit" value="Dodaj wszystko do RAPPAR">

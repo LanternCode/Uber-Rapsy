@@ -4,6 +4,7 @@
 <br>Utwory importowane z YT nie zawierają informacji o autorze (poza nazwą kanału, który przesłał go na YT), ani daty przesłania go na YT.
 <br>Te informacje możesz dodać przeglądając importowane utwory gdy już wciśniesz przycisk importowania.</h3>
 <br><br>
+<?=$error ?? ''?>
 <form method="post" action="<?=base_url('importSongs')?>">
     <h4>Link do playlisty: <input type="text" name="playlistLink"></h4>
     <br>

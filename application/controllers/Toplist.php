@@ -144,38 +144,56 @@ class Toplist extends CI_Controller
 
         //The form is submitted when a link to a playlist or a song is supplied
         if ($data['playlistLink'] || $data['songLink']) {
-            //Set a manual verification page for the author to review the contents
-            $data['body'] = 'song/verifySongImport';
-
-            //Fetch the item(s) at the links
+            //First process the playlist link
             if ($data['playlistLink']) {
-                //Fetch the playlist items
-                $videoIds = [];
+                //Fetch the playlist items and extract the required information into an array
                 $remotePlaylistId = $this->UtilityModel->extractPlaylistIdFromLink($data['playlistLink']);
-                $data['playlistItems'] = $this->RefreshPlaylistService->fetchPlaylistItemsFromYT($remotePlaylistId);
-                foreach ($data['playlistItems'] as $playlistItemsArray) {
+                $playlistItems = $this->RefreshPlaylistService->fetchPlaylistItemsFromYT($remotePlaylistId);
+                $songItems = [];
+                foreach ($playlistItems as $playlistItemsArray) {
                     foreach ($playlistItemsArray as $playlistItem) {
-                        $videoIds[] = $playlistItem['snippet']['resourceId']['videoId'] ?? "";
+                        $songItems[] = array(
+                            'externalSongId' => $playlistItem['snippet']['resourceId']['videoId'],
+                            'songTitle' => $playlistItem['snippet']['title'],
+                            'songChannelName' => $playlistItem['snippet']['videoOwnerChannelTitle'],
+                            'songThumbnailLink' => $playlistItem['snippet']['thumbnails']['medium']['url']
+                        );
                     }
                 }
 
-                //For each playlist item, fetch the corresponding video item for the publishedAt date
-                $data['videoItems'] = $this->RefreshPlaylistService->fetchVideoItemsFromYT($videoIds);
-                foreach ($data['playlistItems'] as $groupIndex => &$playlistItemsGroup) {
-                    foreach ($playlistItemsGroup as $itemIndex => &$playlistItem) {
-                        //Access the corresponding video item at the same group and item index
-                        $playlistItem['videoPublishedAt'] = substr($data['videoItems']['items'][$itemIndex]['snippet']['publishedAt'], 0, 4);
-                    }
+                //For each playlist item, fetch the corresponding video item for its publishedAt date
+                $data['videoItems'] = $this->RefreshPlaylistService->fetchVideoItemsFromYT(array_column($songItems, 'externalSongId'));
+                foreach ($songItems as $i => &$song) {
+                    $song['songPublishedAt'] = substr($data['videoItems']['items'][$i]['snippet']['publishedAt'], 0, 4);
                 }
+                unset($song);
             }
+
+            //Next, process the individual video link
             if ($data['songLink']) {
-                $data['remoteVideoId'] = $this->UtilityModel->extractVideoIdFromLink($data['songLink']);
-                $data['video'] = $this->RefreshPlaylistService->fetchVideoItemsFromYT([$data['remoteVideoId']]);
-                $data['playlistItems'][] = $data['video']['items'];
+                $remoteVideoId = $this->UtilityModel->extractVideoIdFromLink($data['songLink']);
+                $video = $this->RefreshPlaylistService->fetchVideoItemsFromYT([$remoteVideoId]);
+                $songItems[] = array(
+                    'externalSongId' => $remoteVideoId,
+                    'songTitle' => $video['items'][0]['snippet']['title'],
+                    'songChannelName' => $video['items'][0]['snippet']['channelTitle'],
+                    'songThumbnailLink' => $video['items'][0]['snippet']['thumbnails']['medium']['url'],
+                    'songPublishedAt' => substr($video['items'][0]['snippet']['publishedAt'], 0, 4)
+                );
             }
 
-            //Save the videos fetched for 24 hours so the user can make changes
-            $this->session->set_tempdata('playlistItems', $data['playlistItems'], 86400);
+            //Check if any items were imported
+            if (count($songItems) > 0) {
+                //Save the songs fetched for 24 hours so the user can make changes
+                $data['songItems'] = $songItems;
+                $this->session->set_tempdata('playlistItems', ($songItems), 86400);
+                //Set a manual verification page for the author to review the contents
+                $data['body'] = 'song/verifySongImport';
+            }
+            else {
+                //If no items were found, show the error to the user
+                $data['error'] = '<h3>Nie znaleziono żadnych utworów. Upewnij się, że playlista i utwór są publiczne.</h3><br>';
+            }
         }
 
         $this->load->view('templates/toplist', $data);
@@ -183,16 +201,29 @@ class Toplist extends CI_Controller
 
     public function approveSongImport()
     {
+        $i = 0;
+        $added = 0;
+        $data['report'] = "";
+        $songItems = ($this->session->tempdata('playlistItems'));
+        if (count($songItems) > 0) {
+            foreach ($songItems as $song) {
+                $songChannelName = $this->input->post("songChannelName-".$i) != $song['songChannelName'] ? $this->input->post("songChannelName-".$i) : $song['songChannelName'];
+                $existingSongId = $this->SongModel->songExists($song['externalSongId'], $song['songTitle'], $songChannelName);
+                if ($existingSongId == 0) {
+                    $songId = $this->SongModel->insertSong($song['externalSongId'], $song['songThumbnailLink'], $song['songTitle'], $songChannelName);
+                    $data['report'] .= "<h4>Utwór ".$song['songTitle']." został dodany do bazy danych Rappar!</h4><br>";
+                    $added++;
+                }
+                else
+                    $data['report'] .= "<h4>Utwór ".$song['songTitle']." już istnieje w bazie danych Rappar!</h4><br>";
+                $i++;
+            }
+        }
+        $word = $added === 1 ? 'utwór' : ($added === 2 || $added === 3 || $added === 4 ? 'utwory' : 'utworów');
+        $data['report'] .= "<h2>Łącznie dodano ".$added." ".$word." do bazy danych RAPPAR!</h2>";
+        $this->session->unset_tempdata('playlistItems');
+
         $data['body'] = 'song/approveSongImport';
-        $songItems = $this->session->tempdata('playlistItems');
-
-        print_r("<pre>");
-        print_r($songItems);
-        
-        //$this->input->post("songChannelName-".$i);
-
-        //$this->session->unset_tempdata('playlistItems');
-
         $this->load->view('templates/toplist', $data);
     }
 
