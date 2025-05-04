@@ -88,3 +88,5 @@ ADD `SongChannelName` VARCHAR(50) NOT NULL AFTER `SongTitle`;
 
 COMMIT;
 ===================================
+
+ALTER TABLE `song` ADD `SongReleaseYear` INT NOT NULL AFTER `SongChannelName`;

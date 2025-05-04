@@ -67,15 +67,17 @@ class SongModel extends CI_Model
      * @param string $songThumbnailURL  YT URL of the song's thumbnail
      * @param string $songTitle title of the song on YT
      * @param string $songChannelName the name of the YT channel that uploaded the song
+     * @param string $songReleaseYear song release year
      * @return int id of the inserted song
      */
-    function insertSong(string $songURL, string $songThumbnailURL, string $songTitle, string $songChannelName): int
+    function insertSong(string $songURL, string $songThumbnailURL, string $songTitle, string $songChannelName, string $songReleaseYear): int
     {
         $queryData = array(
             'SongURL' => $songURL,
             'SongThumbnailURL' => $songThumbnailURL,
             'SongTitle' => $songTitle,
-            'SongChannelName' => $songChannelName
+            'SongChannelName' => $songChannelName,
+            'SongReleaseYear' => $songReleaseYear
         );
 
         $this->db->insert('song', $queryData);
