@@ -108,21 +108,32 @@ class SongModel extends CI_Model
      * The method checks if the song with the selected URL, title and coming from the same channel
      *  already exists in the database. If it does, it returns its id.
      *
-     * @param string $songURL  YT url of the song (without youtu.be/)
+     * @param string $songExternalId  YT url of the song (without youtu.be/)
      * @param string $songTitle  YT title of the song
      * @param string $songChannelName  YT channel name that uploaded the song
      * @return int song id (or 0 if not found)
      */
-    public function songExists(string $songURL, string $songTitle, string $songChannelName): int
+    public function songExists(string $songExternalId, string $songTitle, string $songChannelName): int
     {
         $query = $this->db->select('SongId')
             ->from('song')
-            ->where('SongURL', $songURL)
-            ->where('SongTitle', $songTitle)
-            ->where('SongChannelName', $songChannelName)
+            ->where('SongURL', $songExternalId)
             ->get();
 
-        return $query->row()->SongId ?? 0;
+        if (isset($query->row()->SongId) && $query->row()->SongId > 0)
+            return $query->row()->SongId;
+
+        $query = $this->db->select('SongId')
+            ->from('song')
+            ->where('SongTitle', $songTitle)
+            ->get();
+
+        if (isset($query->row()->SongTitle) && isset($query->row()->SongChannelName)) {
+            if ($query->row()->SongChannelName == $songChannelName)
+                return $query->row()->SongId;
+            else return 0;
+        }
+        else return 0;
     }
 
     /**

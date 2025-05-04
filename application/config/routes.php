@@ -37,7 +37,6 @@ $route['songPage'] = 'Toplist/songPage';
 $route['importSongs'] = 'Toplist/importSongs';
 $route['confirmImporting'] = 'Toplist/approveSongImport';
 
-
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';
 $route['logout'] = 'Account/logout';
