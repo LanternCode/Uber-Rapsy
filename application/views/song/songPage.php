@@ -5,7 +5,7 @@
         <div class="song-header songBackground">
             <div class="songBackground">
                 <h2 class="song-title songBackground"><?=$song->SongTitle?></h2>
-                <p class="song-authors songBackground"><?=$song->SongChannelName?> (Rok Wydania)</p>
+                <p class="song-authors songBackground"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
             </div>
             <div class="song-awards songBackground">
                 <?php foreach($songAwards as $award): ?>

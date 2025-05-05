@@ -93,7 +93,7 @@ class FetchSongsService
 
         if (count($videosFetched) > 0)
             return $videosFetched;
-        else return false;
+        else return [];
     }
 
     /**
@@ -152,7 +152,7 @@ class FetchSongsService
                     $songsJsonArray[] = $response['items'];
                 }
             }
-            else return false;
+            else return [];
 
             return $songsJsonArray;
         }

@@ -1,9 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <h2>Dodajesz następujące utwory do RAPPAR</h2><br>
 <h3>Jeśli utwór istnieje już w bazie danych, nie zostanie dodany, nawet jeśli znajduje się na liście poniżej.<br>
-    Utwory importowane z YT nie zawierają informacji o autorze (poza nazwą kanału, który przesłał go na YT).
-    <br>Te informacje możesz dodać w tym momencie, zmieniając lub wpisując ją w podane poniżej pola.
-    <br>Kiedy już dodasz wszystko i upewnisz się że znalezione utwory są poprawne, wciśnij przycisk na samym dole listy żeby zatwierdzić zmiany.</h3>
+    Utwory importowane z YT nie zawierają informacji o autorze (poza nazwą kanału, który przesłał je na YT).
+    <br>Te informacje możesz dodać w tym momencie, zmieniając lub wpisując je w podane poniżej pola.
+    <br>Kiedy już dodasz wszystko i upewnisz się, że znalezione utwory są poprawne, wciśnij przycisk na samym dole listy, aby zatwierdzić zmiany.</h3>
 <form method="post" action="<?=base_url('confirmImporting')?>">
     <?php
     $i = 0;

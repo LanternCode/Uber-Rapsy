@@ -65,7 +65,7 @@ class PlaylistItems extends CI_Controller
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
-                $data['searchQuery'] = $this->input->get('SearchQuery');
+                $data['searchQuery'] = $this->input->get('SearchQuery') ?? '';
                 $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer";
                 $data['allPlaylists'] = $this->PlaylistModel->GetListsIdsAndNames();
                 $data['songs'] = [];

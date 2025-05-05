@@ -18,7 +18,7 @@
                 <td><?=$song->communityAverage != 0 ? $song->communityAverage : '❌'?></td>
                 <td><?=$song->myRating != 0 ? $song->myRating : '❌' ?></td>
                 <?php foreach($song->awards as $award): ?>
-                    <td><p class="song-awards"><?=$award->award?></p></td>
+                    <td><p class="song-awards centered"><?=$award->award?></p></td>
                 <?php endforeach; ?>
             </tr>
         <?php endforeach; ?>
