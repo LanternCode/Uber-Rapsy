@@ -111,7 +111,7 @@ class RefreshPlaylistService
             }
             unset($songToInsert);
 
-            //To preserve YouTube ordering, insert every song into the playlist (if it's not in there yet)
+            //To preserve YouTube ordering, insert every song into the playlist (if it's not in it yet)
             $i = 0;
             foreach ($songItems as $song) {
                 if (!$song['songPublic']) {

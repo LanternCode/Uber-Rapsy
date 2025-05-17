@@ -146,28 +146,36 @@ class Toplist extends CI_Controller
         if ($data['playlistLink'] || $data['songLink']) {
             //First process the playlist link
             if ($data['playlistLink']) {
-                //Fetch the playlist items and extract the required information into an array
+                //Fetch the playlist items
                 $remotePlaylistId = $this->UtilityModel->extractPlaylistIdFromLink($data['playlistLink']);
                 $playlistItems = $this->FetchSongsService->fetchPlaylistItemsFromYT($remotePlaylistId);
-                $songItems = [];
-                foreach ($playlistItems as $playlistItemsArray) {
-                    foreach ($playlistItemsArray as $playlistItem) {
-                        $songItems[] = array(
-                            'externalSongId' => $playlistItem['snippet']['resourceId']['videoId'],
-                            'songTitle' => $playlistItem['snippet']['title'],
-                            'songChannelName' => str_ends_with($playlistItem['snippet']['videoOwnerChannelTitle'], " - Topic") ? substr($playlistItem['snippet']['videoOwnerChannelTitle'], 0, -strlen(" - Topic")) : $playlistItem['snippet']['videoOwnerChannelTitle'],
-                            'songThumbnailLink' => $playlistItem['snippet']['thumbnails']['medium']['url']
-                        );
-                    }
-                }
 
-                //For each playlist item, fetch the corresponding video item for its publishedAt date
-                $i = 0;
-                $data['videoItems'] = $this->FetchSongsService->fetchVideoItemsFromYT(array_column($songItems, 'externalSongId'));
-                foreach ($data['videoItems'] as $videoItemsArray) {
-                    foreach ($videoItemsArray as $videoItem) {
-                        $songItems[$i]['songPublishedAt'] = substr($videoItem['snippet']['publishedAt'], 0, 4);
-                        $i++;
+                //Check whether the items were fetched successfully and extract key data into an array
+                if (!isset($playlistItems['code']) && !isset($playlistItems['displayMessage'])) {
+                    foreach ($playlistItems as $playlistItemsArray) {
+                        foreach ($playlistItemsArray as $playlistItem) {
+                            //Check if the playlist item is available - deleted and private videos do not have a thumbnail url
+                            if (isset($playlistItem['snippet']['thumbnails']['medium']['url'])) {
+                                $songItems[] = array(
+                                    'externalSongId' => $playlistItem['snippet']['resourceId']['videoId'],
+                                    'songTitle' => $playlistItem['snippet']['title'],
+                                    'songChannelName' => str_ends_with($playlistItem['snippet']['videoOwnerChannelTitle'], " - Topic") ? substr($playlistItem['snippet']['videoOwnerChannelTitle'], 0, -strlen(" - Topic")) : $playlistItem['snippet']['videoOwnerChannelTitle'],
+                                    'songThumbnailLink' => $playlistItem['snippet']['thumbnails']['medium']['url']
+                                );
+                            }
+                        }
+                    }
+
+                    //For each playlist item (if there are any), fetch the corresponding video item for its publishedAt date
+                    if (isset($songItems)) {
+                        $i = 0;
+                        $data['videoItems'] = $this->FetchSongsService->fetchVideoItemsFromYT(array_column($songItems, 'externalSongId'));
+                        foreach ($data['videoItems'] as $videoItemsArray) {
+                            foreach ($videoItemsArray as $videoItem) {
+                                $songItems[$i]['songPublishedAt'] = substr($videoItem['snippet']['publishedAt'], 0, 4);
+                                $i++;
+                            }
+                        }
                     }
                 }
             }
@@ -176,18 +184,19 @@ class Toplist extends CI_Controller
             if ($data['songLink']) {
                 $remoteVideoId = $this->UtilityModel->extractVideoIdFromLink($data['songLink']);
                 $video = $this->FetchSongsService->fetchVideoItemsFromYT([$remoteVideoId]);
-
-                $songItems[] = array(
-                    'externalSongId' => $remoteVideoId,
-                    'songTitle' => $video[0][0]['snippet']['title'],
-                    'songChannelName' => str_ends_with($video[0][0]['snippet']['channelTitle'], " - Topic") ? substr($video[0][0]['snippet']['channelTitle'], 0, -strlen(" - Topic")) : $video[0][0]['snippet']['channelTitle'],
-                    'songThumbnailLink' => $video[0][0]['snippet']['thumbnails']['medium']['url'],
-                    'songPublishedAt' => substr($video[0][0]['snippet']['publishedAt'], 0, 4)
-                );
+                if (isset($video[0][0]['snippet']['thumbnails']['medium']['url'])) {
+                    $songItems[] = array(
+                        'externalSongId' => $remoteVideoId,
+                        'songTitle' => $video[0][0]['snippet']['title'],
+                        'songChannelName' => str_ends_with($video[0][0]['snippet']['channelTitle'], " - Topic") ? substr($video[0][0]['snippet']['channelTitle'], 0, -strlen(" - Topic")) : $video[0][0]['snippet']['channelTitle'],
+                        'songThumbnailLink' => $video[0][0]['snippet']['thumbnails']['medium']['url'],
+                        'songPublishedAt' => substr($video[0][0]['snippet']['publishedAt'], 0, 4)
+                    );
+                }
             }
 
-            //Check if any items were imported
-            if (count($songItems) > 0) {
+            //Check if any songs were imported
+            if (isset($songItems)) {
                 //Save the songs fetched for 24 hours so the user can make changes
                 $data['songItems'] = $songItems;
                 $this->session->set_tempdata('playlistItems', ($songItems), 86400);
@@ -196,7 +205,7 @@ class Toplist extends CI_Controller
             }
             else {
                 //If no items were found, show an error
-                $data['error'] = '<h3>Nie znaleziono żadnych utworów. Upewnij się, że playlista i utwór są publiczne.</h3><br>';
+                $data['error'] = '<h3>Nie znaleziono żadnych utworów. Upewnij się, że playlista bądź wskazany utwór są publiczne, i że playlista zawiera przynajmniej jeden publiczny utwór.</h3><br>';
             }
         }
 
