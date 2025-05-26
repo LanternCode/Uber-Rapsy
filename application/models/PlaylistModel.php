@@ -208,7 +208,7 @@ class PlaylistModel extends CI_Model
      */
     function GetPlaylistSongCount(int $listId): int
     {
-        $sql = "SELECT COUNT(*) as songNumber FROM song WHERE ListId = $listId";
+        $sql = "SELECT COUNT(*) as songNumber FROM playlist_song WHERE listId = $listId";
         if(isset($this->db->query($sql)->row()->songNumber))
         {
             return $this->db->query($sql)->row()->songNumber;

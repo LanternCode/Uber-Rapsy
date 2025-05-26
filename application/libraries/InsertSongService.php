@@ -9,6 +9,7 @@
  * @link https://lanterncode.com/Uber-Rapsy/
  *
  * @property PlaylistModel $PlaylistModel
+ * @property PlaylistSongModel $PlaylistSongModel
  * @property SongModel $SongModel
  * @property LogModel $LogModel
  * @property SecurityModel $SecurityModel
@@ -20,6 +21,7 @@ class InsertSongService
     public function __construct()
     {
         $this->CI =& get_instance();
+        $this->CI->load->model('PlaylistSongModel');
         $this->CI->load->model('SongModel');
         $this->CI->load->model('SecurityModel');
         $this->CI->load->model('LogModel');
@@ -30,10 +32,10 @@ class InsertSongService
      * Load the YT API library and validate the auth token
      *
      * @param $newPlaylistDetails object target playlist for moving or copying
-     * @param $currentSong object a song object being moved or copied
+     * @param $currentPlaylistSong object a playlist_song object being moved or copied
      * @return array [false, error message] or objects required to make YT api requests
      */
-    private function preliminaryChecks(object $newPlaylistDetails, object $currentSong): array
+    private function preliminaryChecks(object $newPlaylistDetails, object $currentPlaylistSong): array
     {
         //Include google library
         $client = $this->CI->SecurityModel->initialiseLibrary();
@@ -56,7 +58,7 @@ class InsertSongService
                 //Set the resources
                 $resourceId = new Google_Service_YouTube_ResourceId();
                 $resourceId->setKind('youtube#video');
-                $resourceId->setVideoId($currentSong->SongURL);
+                $resourceId->setVideoId($currentPlaylistSong->SongURL);
                 $playlistItemSnippet->setResourceId($resourceId);
                 $playlistItem->setSnippet($playlistItemSnippet);
 
@@ -68,18 +70,19 @@ class InsertSongService
     }
 
     /**
-     * Move a song from one playlist to another where at least one of them is integrated with YT
+     * Move a playlist song from one playlist to another where at least one of them is integrated with YT
      *
      * @param $playlist object source playlist object
-     * @param $currentSong object the song object being moved
+     * @param $currentPlaylistSong object the playlist_song object being moved
      * @param $newPlaylistId int target playlist id
      * @param $localResultMessage string a string holding the song update display text
      * @return string an error message (or empty string if all went well)
      */
-    public function moveSongBetweenIntegratedPlaylists(object $playlist, object $currentSong, int $newPlaylistId, string &$localResultMessage): string
+    public function moveSongBetweenIntegratedPlaylists(object $playlist, object $currentPlaylistSong, int $newPlaylistId, string &$localResultMessage): string
     {
         //Check whether the API was loaded correctly
         $newPlaylistDetails = $this->CI->PlaylistModel->fetchPlaylistById($newPlaylistId);
+        $currentSong = $this->CI->SongModel->getSong($currentPlaylistSong->songId);
         [$service, $playlistItem] = $this->preliminaryChecks($newPlaylistDetails, $currentSong);
         if ($service === false) {
             return $playlistItem;
@@ -87,7 +90,7 @@ class InsertSongService
 
         //Establish the source playlist details
         $newSongPlaylistItemsId = '';
-        $oldPlaylistDetails = $playlist !== false ? $playlist : $this->CI->PlaylistModel->fetchPlaylistById($currentSong->ListId);
+        $oldPlaylistDetails = $playlist !== false ? $playlist : $this->CI->PlaylistModel->fetchPlaylistById($currentPlaylistSong->listId);
 
         //Perform the YT side of the move - only if either playlist is integrated
         if (!$oldPlaylistDetails->ListIntegrated && $newPlaylistDetails->ListIntegrated) {
@@ -100,7 +103,7 @@ class InsertSongService
         }
         elseif ($oldPlaylistDetails->ListIntegrated && !$newPlaylistDetails->ListIntegrated) {
             //This playlist is integrated with yt, and the target playlist is local - delete the song from the integrated playlist
-            $response = $service->playlistItems->delete($currentSong->SongPlaylistItemsId);
+            $response = $service->playlistItems->delete($currentPlaylistSong->SongPlaylistItemsId);
             //Create a log for the playlist
             $this->CI->LogModel->createLog("playlist", $oldPlaylistDetails->ListId, "Nuta ".$currentSong->SongTitle." usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
         }
@@ -109,10 +112,10 @@ class InsertSongService
             $response = $service->playlistItems->insert('snippet', $playlistItem);
             //Create a log of the song being added in the playlist's record
             $this->CI->LogModel->createLog("playlist", $newPlaylistDetails->ListId, "Nuta ".$currentSong->SongTitle." dodana do zintegrowanej playlisty w wyniku przeniesienia z ".$oldPlaylistDetails->ListName);
-            //New PlaylistItemsId is generated, so we need to capture it to update it in the db
+            //New PlaylistItemsId is generated, so we need to capture it and update it in the db
             $newSongPlaylistItemsId = $response->id;
             //Both playlists are integrated with yt so delete the song from the old playlist
-            $response = $service->playlistItems->delete($currentSong->SongPlaylistItemsId);
+            $response = $service->playlistItems->delete($currentPlaylistSong->SongPlaylistItemsId);
             //Create a log of this deletion in the playlist's record
             $this->CI->LogModel->createLog("playlist", $oldPlaylistDetails->ListId, "Nuta ".$currentSong->SongTitle." usunięta z zintegrowanej playlisty w wyniku przeniesienia do ".$newPlaylistDetails->ListName);
         }
@@ -120,40 +123,41 @@ class InsertSongService
         //Based on the target playlist status, the update is different
         if (!$newPlaylistDetails->ListIntegrated) {
             //Target playlist is local - move the song in the local database
-            $updateSuccess = $this->CI->SongModel->updateLocalSongPlaylist($currentSong->SongId, $newPlaylistId);
+            $updateSuccess = $this->CI->PlaylistSongModel->updateLocalSongPlaylistId($currentPlaylistSong->id, $newPlaylistId);
         }
         else {
             //Target playlist is integrated
-            $updateSuccess = $this->CI->SongModel->updateIntegratedSongPlaylist($currentSong->SongId, $newPlaylistId, $newSongPlaylistItemsId);
+            $updateSuccess = $this->CI->PlaylistSongModel->updateIntegratedSongPlaylistId($currentPlaylistSong->id, $newPlaylistId, $newSongPlaylistItemsId);
         }
 
         //Log the move in the particular song's record
         $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
         if ($updateSuccess) {
             $localResultMessage .= "Przeniesiono z playlisty ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName;
-            $this->CI->LogModel->createLog("song", $currentSong->SongId, "Nuta przeniesiona z playlisty ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
+            $this->CI->LogModel->createLog("playlist_song", $currentPlaylistSong->id, "Nuta przeniesiona z playlisty ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
         }
         else {
             $localResultMessage .= "Nie udało się przenieść do ".$newPlaylistDetails->ListName;
-            $this->CI->LogModel->createLog("song", $currentSong->SongId, "Nie udało się przenieść z ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
+            $this->CI->LogModel->createLog("playlist_song", $currentPlaylistSong->id, "Nie udało się przenieść nuty z ".$oldPlaylistDetails->ListName." do ".$newPlaylistDetails->ListName);
         }
 
         return "";
     }
 
     /**
-     * Copy a song to a playlist integrated with YT
+     * Copy a playlist song to a playlist integrated with YT
      *
-     * @param $currentSong object the song object being moved
+     * @param $currentPlaylistSong object the playlist_song object being moved
      * @param $newPlaylistId int target playlist id
-     * @param $newSongId int copied song's id
+     * @param $newSongId int copied playlist_song's id
      * @param $localResultMessage string a string holding the song update display text
      * @return string an error message (or empty string if all went well)
      */
-    public function copySongToIntegratedPlaylist(object $currentSong, int $newPlaylistId, int $newSongId, string &$localResultMessage): string
+    public function copySongToIntegratedPlaylist(object $currentPlaylistSong, int $newPlaylistId, int $newSongId, string &$localResultMessage): string
     {
         //Check whether the API was loaded correctly
         $newPlaylistDetails = $this->CI->PlaylistModel->fetchPlaylistById($newPlaylistId);
+        $currentSong = $this->CI->SongModel->getSong($currentPlaylistSong->songId);
         [$service, $playlistItem] = $this->preliminaryChecks($newPlaylistDetails, $currentSong);
         if ($service === false) {
             return $playlistItem;
@@ -166,18 +170,18 @@ class InsertSongService
         $newSongPlaylistItemsId = $response->id;
 
         //Target playlist is integrated
-        $updateSuccess = $this->CI->SongModel->updateCopiedSongItemsId($newSongId, $newSongPlaylistItemsId);
+        $updateSuccess = $this->CI->PlaylistSongModel->updateCopiedSongItemsId($newSongId, $newSongPlaylistItemsId);
 
         //Create a log for the playlist
         $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
         if ($updateSuccess) {
-            $sourcePlaylist = $this->CI->PlaylistModel->fetchPlaylistById($currentSong->ListId);
+            $sourcePlaylist = $this->CI->PlaylistModel->fetchPlaylistById($currentPlaylistSong->listId);
             $localResultMessage .= "Dodano do zintegrowanej playlisty ".$newPlaylistDetails->ListName;
             $this->CI->LogModel->createLog("playlist", $newPlaylistDetails->ListId, "Nuta dodana do zintegrowanej playlisty w wyniku skopiowania z ".$sourcePlaylist->ListName);
         }
         else {
             $localResultMessage .= "Nie udało się dodać do zintegrowanej playlisty ".$newPlaylistDetails->ListName;
-            $this->CI->LogModel->createLog("playlist", $newPlaylistDetails->ListId, "Nie udało się dodać utworu o ID ".$currentSong->SongId." do zintegrowanej playlisty");
+            $this->CI->LogModel->createLog("playlist", $newPlaylistDetails->ListId, "Nie udało się dodać utworu o ID ".$currentPlaylistSong->id." do zintegrowanej playlisty");
         }
 
         return "";

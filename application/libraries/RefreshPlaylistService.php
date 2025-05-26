@@ -10,6 +10,7 @@
  *
  * @property PlaylistModel $PlaylistModel
  * @property SongModel $SongModel
+ * @property PlaylistSongModel $PlaylistSongModel
  * @property LogModel $LogModel
  */
 class RefreshPlaylistService
@@ -18,6 +19,7 @@ class RefreshPlaylistService
 
     public function __construct() {
         $this->CI =& get_instance();
+        $this->CI->load->model('PlaylistSongModel');
         $this->CI->load->model('SongModel');
         $this->CI->load->model('LogModel');
         $this->CI->load->model('PlaylistModel');
@@ -111,7 +113,7 @@ class RefreshPlaylistService
             }
             unset($songToInsert);
 
-            //To preserve YouTube ordering, insert every song into the playlist (if it's not in it yet)
+            //To preserve YouTube playlist ordering, insert every song into the playlist in the order it was fetched (if it's not in it yet)
             $i = 0;
             foreach ($songItems as $song) {
                 if (!$song['songPublic']) {
@@ -120,20 +122,20 @@ class RefreshPlaylistService
                 }
                 elseif ($song['existingSongId'] > 0) {
                     //Check if the song already exists in this playlist
-                    $existingPlaylistSongId = $this->CI->SongModel->playlistSongExists($listId, $song['existingSongId']);
+                    $existingPlaylistSongId = $this->CI->PlaylistSongModel->playlistSongExists($listId, $song['existingSongId']);
                     if ($existingPlaylistSongId > 0) {
                         //The song already exists in this playlist
                         $refreshReport .= $song['songTitle'] . " - ⏸<br />";
                     }
                     else {
                         //The song does not exist in this playlist
-                        $playlistSongId = $this->CI->SongModel->insertPlaylistSong($listId, $song['existingSongId'], $song['songPlaylistItemsId']);
+                        $playlistSongId = $this->CI->PlaylistSongModel->insertPlaylistSong($listId, $song['existingSongId'], $song['songPlaylistItemsId']);
                         $refreshReport .= $song['songTitle'] . " - ✔<br />";
                     }
                 }
                 else {
                     //New song altogether - insert with the previously created id
-                    $playlistSongId = $this->CI->SongModel->insertPlaylistSong($listId, $newSongItems[$i]['existingSongId'], $song['songPlaylistItemsId']);
+                    $playlistSongId = $this->CI->PlaylistSongModel->insertPlaylistSong($listId, $newSongItems[$i]['existingSongId'], $song['songPlaylistItemsId']);
                     $refreshReport .= $song['songTitle'] . " - ✔<br />";
                     $i++;
                 }

@@ -24,7 +24,7 @@
         </tbody>
     </table>
 <?php elseif (strlen($searchQuery) < 1): ?>
-    <h3>Wystąpił błąd! Nie wpisano nic do wyszukiwarki!</h3>
+    <h3>Nie wpisano nic do wyszukiwarki!</h3>
 <?php elseif (count($songs) > 300): ?>
     <h3>Znaleziono ponad 300 piosenek! Musisz zawęzić kryteria wyszukiwania!</h3>
 <?php else: ?>

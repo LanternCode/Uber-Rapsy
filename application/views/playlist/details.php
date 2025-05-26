@@ -55,10 +55,11 @@
                     <td><?=$song->SongGradeAdam?></td>
                     <td><?=$song->SongGradeChurchie?></td>
                     <td><?=$song->SongGradeOwner?></td>
-                    <td><a href="<?=base_url('song/updateSongVisibility?songId='.$song->SongId.'&src='.$redirectSource)?>"><?=$song->SongVisible ? "Ukryj" : "Upublicznij"?></a></td>
-                    <td><a href="<?=base_url('playlist/delSong?songId='.$song->SongId.'&src='.$redirectSource)?>">Usuń</a></td>
+                    <td><a href="<?=base_url('playlistItems/updatePlaylistSongVisibility?songId='.$song->id.'&src='.$redirectSource)?>"><?=$song->SongVisible ? "Ukryj" : "Upublicznij"?></a></td>
+                    <td><a href="<?=base_url('playlist/delSong?songId='.$song->id.'&src='.$redirectSource)?>">Usuń</a></td>
                 <?php endif; ?>
-                <td><a href="<?=base_url('song/showLog?songId='.$song->SongId.'&src='.$redirectSource)?>">Historia</a></td>
+                <td><a href="<?=base_url('song/showLog?songId='.$song->id.'&src='.$redirectSource)?>">Historia</a></td>
+                <td><a href="<?=base_url('song/showLog?songId='.$song->id.'&src='.$redirectSource)?>">Historia</a></td>
             </tr>
         <?php endforeach; ?>
     </table>

@@ -22,8 +22,8 @@
     </select>
     <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
-        <input type="hidden" name="ListId" value="<?=$listId?>" />
-        <input type="text" placeholder="Rajaner" name="SearchQuery" />
+        <input type="hidden" name="playlistId" value="<?=$listId?>" />
+        <input type="text" placeholder="Rajaner" name="searchQuery" />
         <input type="submit" value="Szukaj" />
     </form>
 </header>
@@ -61,7 +61,7 @@
             <div class="videoContainerBox">
 				<img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft">
 				<div class="dataContainerBox">
-                    <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
+                    <input type="hidden" name="songId-<?=$i?>" value="<?=$song->id?>"/>
                     <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=htmlspecialchars($song->SongTitle, ENT_QUOTES, 'UTF-8')?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
                     <div class="dataContainerBox--split">
                         <div class="dataContainerBox--split__left">
@@ -157,5 +157,5 @@
     <input type="hidden" name="playlistId" value="<?=$listId?>"/>
 </form>
 <span id="bottom"></span>
-<script type="text/javascript" src="<?=base_url( 'scripts/playlist.js' )?>"></script>
-<script type="text/javascript" src="<?=base_url( 'scripts/nav.js' )?>"></script>
+<script type="text/javascript" src="<?=base_url('scripts/playlist.js')?>"></script>
+<script type="text/javascript" src="<?=base_url('scripts/nav.js')?>"></script>

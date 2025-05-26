@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<a href="<?=base_url('playlist/details?playlistId='.$song->ListId.'&src='.$redirectSource)?>"><-- Wróć do playlisty</a><br><br>
+<a href="<?=base_url('playlist/details?playlistId='.$playlistSong->listId.'&src='.$redirectSource)?>"><-- Wróć do playlisty</a><br><br>
 
-<p>ID w lokalnej bazie danych: <?=$song->SongId?></p><br>
+<p>ID w lokalnej bazie danych: <?=$playlistSong->id?></p><br>
 <p>ID piosenki na YT: <?=$song->SongURL?></p><br>
 
 <p>Nazwa nuty: <?=$song->SongTitle?></p><br>

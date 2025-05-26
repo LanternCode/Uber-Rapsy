@@ -36,7 +36,7 @@
             <div class="videoContainerBox">
                 <img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft" />
                 <div class="dataContainerBox">
-                    <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
+                    <input type="hidden" name="songId-<?=$i?>" value="<?=$song->id?>"/>
                     <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
                     <div class="dataContainerBox--split">
                         <div class="dataContainerBox--split__left">

@@ -1,9 +1,7 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
 
-if (!isset($_SESSION)) {
+if (!isset($_SESSION))
 	session_start();
-}
 
 /**
  * Controller responsible for handling views related with playlists.
@@ -14,7 +12,7 @@ if (!isset($_SESSION)) {
  * @link https://lanterncode.com/Uber-Rapsy/
  *
  * @property PlaylistModel $PlaylistModel
- * @property SongModel $SongModel
+ * @property PlaylistSongModel $PlaylistSongModel
  * @property UtilityModel $UtilityModel
  * @property LogModel $LogModel
  * @property SecurityModel $SecurityModel
@@ -23,13 +21,13 @@ if (!isset($_SESSION)) {
  * @property CI_DB_mysqli_driver $db
  * @property RefreshPlaylistService $RefreshPlaylistService
  */
-class Playlist extends CI_Controller {
-
+class Playlist extends CI_Controller
+{
 	public function __construct()
 	{
         parent::__construct();
         $this->load->model('PlaylistModel');
-		$this->load->model('SongModel');
+		$this->load->model('PlaylistSongModel');
 		$this->load->model('AccountModel');
 		$this->load->library('RefreshPlaylistService');
         $this->RefreshPlaylistService = new RefreshPlaylistService();
@@ -88,7 +86,7 @@ class Playlist extends CI_Controller {
                 $data = array(
                     'body' => 'playlist/details',
                     'title' => 'Uber Rapsy | Zarządzaj playlistą!',
-                    'songs' => $this->SongModel->getPlaylistSongs($listId),
+                    'songs' => $this->PlaylistSongModel->getPlaylistSongs($listId),
                     'playlist' => $this->PlaylistModel->fetchPlaylistById($listId),
                     'isReviewer' => $this->SecurityModel->authenticateReviewer(),
                     'redirectSource' => $this->input->get('src')

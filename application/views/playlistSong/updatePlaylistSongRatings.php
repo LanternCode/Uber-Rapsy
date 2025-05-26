@@ -10,7 +10,20 @@
 <?php endif; ?>
 <br><br><br>
 <h2>Wynik Zapisu:</h2>
-<h3>Na playliście odnaleziono <?=$processedSongsCount-1?> utwór/utwory/utworów, zaktualizowano <?=$processedAndUpdatedSongsCount?></h3>
+<h3>Na playliście odnaleziono <?=
+    ($c = $processedSongsCount - 1).' '.(
+        // singular when last digit = 1 *and* not 11
+        ($c % 10 === 1 && $c % 100 !== 11)
+            ? 'utwór'
+            // paucal when last digit 2–4 *and* not 12–14
+            : (
+                ($c % 10 >= 2 && $c % 10 <= 4 && ($c % 100 < 12 || $c % 100 > 14))
+                    ? 'utwory'
+                    // everything else
+                    : 'utworów'
+            )
+    )
+    ?>, z czego zaktualizowano <?=$processedAndUpdatedSongsCount?>.</h3>
 <?php if(isset($displayErrorMessage) && $displayErrorMessage !== ''): ?>
     <br><br>
     <h3>Wystąpił błąd w zapisywaniu ocen :/</h3>

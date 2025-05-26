@@ -21,11 +21,11 @@
             <?php
             $i = 0;
             foreach($songs as $key => $song):
-                $isOwner = in_array($song->ListId, $userOwnedPlaylists); ?>
+                $isOwner = in_array($song->listId, $userOwnedPlaylists); ?>
                 <div class="videoContainerBox">
                     <img src="<?=$song->SongThumbnailURL?>" width="" height="" alt="thumbnail" class="songThumbnailLeft" />
                     <div class="dataContainerBox">
-                        <input type="hidden" name="songId-<?=$i?>" value="<?=$song->SongId?>"/>
+                        <input type="hidden" name="songId-<?=$i?>" value="<?=$song->id?>"/>
                         <h4>Z playlisty: <?=$playlist[$key]->ListName?></h4>
                         <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
                         <div class="dataContainerBox--split">
@@ -116,7 +116,7 @@
             <input type="hidden" name="searchQuery" value="<?=$searchQuery?>"/>
         </form>
     <?php elseif (strlen($searchQuery) < 1): ?>
-        <h3>Wystąpił błąd! Nie wpisano nic do wyszukiwarki!</h3>
+        <h3>Nie wpisano nic do wyszukiwarki!</h3>
     <?php elseif (count($songs) > 300): ?>
         <h3>Znaleziono ponad 300 piosenek! Musisz zawęzić kryteria wyszukiwania!</h3>
 	<?php else: ?>

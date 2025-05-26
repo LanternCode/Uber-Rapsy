@@ -56,7 +56,7 @@ class Account extends CI_Controller
                         'userEmail' => $email,
                         'userPassword' => $password
                     );
-                    setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 7), "/");
+                    setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 14), "/");
                 }
 
                 redirect(base_url());
@@ -158,7 +158,7 @@ class Account extends CI_Controller
                     'userEmail' => $email,
                     'userPassword' => $password
                 );
-                setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 7), "/");
+                setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 14), "/");
             }
         }
 

@@ -1,11 +1,10 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
-if (!isset($_SESSION)) {
+if (!isset($_SESSION))
     session_start();
-}
 
 /**
- * Controller responsible for handling items inside a playlist.
+ * The controller responsible for handling playlist songs (playlist items).
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -14,6 +13,7 @@ if (!isset($_SESSION)) {
  *
  * @property PlaylistModel $PlaylistModel
  * @property SongModel $SongModel
+ * @property PlaylistSongModel $PlaylistSongModel
  * @property UtilityModel $UtilityModel
  * @property LogModel $LogModel
  * @property SecurityModel $SecurityModel
@@ -28,6 +28,7 @@ class PlaylistItems extends CI_Controller
         parent::__construct();
         $this->load->model('PlaylistModel');
         $this->load->model('SongModel');
+        $this->load->model('PlaylistSongModel');
         $this->load->model('UtilityModel');
         $this->load->model('LogModel');
         $this->load->model('SecurityModel');
@@ -65,7 +66,7 @@ class PlaylistItems extends CI_Controller
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
-                $data['searchQuery'] = $this->input->get('SearchQuery') ?? '';
+                $data['searchQuery'] = $this->input->get('searchQuery') ?? '';
                 $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer";
                 $data['allPlaylists'] = $this->PlaylistModel->GetListsIdsAndNames();
                 $data['songs'] = [];
@@ -102,7 +103,7 @@ class PlaylistItems extends CI_Controller
                         $checkboxProperty = $this->input->get('prop');
                         foreach ($data['checkboxPropertiesDetails'] as $checkboxProperties) {
                             if (in_array($checkboxProperty, $checkboxProperties)) {
-                                $data['songs'] = $this->SongModel->filterSongsByCheckboxProperty($data['listId'], $checkboxProperty);
+                                $data['songs'] = $this->PlaylistSongModel->filterSongsByCheckboxProperty($data['listId'], $checkboxProperty);
                                 break;
                             }
                         }
@@ -111,13 +112,13 @@ class PlaylistItems extends CI_Controller
                     case "Unrated":
                     {
                         //The 'unrated' filter is in use
-                        $data['songs'] = $this->SongModel->filterUnrated($data['listId']);
+                        $data['songs'] = $this->PlaylistSongModel->filterUnrated($data['listId']);
                         break;
                     }
                     default:
                     {
                         //Fetch songs and filter by the search query if one was used
-                        $data['songs'] = $this->SongModel->getPlaylistSongs($data['listId'], $data['searchQuery']);
+                        $data['songs'] = $this->PlaylistSongModel->getPlaylistSongs($data['listId'], $data['searchQuery']);
                         break;
                     }
                 }
@@ -186,7 +187,7 @@ class PlaylistItems extends CI_Controller
             'playlist' => array()
         );
         if (strlen($data['searchQuery']) > 0) {
-            $data['songs'] = $this->SongModel->GetSongsFromSearch($data['searchQuery']);
+            $data['songs'] = $this->PlaylistSongModel->getPlaylistSongsFromSearch($data['searchQuery']);
             if (count($data['songs']) > 0 && count($data['songs']) < 301) {
                 $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
                 $data['userOwnedPlaylists'] = isset($_SESSION['userId']) ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->FetchUserPlaylistsIDs($_SESSION['userId'])) : [];
@@ -195,7 +196,7 @@ class PlaylistItems extends CI_Controller
                     $this->setSongGrades($song);
 
                     //Get song button information
-                    $data['playlist'][] = $this->PlaylistModel->fetchPlaylistById($song->ListId);
+                    $data['playlist'][] = $this->PlaylistModel->fetchPlaylistById($song->listId);
                 }
             }
         }
@@ -231,7 +232,7 @@ class PlaylistItems extends CI_Controller
                 $data['propName'] = $data['filter'] === "Adam" ? "SongGradeAdam" : ($data['filter'] === "Churchie" ? "SongGradeChurchie" : ($data['filter'] === "Owner" ? "SongGradeOwner" : "Average"));
 
                 //Fetch other relevant data to complete the tierlist
-                $data['songs'] = $this->SongModel->GetTopSongsFromList($data['listId'], $data['filter']);
+                $data['songs'] = $this->PlaylistSongModel->getTopPlaylistSongs($data['listId'], $data['filter']);
                 $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
 
                 //Pre-compute every song's average and trim trailing zeros
@@ -274,8 +275,9 @@ class PlaylistItems extends CI_Controller
     {
         //Check if the request comes from a valid playlist or the search engine
         $playlistId = filter_var($this->input->post('playlistId'), FILTER_VALIDATE_INT);
-        $playlistId = $playlistId == "search" ? $playlistId : 0;
-        if ($playlistId) {
+        $playlistIdValid = $playlistId == "search" || (is_int($playlistId) && $playlistId > 0);
+
+        if ($playlistIdValid) {
             //Check if the user is allowed to update grades from the playlist or the various songs found through the search engine
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userOwnedPlaylists = $userAuthenticated ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->FetchUserPlaylistsIDs($_SESSION['userId'])) : [];
@@ -284,7 +286,7 @@ class PlaylistItems extends CI_Controller
             $reviewerAuthenticated = $this->SecurityModel->authenticateReviewer();
             if ($userAuthorised || $searchUpdateAuthenticated || $reviewerAuthenticated) {
                 $data = array(
-                    'body' => 'update',
+                    'body' => 'updatePlaylistSongRatings',
                     'title' => 'Oceny Zapisane!',
                     'searchQuery' => $playlistId == "search" ? $this->input->post('searchQuery') : false
                 );
@@ -310,56 +312,57 @@ class PlaylistItems extends CI_Controller
                     if ($songUpdated) {
                         //Fetch the song-to-update and check whether the user is allowed to update it (through search or playlist listing)
                         $formInput['songId'] = $this->input->post('songId-'.$i);
-                        $currentSong = $this->SongModel->GetSongById($formInput['songId']);
-                        $currentSongPlaylistPublicStatus = $this->PlaylistModel->getListPublicProperty($currentSong->ListId);
-                        $updateAuthorised = $playlistId == "search" ? (in_array($currentSong->ListId, $userOwnedPlaylists) || ($reviewerAuthenticated && $currentSongPlaylistPublicStatus)) : ($userAuthorised || $reviewerAuthorised);
+                        $currentPlaylistSong = $this->PlaylistSongModel->getPlaylistSong($formInput['songId']);
+                        $currentSong = $this->SongModel->getSong($currentPlaylistSong->songId);
+                        $currentSongPlaylistPublicStatus = $this->PlaylistModel->getListPublicProperty($currentPlaylistSong->listId);
+                        $updateAuthorised = $playlistId == "search" ? (in_array($currentPlaylistSong->ListId, $userOwnedPlaylists) || ($reviewerAuthenticated && $currentSongPlaylistPublicStatus)) : ($userAuthorised || $reviewerAuthorised);
                         if ($updateAuthorised) {
                             //Create a variable for the song's update message
                             $data['processedAndUpdatedSongsCount'] += 1;
                             $localResultMessage = "";
 
                             //Save the form data to a temp variable for easy db update - grades
-                            $formInput['SongGradeAdam'] = $_POST["nwGradeA-" . $i + 1] ?? $currentSong->SongGradeAdam;
-                            $formInput['SongGradeChurchie'] = $_POST["nwGradeC-" . $i + 2] ?? $currentSong->SongGradeChurchie;
-                            $formInput['SongGradeOwner'] = $_POST["nwGradeM-" . $i + 27] ?? $currentSong->SongGradeOwner;
+                            $formInput['SongGradeAdam'] = $_POST["nwGradeA-" . $i + 1] ?? $currentPlaylistSong->SongGradeAdam;
+                            $formInput['SongGradeChurchie'] = $_POST["nwGradeC-" . $i + 2] ?? $currentPlaylistSong->SongGradeChurchie;
+                            $formInput['SongGradeOwner'] = $_POST["nwGradeM-" . $i + 27] ?? $currentPlaylistSong->SongGradeOwner;
 
                             //Buttons (checkboxes)
-                            $formInput['SongRehearsal'] = $_POST["songRehearsal-" . $i + 4] ?? $currentSong->SongRehearsal;
-                            $formInput['SongDistinction'] = $_POST["songDistinction-" . $i + 5] ?? $currentSong->SongDistinction;
-                            $formInput['SongMemorial'] = $_POST["songMemorial-" . $i + 6] ?? $currentSong->SongMemorial;
-                            $formInput['SongXD'] = $_POST["songXD-" . $i + 7] ?? $currentSong->SongXD;
-                            $formInput['SongNotRap'] = $_POST["songNotRap-" . $i + 8] ?? $currentSong->SongNotRap;
-                            $formInput['SongDiscomfort'] = $_POST["songDiscomfort-" . $i + 9] ?? $currentSong->SongDiscomfort;
-                            $formInput['SongDepA'] = $_POST["songDepA-" . $i + 26] ?? $currentSong->SongDepA;
-                            $formInput['SongTop'] = $_POST["songTop-" . $i + 10] ?? $currentSong->SongTop;
-                            $formInput['SongNoGrade'] = $_POST["songNoGrade-" . $i + 11] ?? $currentSong->SongNoGrade;
-                            $formInput['SongUber'] = $_POST["songUber-" . $i + 12] ?? $currentSong->SongUber;
-                            $formInput['SongBelow'] = $_POST["songBelow-" . $i + 13] ?? $currentSong->SongBelow;
-                            $formInput['SongBelTen'] = $_POST["songBelTen-" . $i + 14] ?? $currentSong->SongBelTen;
-                            $formInput['SongBelNine'] = $_POST["songBelNine-" . $i + 15] ?? $currentSong->SongBelNine;
-                            $formInput['SongBelEight'] = $_POST["songBelEight-" . $i + 16] ?? $currentSong->SongBelEight;
-                            $formInput['SongBelFour'] = $_POST["songBelFour-" . $i + 17] ?? $currentSong->SongBelFour;
-                            $formInput['SongDuoTen'] = $_POST["songDuoTen-" . $i + 18] ?? $currentSong->SongDuoTen;
-                            $formInput['SongVeto'] = $_POST["songVeto-" . $i + 19] ?? $currentSong->SongVeto;
-                            $formInput['SongBelHalfSeven'] = $_POST["SongBelHalfSeven-" . $i + 23] ?? $currentSong->SongBelHalfSeven;
-                            $formInput['SongBelHalfEight'] = $_POST["SongBelHalfEight-" . $i + 24] ?? $currentSong->SongBelHalfEight;
-                            $formInput['SongBelHalfNine'] = $_POST["SongBelHalfNine-" . $i + 25] ?? $currentSong->SongBelHalfNine;
+                            $formInput['SongRehearsal'] = $_POST["songRehearsal-" . $i + 4] ?? $currentPlaylistSong->SongRehearsal;
+                            $formInput['SongDistinction'] = $_POST["songDistinction-" . $i + 5] ?? $currentPlaylistSong->SongDistinction;
+                            $formInput['SongMemorial'] = $_POST["songMemorial-" . $i + 6] ?? $currentPlaylistSong->SongMemorial;
+                            $formInput['SongXD'] = $_POST["songXD-" . $i + 7] ?? $currentPlaylistSong->SongXD;
+                            $formInput['SongNotRap'] = $_POST["songNotRap-" . $i + 8] ?? $currentPlaylistSong->SongNotRap;
+                            $formInput['SongDiscomfort'] = $_POST["songDiscomfort-" . $i + 9] ?? $currentPlaylistSong->SongDiscomfort;
+                            $formInput['SongDepA'] = $_POST["songDepA-" . $i + 26] ?? $currentPlaylistSong->SongDepA;
+                            $formInput['SongTop'] = $_POST["songTop-" . $i + 10] ?? $currentPlaylistSong->SongTop;
+                            $formInput['SongNoGrade'] = $_POST["songNoGrade-" . $i + 11] ?? $currentPlaylistSong->SongNoGrade;
+                            $formInput['SongUber'] = $_POST["songUber-" . $i + 12] ?? $currentPlaylistSong->SongUber;
+                            $formInput['SongBelow'] = $_POST["songBelow-" . $i + 13] ?? $currentPlaylistSong->SongBelow;
+                            $formInput['SongBelTen'] = $_POST["songBelTen-" . $i + 14] ?? $currentPlaylistSong->SongBelTen;
+                            $formInput['SongBelNine'] = $_POST["songBelNine-" . $i + 15] ?? $currentPlaylistSong->SongBelNine;
+                            $formInput['SongBelEight'] = $_POST["songBelEight-" . $i + 16] ?? $currentPlaylistSong->SongBelEight;
+                            $formInput['SongBelFour'] = $_POST["songBelFour-" . $i + 17] ?? $currentPlaylistSong->SongBelFour;
+                            $formInput['SongDuoTen'] = $_POST["songDuoTen-" . $i + 18] ?? $currentPlaylistSong->SongDuoTen;
+                            $formInput['SongVeto'] = $_POST["songVeto-" . $i + 19] ?? $currentPlaylistSong->SongVeto;
+                            $formInput['SongBelHalfSeven'] = $_POST["SongBelHalfSeven-" . $i + 23] ?? $currentPlaylistSong->SongBelHalfSeven;
+                            $formInput['SongBelHalfEight'] = $_POST["SongBelHalfEight-" . $i + 24] ?? $currentPlaylistSong->SongBelHalfEight;
+                            $formInput['SongBelHalfNine'] = $_POST["SongBelHalfNine-" . $i + 25] ?? $currentPlaylistSong->SongBelHalfNine;
 
                             //Move and copy song select boxes
                             $formInput['newPlaylistId'] = $_POST["nwPlistId-" . $i + 3];
                             $formInput['copyToPlaylist'] = $_POST["copyPlistId-" . $i + 20];
 
                             //Song comment textarea
-                            $formInput['SongComment'] = $_POST["songComment-" . $i + 22] ?? $currentSong->SongComment;
+                            $formInput['SongComment'] = $_POST["songComment-" . $i + 22] ?? $currentPlaylistSong->SongComment;
 
                             //Fatal Error - if the song was not fetched, note this and continue to the next song.
-                            if ($currentSong === false) {
+                            if ($currentPlaylistSong === false) {
                                 $resultMessage .= "<br><br>\tNie znaleziono utworu o ID " . $formInput['songId'] . "<br><br>";
                                 continue;
                             }
 
                             //Fetch song properties that need updating by comparing the form input data with the current song data
-                            $elementsToUpdate = $this->FlagSongDataToUpdate($currentSong, $formInput);
+                            $elementsToUpdate = $this->flagSongDataToUpdate($currentPlaylistSong, $formInput);
 
                             //Update song grades
                             $createUpdateLog = false;
@@ -378,7 +381,7 @@ class PlaylistItems extends CI_Controller
                                     && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15) && $this->UtilityModel->InRange($newOwnerRating, 0, 15)
                                     && fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0 && fmod($newOwnerRating, 0.5) == 0)
                                 {
-                                    $scoresSaved = $this->SongModel->UpdateSongScores($currentSong->SongId, $newAdamRating, $newChurchieRating, $newOwnerRating);
+                                    $scoresSaved = $this->PlaylistSongModel->updatePlaylistSongScores($currentPlaylistSong->id, $newAdamRating, $newChurchieRating, $newOwnerRating);
                                     if (!$scoresSaved) {
                                         //Fatal Error - if grades were not saved, note this and continue to the next song.
                                         $resultMessage .= "<br><br>\tNie udało się zapisać ocen dla utworu " . $currentSong->SongTitle . "<br><br>";
@@ -386,11 +389,11 @@ class PlaylistItems extends CI_Controller
                                     }
 
                                     if ($adamGradeUpdated)
-                                        $localResultMessage .= "\tOcena Adama: " . $currentSong->SongGradeAdam . " -> " . $newAdamRating . "<br>";
+                                        $localResultMessage .= "\tOcena Adama: " . $currentPlaylistSong->SongGradeAdam . " -> " . $newAdamRating . "<br>";
                                     if ($churchieGradeUpdated)
-                                        $localResultMessage .= "\tOcena Kościelnego: " . $currentSong->SongGradeChurchie . " -> " . $newChurchieRating . "<br>";
+                                        $localResultMessage .= "\tOcena Kościelnego: " . $currentPlaylistSong->SongGradeChurchie . " -> " . $newChurchieRating . "<br>";
                                     if ($ownerGradeUpdated)
-                                        $localResultMessage .= "\tOcena Właściciela: " . $currentSong->SongGradeOwner . " -> " . $newOwnerRating;
+                                        $localResultMessage .= "\tOcena Właściciela: " . $currentPlaylistSong->SongGradeOwner . " -> " . $newOwnerRating;
 
                                     $createUpdateLog = true;
                                 }
@@ -398,7 +401,7 @@ class PlaylistItems extends CI_Controller
 
                             //Update song comment
                             if ($commentUpdated) {
-                                $commentSaved = $this->SongModel->UpdateSongComment($currentSong->SongId, $formInput['SongComment']);
+                                $commentSaved = $this->PlaylistSongModel->updateSongComment($currentPlaylistSong->id, $formInput['SongComment']);
                                 if (!$commentSaved) {
                                     //Fatal Error - if comment was not saved, note this and continue to the next song.
                                     $resultMessage .= "<br><br>\tNie udało się zapisać komentarza do utworu " . $currentSong->SongTitle . "<br><br>";
@@ -406,7 +409,7 @@ class PlaylistItems extends CI_Controller
                                 }
                                 else {
                                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
-                                    $localResultMessage .= "Komentarz: " . $currentSong->SongComment . " -> " . $formInput['SongComment'];
+                                    $localResultMessage .= "Komentarz: " . $currentPlaylistSong->SongComment . " -> " . $formInput['SongComment'];
                                     $createUpdateLog = true;
                                 }
                             }
@@ -414,8 +417,8 @@ class PlaylistItems extends CI_Controller
                             //Update song checkbox properties (buttons)
                             foreach ($elementsToUpdate as $prop) {
                                 if (!in_array($prop, ["SongGradeAdam", "SongGradeChurchie", "SongGradeOwner", "SongComment"])) {
-                                    $propertyDisplayName = $this->GetPropertyDisplayName($prop);
-                                    $updateSuccess = $this->SongModel->UpdateSongCheckboxProperty($currentSong->SongId, $prop, $formInput[$prop]);
+                                    $propertyDisplayName = $this->getPropertyDisplayName($prop);
+                                    $updateSuccess = $this->PlaylistSongModel->updateSongCheckboxProperty($currentPlaylistSong->id, $prop, $formInput[$prop]);
                                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                                     if ($updateSuccess)
                                         $localResultMessage .= ($formInput[$prop] ? "Zaznaczono " : "Odznaczono ") . $propertyDisplayName;
@@ -427,22 +430,21 @@ class PlaylistItems extends CI_Controller
 
                             //Create a song update log if any changes were made
                             if ($createUpdateLog)
-                                $this->LogModel->createLog('song', $currentSong->SongId, "Zapisano oceny nuty z " . ($playlistId === "search" ? "wyszukiwarki" : "playlisty"));
+                                $this->LogModel->createLog('playlist_song', $currentPlaylistSong->id, "Zapisano oceny nuty z " . ($playlistId === "search" ? "wyszukiwarki" : "playlisty"));
 
                             //Copy songs to local playlists
-                            $newSongId = 0;
+                            $newPlaylistSongId = 0;
                             if ($formInput['copyToPlaylist']) {
-                                $copySuccessful = $this->SongModel->CopySongToPlaylist($currentSong->SongId, $formInput['copyToPlaylist']);
-                                if ($copySuccessful) {
-                                    $newSongId = $this->SongModel->GetSongIdByNameAndPlaylist($currentSong->SongTitle, $formInput['copyToPlaylist']);
+                                $newPlaylistSongId = $this->PlaylistSongModel->copyToAnotherPlaylist($currentPlaylistSong->id, $formInput['copyToPlaylist']);
+                                if ($newPlaylistSongId) {
                                     $sourceName = $playlistId === "search" ? "wyszukiwarki" : "playlisty " . $playlist->ListName;
                                     $targetName = $this->PlaylistModel->GetPlaylistNameById($formInput['copyToPlaylist']);
                                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
-                                    $localResultMessage .= "Skopiowano do: " . $targetName;
-                                    $this->LogModel->createLog("song", $newSongId, "Nuta skopiowana z " . $sourceName . " do " . $targetName);
+                                    $localResultMessage .= "Skopiowano do: ".$targetName;
+                                    $this->LogModel->createLog("playlist_song", $newPlaylistSongId, "Nuta skopiowana z ".$sourceName." do ".$targetName);
                                 }
                                 else {
-                                    $resultMessage .= "<br><br>\tNie udało się skopiować utworu " . $currentSong->SongTitle . ", przeskoczono do następnego.<br><br>";
+                                    $resultMessage .= "<br><br>\tNie udało się skopiować utworu ".$currentSong->SongTitle.", przeskoczono do następnego.<br><br>";
                                     continue;
                                 }
                             }
@@ -450,18 +452,18 @@ class PlaylistItems extends CI_Controller
                             //Move songs between integrated playlists
                             $moveRequired = $formInput['newPlaylistId'] != $playlistId && $formInput['newPlaylistId'] != 0;
                             if ($moveRequired) {
-                                $data['displayErrorMessage'] = $this->InsertSongService->moveSongBetweenIntegratedPlaylists($playlist, $currentSong, $formInput['newPlaylistId'], $localResultMessage);
+                                $data['displayErrorMessage'] = $this->InsertSongService->moveSongBetweenIntegratedPlaylists($playlist, $currentPlaylistSong, $formInput['newPlaylistId'], $localResultMessage);
                             }
 
                             //Copy songs to integrated playlists
                             $copyRequired = $formInput['copyToPlaylist'] != $playlistId && $formInput['copyToPlaylist'] != 0;
                             $copyToIntegratedRequired = $copyRequired && $this->PlaylistModel->GetPlaylistIntegratedById($formInput['copyToPlaylist']);
-                            if ($copyToIntegratedRequired) {
-                                $data['displayErrorMessage'] = ($data['displayErrorMessage'] ?? "") . "<br>" . $this->InsertSongService->copySongToIntegratedPlaylist($currentSong, $formInput['copyToPlaylist'], $newSongId, $localResultMessage);
+                            if ($copyToIntegratedRequired && $newPlaylistSongId) {
+                                $data['displayErrorMessage'] = ($data['displayErrorMessage'] ?? "")."<br>".$this->InsertSongService->copySongToIntegratedPlaylist($currentPlaylistSong, $formInput['copyToPlaylist'], $newPlaylistSongId, $localResultMessage);
                             }
 
                             //Save the result message and pass it to the report
-                            $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór " . $currentSong->SongTitle . ":<br><br>" . $localResultMessage) : "";
+                            $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór ".$currentSong->SongTitle.":<br><br>".$localResultMessage) : "";
                             $resultMessage .= $finalResultMessage;
                         }
                         else redirect('logout');
@@ -469,12 +471,14 @@ class PlaylistItems extends CI_Controller
                 }
                 //Finalise the result message
                 $data['resultMessage'] = $resultMessage . "</pre>";
+
                 //Submit a report
                 $newReportId = $this->LogModel->SubmitReport(htmlspecialchars($data['resultMessage']));
+
                 //Create a log
                 $where = $playlistId === "search" ? "z wyszukiwarki" : "z playlisty";
                 $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
-                $logMessage = "Zapisano oceny " . $where . $reportSuccessful;
+                $logMessage = "Zapisano oceny ".$where.$reportSuccessful;
                 if (is_numeric($playlistId))
                     $this->LogModel->createLog('playlist', $playlistId, $logMessage, $newReportId);
 
@@ -487,7 +491,6 @@ class PlaylistItems extends CI_Controller
 
     /**
      * Updates the playlist with new songs added to it on YouTube.
-     * CONTINUE HERE
      *
      * @return void
      */
@@ -496,7 +499,7 @@ class PlaylistItems extends CI_Controller
         $listId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
         $listId = is_numeric($listId) ? $listId : 0;
         $data = array(
-            'body' => 'downloadSongs',
+            'body' => 'downloadPlaylistSongs',
             'title' => 'Aktualizacja playlisty!',
             'listId' => $listId,
             'displayErrorMessage' => ''
@@ -521,46 +524,77 @@ class PlaylistItems extends CI_Controller
     }
 
     /**
+     * Allows the user to hide (privatise) or show (publicise) an existing playlist song.
+     *
+     * @return void
+     */
+    public function updatePlaylistSongVisibility(): void
+    {
+        //Validate the submitted song id
+        $playlistSongId = isset($_GET['songId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['songId'])) : 0;
+        $playlistSong = is_numeric($playlistSongId) ? $this->PlaylistSongModel->getPlaylistSong($playlistSongId) : false;
+        if ($playlistSong !== false) {
+            //Check if the user is logged in and has the required permissions
+            $userAuthenticated = $this->SecurityModel->authenticateUser();
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistSong->listId) == $_SESSION['userId'];
+            if ($userAuthorised) {
+                //Update song visibility
+                $currentVisibility = $playlistSong->SongVisible;
+                $newVisibility = $currentVisibility == 1 ? 0 : 1;
+                $this->PlaylistSongModel->updatePlaylistSongVisibility($playlistSongId, $newVisibility);
+                $this->LogModel->createLog('playlist_song', $playlistSongId, ($newVisibility ? "Upubliczniono" : "Ukryto")." nutę na playliście");
+
+                //Return to the playlist details view
+                $redirectSource = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : 0;
+                if ($redirectSource == 'pd')
+                    redirect('playlist/details?playlistId='.$playlistSong->listId.'&src=pd');
+                else redirect('playlist/details?playlistId='.$playlistSong->listId.'&src=mp');
+            }
+            else redirect('logout');
+        }
+        else redirect('logout');
+    }
+
+    /**
      * Allows the user to delete a song from a playlist.
      *
      * @return void
      */
-    public function deleteSongFromPlaylist(): void
+    public function deletePlaylistSong(): void
     {
-        //Validate the submitted song id
-        $songId = $this->input->get('songId');
-        $song = $songId ? $this->SongModel->GetSongById($songId) : false;
-        if ($song !== false) {
+        //Validate the posted playlist song id
+        $playlistSongId = $this->input->get('songId');
+        $playlistSong = $playlistSongId ? $this->PlaylistSongModel->getPlaylistSong($playlistSongId) : false;
+        if ($playlistSong !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($song->ListId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistSong->listId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'song/delSong',
                     'title' => 'Uber Rapsy | Usuń piosenkę z playlisty',
-                    'playlist' => $this->PlaylistModel->fetchPlaylistById($song->ListId),
+                    'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistSong->listId),
                     'redirectSource' => $this->input->get('src'),
-                    'song' => $song
+                    'song' => $this->SongModel->getSong($playlistSong->songId),
+                    'playlistSong' => $playlistSong
                 );
 
                 //Delete the song if the form was submitted
                 $delSong = $this->input->get('delete');
                 if ($delSong) {
-                    $this->LogModel->createLog('song', $songId, "Permanentnie usunięto nutę z playlisty.");
-                    $this->LogModel->createLog(
-                        'playlist',
-                        $data['song']->ListId,
-                        "Permanentnie usunięto nutę " . $data['song']->SongTitle . " z playlisty."
-                    );
-                    $this->SongModel->DeleteSong($songId);
+                    $this->LogModel->createLog('playlist_song', $playlistSongId, "Permanentnie usunięto nutę z playlisty.");
+                    $this->LogModel->createLog('playlist', $data['playlistSong']->listId, "Permanentnie usunięto nutę " . $data['song']->SongTitle . " z playlisty.");
+                    $this->PlaylistSongModel->deletePlaylistSong($playlistSongId);
                     if ($data['redirectSource'] == 'pd')
-                        redirect('playlist/details?listId=' . $data['song']->ListId . '&src=pd');
-                    else redirect('playlist/details?listId=' . $data['song']->ListId . '&src=mp');
+                        redirect('playlist/details?listId='.$data['playlistSong']->listId.'&src=pd');
+                    else redirect('playlist/details?listId='.$data['playlistSong']->listId.'&src=mp');
                 }
 
                 $this->load->view('templates/main', $data);
-            } else redirect('logout');
-        } else redirect('logout');
+            }
+            else redirect('logout');
+        }
+        else redirect('logout');
     }
 
     /**
@@ -573,7 +607,7 @@ class PlaylistItems extends CI_Controller
      * @param $formInput array the state of the song after the form is submitted
      * @return array array of property names to update
      */
-    function FlagSongDataToUpdate(object $currentSong, array $formInput): array
+    function flagSongDataToUpdate(object $currentSong, array $formInput): array
     {
         //Set update flags
         $flags['SongGradeAdam'] = $currentSong->SongGradeAdam != $formInput['SongGradeAdam'];
@@ -619,7 +653,7 @@ class PlaylistItems extends CI_Controller
      * @param $propertyName string the internal name of the property
      * @return string the custom display name of the property
      */
-    function GetPropertyDisplayName(string $propertyName): string
+    function getPropertyDisplayName(string $propertyName): string
     {
         return match ($propertyName) {
             'SongRehearsal' => "ponowny odsłuch",
@@ -661,20 +695,20 @@ class PlaylistItems extends CI_Controller
             $song->SongGradeOwner
         ];
 
-        // Filter out zero values
+        //Filter out zero values
         $nonZeroGrades = array_filter($grades, function ($grade) {
             return $grade > 0;
         });
 
-        // Calculate the average if there are non-zero grades, otherwise return 0
+        //Calculate the average if there are non-zero grades, otherwise return 0
         return count($nonZeroGrades) > 0 ? round(array_sum($nonZeroGrades) / count($nonZeroGrades), 2) : 0;
     }
 
     /**
-     * Formats song grades and computes the average
+     * Formats playlist song grades and computes the average
      *
-     * @param $song object song to set the grades for
-     * @return void the song object is updated by reference
+     * @param $song object playlist song to set the grades for
+     * @return void the updated playlist song object
      */
     public function setSongGrades(object $song): void
     {

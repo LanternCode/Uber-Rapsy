@@ -6,7 +6,7 @@ $route['search'] = 'PlaylistItems/globalSearch';
 $route['tierlist'] = 'PlaylistItems/tierlist';
 $route['updateSongRatings'] = 'PlaylistItems/updateSongRatingsInPlaylist';
 $route['downloadSongs'] = 'PlaylistItems/downloadSongs';
-$route['playlist/delSong'] = 'PlaylistItems/deleteSongFromPlaylist';
+$route['playlist/delSong'] = 'PlaylistItems/deletePlaylistSong';
 
 $route['adminDashboard'] = 'YoutubeIntegration';
 $route['apitestPlaylist'] = 'YoutubeIntegration/result';
@@ -28,14 +28,14 @@ $route['playlist/showLog'] = 'Log/showPlaylistLog';
 
 $route['song/rev'] = 'Song/reviewSong';
 $route['song/showLog'] = 'Log/showPlaylistSongLog';
-$route['song/updateSongVisibility'] = 'Song/updateSongVisibility';
+$route['playlistItems/updatePlaylistSongVisibility'] = 'PlaylistItems/updatePlaylistSongVisibility';
 
-$route['frontpage'] = 'Toplist/frontpage';
-$route['songsToplist/saveGrades'] = 'Toplist/saveGradesFromToplist';
-$route['songSearch'] = 'Toplist/songSearch';
-$route['songPage'] = 'Toplist/songPage';
-$route['importSongs'] = 'Toplist/importSongs';
-$route['confirmImporting'] = 'Toplist/approveSongImport';
+$route['frontpage'] = 'Song/frontpage';
+$route['songsToplist/saveGrades'] = 'Song/rateSong';
+$route['songSearch'] = 'Song/songSearch';
+$route['songPage'] = 'Song/songPage';
+$route['importSongs'] = 'Song/importSongs';
+$route['confirmImporting'] = 'Song/confirmSongImport';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';

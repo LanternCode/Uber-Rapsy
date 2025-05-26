@@ -15,6 +15,8 @@ if (!isset($_SESSION)) {
  * @property LogModel $LogModel
  * @property SecurityModel $SecurityModel
  * @property PlaylistModel $PlaylistModel
+ * @property PlaylistSongModel $PlaylistSongModel
+ * @property SongModel $SongModel
  * @property CI_Input $input
  */
 class Log extends CI_Controller
@@ -25,6 +27,8 @@ class Log extends CI_Controller
         $this->load->model('SecurityModel');
         $this->load->model('LogModel');
         $this->load->model('PlaylistModel');
+        $this->load->model('PlaylistSongModel');
+        $this->load->model('SongModel');
     }
 
     /**
@@ -89,16 +93,17 @@ class Log extends CI_Controller
     public function showPlaylistSongLog(): void
     {
         //Validate the submitted song id and fetch said song
-        $songId = $this->input->get('songId');
-        $data['song'] = $songId ? $this->SongModel->GetSongById($songId) : false;
-        if ($data['song'] !== false) {
+        $playlistSongId = $this->input->get('songId');
+        $data['playlistSong'] = $playlistSongId ? $this->PlaylistSongModel->getPlaylistSong($playlistSongId) : false;
+        if ($data['playlistSong'] !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['song']->ListId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['playlistSong']->listId) == $_SESSION['userId'];
             if ($userAuthorised) {
-                $data['body']  = 'song/showLog';
+                $data['body']  = 'playlistSong/showLog';
                 $data['title'] = "Uber Rapsy | Historia nuty";
-                $data['songLog'] = $this->LogModel->GetSongLog($songId);
+                $data['song'] = $this->SongModel->getSong($data['playlistSong']->songId);
+                $data['songLog'] = $this->LogModel->getPlaylistSongLogs($playlistSongId);
                 $data['redirectSource'] = $this->input->get('src');
 
                 $this->load->view('templates/main', $data);
