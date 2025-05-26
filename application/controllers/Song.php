@@ -42,8 +42,8 @@ class Song extends CI_Controller
     public function frontpage(): void
     {
         $data = array(
-            'body' => 'toplist/frontpage',
-            'title' => 'Nasze toplisty | Uber Rapsy',
+            'body' => 'song/frontpage',
+            'title' => 'Listy popularnych piosenek | Uber Rapsy',
             'songs' => $this->SongModel->fetchTopRapparHits()
         );
 
@@ -82,7 +82,7 @@ class Song extends CI_Controller
     }
 
     /**
-     * Saves user grades from toplists.
+     * Saves user grades.
      *
      * @return void
      */
@@ -255,6 +255,7 @@ class Song extends CI_Controller
                 if ($existingSongId == 0) {
                     $songId = $this->SongModel->insertSong($song['externalSongId'], $song['songThumbnailLink'], $song['songTitle'], $songChannelName, $song['songPublishedAt']);
                     $data['report'] .= "<h4>Utwór ".$song['songTitle']." został dodany do bazy danych Rappar!</h4><br>";
+                    $this->LogModel->createLog("song", $songId, "Nuta została importowana do bazy danych RAPPAR.");
                     $added++;
                 }
                 else
@@ -268,6 +269,12 @@ class Song extends CI_Controller
         $word = $added === 1 ? 'utwór' : ($added === 2 || $added === 3 || $added === 4 ? 'utwory' : 'utworów');
         $data['report'] .= "<h2>Łącznie dodano ".$added." ".$word." do bazy danych RAPPAR!</h2>";
         $this->session->unset_tempdata('playlistItems');
+
+        //Submit the report and add a log
+        if ($added > 0) {
+            $repId = $this->LogModel->SubmitReport($data['report']);
+            $this->LogModel->createLog("user", $_SESSION['userId'], "Importowano ".$added." ".$word." do bazy danych RAPPAR!", $repId);
+        }
 
         $data['body'] = 'song/importSongsResult';
         $this->load->view('templates/toplist', $data);

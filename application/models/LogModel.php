@@ -33,10 +33,10 @@ class LogModel extends CI_Model
         //Ensure the entity type is correct
         $allowedTypes = ["playlist", "song", "user", "playlist_song"];
         $validType = in_array($entityType, $allowedTypes);
-        $actionBy = $_SESSION['userId'] ?? 0;
+        $actionedBy = $_SESSION['userId'] ?? 0;
 
         if ($validType) {
-            $sql = "INSERT INTO log (`UserId`,`EntityType`, `EntityId`, `Description`, `reportId`) VALUES ($actionBy, '$entityType', $entityId, '$description', $reportId)";
+            $sql = "INSERT INTO log (`UserId`,`EntityType`, `EntityId`, `Description`, `reportId`) VALUES ($actionedBy, '$entityType', $entityId, '$description', $reportId)";
             if ($this->db->simple_query($sql))
                 return true;
             else return false;
