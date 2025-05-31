@@ -31,11 +31,12 @@ $route['song/showLog'] = 'Log/showPlaylistSongLog';
 $route['playlistItems/updatePlaylistSongVisibility'] = 'PlaylistItems/updatePlaylistSongVisibility';
 
 $route['frontpage'] = 'Song/frontpage';
-$route['songsToplist/saveGrades'] = 'Song/rateSong';
+$route['song/saveGrades'] = 'Song/rateSong';
 $route['songSearch'] = 'Song/songSearch';
 $route['songPage'] = 'Song/songPage';
 $route['importSongs'] = 'Song/importSongs';
 $route['confirmImporting'] = 'Song/confirmSongImport';
+$route['manualImport'] = 'Song/manualImport';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';

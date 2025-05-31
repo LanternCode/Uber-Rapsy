@@ -1,8 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
-if (!isset($_SESSION)) {
+if (!isset($_SESSION))
     session_start();
-}
 
 /**
  * Controller responsible for handling views related to data logging.

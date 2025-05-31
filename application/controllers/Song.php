@@ -53,7 +53,7 @@ class Song extends CI_Controller
             $song->awards = $this->SongModel->fetchSongAwards($song->SongId);
         }
 
-        $this->load->view('templates/toplist', $data);
+        $this->load->view('templates/song', $data);
     }
 
     /**
@@ -76,7 +76,7 @@ class Song extends CI_Controller
             $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
             $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
 
-            $this->load->view('templates/toplist', $data);
+            $this->load->view('templates/song', $data);
         }
         else redirect('logout');
     }
@@ -103,7 +103,7 @@ class Song extends CI_Controller
                 else
                     $this->SongModel->updateSongRating($queryData);
             }
-            redirect('songsToplist');
+            redirect('frontpage');
         }
         else redirect('logout');
     }
@@ -135,7 +135,7 @@ class Song extends CI_Controller
             }
         }
 
-        $this->load->view('templates/toplist', $data);
+        $this->load->view('templates/song', $data);
     }
 
     /**
@@ -226,7 +226,7 @@ class Song extends CI_Controller
             }
         }
 
-        $this->load->view('templates/toplist', $data);
+        $this->load->view('templates/song', $data);
     }
 
     /**
@@ -239,7 +239,7 @@ class Song extends CI_Controller
      *
      * @return void
      */
-    public function confirmSongImport()
+    public function confirmSongImport(): void
     {
         $i = 0;
         $added = 0;
@@ -277,24 +277,23 @@ class Song extends CI_Controller
         }
 
         $data['body'] = 'song/importSongsResult';
-        $this->load->view('templates/toplist', $data);
+        $this->load->view('templates/song', $data);
     }
 
     /**
-     * Handles detailed song reviews.
+     * Accepts detailed song reviews.
      *
      * @return void
      */
-    public function reviewSong()
+    public function reviewSong(): void
     {
         //Validate the submitted song id
-        $data = [];
         $songId = filter_var($this->input->get('id'), FILTER_VALIDATE_INT);
-        $data['song'] = is_numeric($songId) ? $this->SongModel->getSong($songId) : false;
+        $data['song'] = $songId ? $this->SongModel->getSong($songId) : false;
         if ($data['song'] !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && !$data['song']->SongDeleted;
+            $userAuthorised = $userAuthenticated && $data['song']->SongVisible && !$data['song']->SongDeleted;
             if ($userAuthorised) {
                 //Check if there is an existing review
                 $data['body'] = "song/reviewSong";

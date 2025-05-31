@@ -146,14 +146,14 @@ class SongModel extends CI_Model
      * @param string $songId
      * @return float
      */
-    function fetchSongAverage(string $songId): float
+    public function fetchSongAverage(string $songId): float
     {
         $this->db->select('AVG(songGrade) as avg_rating');
         $this->db->from('song_rating');
         $this->db->where('songId', $songId);
         $query = $this->db->get();
         $result = $query->row();
-        return $result->avg_rating;
+        return $result->avg_rating ?? 0;
     }
 
     /**

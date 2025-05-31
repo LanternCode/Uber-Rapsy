@@ -607,7 +607,7 @@ class PlaylistItems extends CI_Controller
      * @param $formInput array the state of the song after the form is submitted
      * @return array array of property names to update
      */
-    function flagSongDataToUpdate(object $currentSong, array $formInput): array
+    public function flagSongDataToUpdate(object $currentSong, array $formInput): array
     {
         //Set update flags
         $flags['SongGradeAdam'] = $currentSong->SongGradeAdam != $formInput['SongGradeAdam'];
@@ -643,17 +643,18 @@ class PlaylistItems extends CI_Controller
                     $triggeredFlags[] = $key;
             }
             return $triggeredFlags;
-        } else return [];
+        }
+        else return [];
     }
 
     /**
-     * Given an internal property name, returns a custom display name
-     * Applies only to checkbox properties
+     * Given an internal property name, returns a custom display name.
+     * Applies only to checkbox properties.
      *
      * @param $propertyName string the internal name of the property
      * @return string the custom display name of the property
      */
-    function getPropertyDisplayName(string $propertyName): string
+    public function getPropertyDisplayName(string $propertyName): string
     {
         return match ($propertyName) {
             'SongRehearsal' => "ponowny odsłuch",
@@ -681,13 +682,12 @@ class PlaylistItems extends CI_Controller
     }
 
     /**
-     * Given an internal property name, returns a custom display name
-     * Applies only to checkbox properties
+     * Based on the reviewers' grades computes the average song score.
      *
      * @param $song object song to calculate the average for
      * @return float|int the average calculated
      */
-    function calculateAverage(object $song): float|int
+    public function calculateAverage(object $song): float|int
     {
         $grades = [
             $song->SongGradeAdam,
@@ -705,7 +705,7 @@ class PlaylistItems extends CI_Controller
     }
 
     /**
-     * Formats playlist song grades and computes the average
+     * Formats playlist song grades and computes the average.
      *
      * @param $song object playlist song to set the grades for
      * @return void the updated playlist song object

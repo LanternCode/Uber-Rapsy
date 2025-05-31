@@ -1,9 +1,21 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
-if (!isset($_SESSION)){
+if (!isset($_SESSION))
     session_start();
-}
 
+/**
+ * Controller responsible for the homepage, server maintenance, and other
+ *  standalone pages.
+ *
+ * @author LanternCode <leanbox@lanterncode.com>
+ * @copyright LanternCode (c) 2019
+ * @version Pre-release
+ * @link https://lanterncode.com/Uber-Rapsy/
+ *
+ * @property PlaylistModel $PlaylistModel
+ * @property AccountModel $AccountModel
+ * @property CI_Output $output
+ */
 class Welcome extends CI_Controller
 {
 	public function __construct()
@@ -15,10 +27,11 @@ class Welcome extends CI_Controller
     }
 
     /**
-     * Display the homepage
+     * Display the homepage.
+     *
      * @return void
      */
-	public function index()
+	public function index(): void
     {
 		$data = array(
             'lists' => $this->PlaylistModel->fetchHomepagePlaylists(),
@@ -36,10 +49,11 @@ class Welcome extends CI_Controller
 	}
 
     /**
-     * Display the Terms of Service page
+     * Display the Terms of Service page.
+     *
      * @return void
      */
-    public function TOS()
+    public function TOS(): void
     {
         $data = array(
             'body' => 'termsOfService',
@@ -50,10 +64,11 @@ class Welcome extends CI_Controller
     }
 
     /**
-     * Test-specific route
+     * Test-specific route.
+     *
      * @return void
      */
-    public function testfunc()
+    public function testfunc(): void
     {
         $data = array(
             'body' => 'test',
@@ -68,10 +83,11 @@ class Welcome extends CI_Controller
     }
 
     /**
-     * Maintenance-specific route
+     * Maintenance-specific route.
+     *
      * @return void
      */
-    function maintenance()
+    public function maintenance(): void
     {
         $this->output->set_status_header('503');
         $this->load->view('maintenance');

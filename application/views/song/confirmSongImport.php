@@ -1,15 +1,24 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<h2>Dodajesz następujące utwory do RAPPAR</h2><br>
-<h3>Jeśli utwór istnieje już w bazie danych, nie zostanie dodany, nawet jeśli znajduje się na liście poniżej.<br>
-    Utwory importowane z YT nie zawierają informacji o autorze (poza nazwą kanału, który przesłał je na YT).
-    <br>Te informacje możesz dodać w tym momencie, zmieniając lub wpisując je w podane poniżej pola.
-    <br>Kiedy już dodasz wszystko i upewnisz się, że znalezione utwory są poprawne, wciśnij przycisk na samym dole listy, aby zatwierdzić zmiany.</h3>
-<form method="post" action="<?=base_url('confirmImporting')?>">
-    <?php
-    $i = 0;
-    foreach ($songItems as $song) {
-        $songPublic = true;//isset($song['snippet']['thumbnails']['medium']['url']);
-        if ($songPublic): ?>
+<header class="optionsHeader">
+    <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
+    <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+        <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
+        <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+            <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
+        <?php endif; ?>
+        <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+    <?php endif; ?>
+</header>
+<main>
+    <br><br><br>
+    <h2>Dodajesz następujące utwory do RAPPAR</h2><br>
+    <h3>Jeśli utwór istnieje już w bazie danych, nie zostanie dodany, nawet jeśli znajduje się na liście poniżej.<br>
+        Utwory importowane z YT nie zawierają informacji o autorze (poza nazwą kanału, który przesłał je na YT).
+        <br>Te informacje możesz dodać w tym momencie, zmieniając lub wpisując je w podane poniżej pola.
+        <br>Kiedy już dodasz wszystko i upewnisz się, że znalezione utwory są poprawne, wciśnij przycisk na samym dole listy, aby zatwierdzić zmiany.</h3>
+    <form method="post" action="<?=base_url('confirmImporting')?>">
+        <?php $i = 0;
+        foreach ($songItems as $song): ?>
             <div class="song-container songBackground">
                 <div class="song-header songBackground">
                     <div class="songBackground">
@@ -30,11 +39,10 @@
                     </div>
                 </div>
             </div>
-        <?php
-            $i += 1;
-            endif;
-    } ?>
-    <div class="centered">
-        <input class="big-button" type="submit" value="Dodaj wszystko do RAPPAR">
-    </div>
-</form>
+        <?php $i += 1;
+        endforeach; ?>
+        <div class="centered">
+            <input class="big-button" type="submit" value="Dodaj wszystko do RAPPAR">
+        </div>
+    </form>
+</main>

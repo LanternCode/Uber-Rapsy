@@ -3,72 +3,98 @@
 if (!isset($_SESSION))
 	session_start();
 
+/**
+ * Controller responsible for the integration between our platform and YouTube.
+ *
+ * @author LanternCode <leanbox@lanterncode.com>
+ * @copyright LanternCode (c) 2019
+ * @version Pre-release
+ * @link https://lanterncode.com/Uber-Rapsy/
+ *
+ * @property SecurityModel $SecurityModel
+ * @property CI_Input $input
+ */
 class YoutubeIntegration extends CI_Controller
 {
 	public function __construct()
     {
 		parent::__construct();
-		$this->load->helper('cookie');
+        $this->load->model('SecurityModel');
 	}
 
-	public function index()
+    /**
+     * Opens the API administration dashboard.
+     *
+     * @return void
+     */
+	public function index(): void
 	{
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if ($userAuthenticated) {
-            $data = [];
-            $data['body']  = 'adminDashboard';
-            $data['title'] = "Uber Rapsy | Centrum Zarządzania";
+            $data = array(
+                'body' => 'adminDashboard',
+                'title' => "Uber Rapsy | Centrum Zarządzania"
+            );
+
+            $this->load->view('templates/main', $data);
         }
         else redirect('logout');
-
-		$this->load->view('templates/main', $data);
 	}
 
-	public function generate()
+    /**
+     * Generates a new YT API session refresh key.
+     *
+     * @return void
+     */
+	public function generate(): void
     {
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if ($userAuthenticated) {
-            //Include google library
-            $client = $this->SecurityModel->initialiseLibrary();
-            $data = [];
-            $data['body']  = 'invalidAction';
-            $data['title'] = "Wystąpił Błąd!";
+            $data = array(
+                'body' => 'invalidAction',
+                'title' => "Wystąpił Błąd!"
+            );
 
-            //only proceed when the library was successfully included
+            //Proceed only if the library was successfully initialised
+            $client = $this->SecurityModel->initialiseLibrary();
             if ($client !== false) {
                 $client->addScope(Google_Service_Youtube::YOUTUBE);
                 $client->setRedirectUri('http://localhost/Dev/Uber-Rapsy/apitestPlaylist');
-                //offline access will give you both an access and refresh token so that
-                //the app can refresh the access token without user interaction.
+                //Offline access will give you both an access and refresh tokens
                 $client->setAccessType('offline');
-                //Using "consent" ensures that the application always receives a refresh token.
-                //If you are not using offline access, you can omit this.
+                //Using "consent" ensures that the application always receives a refresh token
+                //If you are not using offline access, you can omit this
                 $client->setPrompt("consent");
-                $client->setIncludeGrantedScopes(true); // incremental auth
+                $client->setIncludeGrantedScopes(true);
 
                 $auth_url = $client->createAuthUrl();
                 header('Location: ' . filter_var($auth_url, FILTER_SANITIZE_URL));
             }
-            else {
-                //Could not load the library
+            else
                 $data['errorMessage'] = "Nie znaleziono biblioteki google!";
-            }
+
+            $this->load->view('templates/main', $data);
         }
         else redirect('logout');
-
-        $this->load->view('templates/main', $data);
     }
-	public function result()
+
+    /**
+     * Displays the new refresh token if one was generated.
+     *
+     * @return void
+     */
+	public function result(): void
 	{
-		$data = [];
-        $data['body']  = 'refreshToken';
-        $data['title'] = "Uzyskano nowy token!";
+		$data = array(
+            'body' => 'refreshToken',
+            'title' => "Uzyskano nowy token!"
+        );
 
-		$authCode = $_GET['code'] ?? 0;
-		if ($authCode != 0) {
-            //Include google library
+        //Fetch the code returned by the API authenticator
+		$authCode = $this->input->get('code');
+		if ($authCode) {
+            //Swap the code for a refresh token
             $client = $this->SecurityModel->initialiseLibrary();
-
             if ($client !== false) {
                 //Exchange authorization code for an access token.
                 $data['accessToken'] = $client->fetchAccessTokenWithAuthCode($authCode);
@@ -78,11 +104,10 @@ class YoutubeIntegration extends CI_Controller
                 //Could not load the library
                 $data['body']  = 'invalidAction';
                 $data['title'] = "Wystąpił Błąd!";
-                $data['errorMessage'] = "Nie znaleziono biblioteki google!";
+                $data['errorMessage'] = "Nie znaleziono biblioteki YouTube API!";
             }
 		}
 
 		$this->load->view('templates/main', $data);
 	}
-
 }
