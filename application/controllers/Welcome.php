@@ -42,7 +42,7 @@ class Welcome extends CI_Controller
         //Automatic sign-in
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
         if (isset($_COOKIE["login"]) && !$userLoggedIn) {
-            $this->AccountModel->AutomaticSignIn();
+            $this->AccountModel->automaticSignIn();
         }
 
 		$this->load->view('templates/main', $data);
@@ -75,7 +75,7 @@ class Welcome extends CI_Controller
             'title' => "Uber Rapsy | Test!"
         );
 
-        //$newReportId = $this->LogModel->SubmitReport("Hello");
+        //$newReportId = $this->LogModel->submitReport("Hello");
         //print_r($newReportId);
         //die();
 

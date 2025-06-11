@@ -272,7 +272,7 @@ class Song extends CI_Controller
 
         //Submit the report and add a log
         if ($added > 0) {
-            $repId = $this->LogModel->SubmitReport($data['report']);
+            $repId = $this->LogModel->submitReport($data['report']);
             $this->LogModel->createLog("user", $_SESSION['userId'], "Importowano ".$added." ".$word." do bazy danych RAPPAR!", $repId);
         }
 
@@ -280,8 +280,48 @@ class Song extends CI_Controller
         $this->load->view('templates/song', $data);
     }
 
+    public function manualImport(): void
+    {
+        //Check if the user is logged in and has the required permissions
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+        if ($userAuthenticated) {
+            $data['body'] = 'song/manualImport';
+
+            //Proceed to import the song if the form was submitted
+            if ($this->input->post()) {
+                //Pokazanie dodanego utworu i opcja z dodaniem następnego na jednym akranie
+
+
+
+                $songThumbnailLink = trim($this->input->post('songThumbnailLink'));
+                $customThumbnail = $this->input->post('customThumbnail');
+                $songThumbnailFile = trim($this->input->post('songThumbnailFile'));
+
+                //Validate the posted song title
+                $songTitle = trim($this->input->post('songTitle'));
+                if (!strlen($songTitle) > 0)
+                    $data['titleError'] = "Musisz podać tytuł utworu!";
+
+                //Validate the posted song author
+                $songAuthor = trim($this->input->post('songAuthor'));
+                if (!strlen($songAuthor) > 0)
+                    $data['authorError'] = "Musisz podać przynajmniej jednego autora utworu!";
+
+                //Validate the posted song release year
+                $songReleaseYear = trim($this->input->post('songReleaseYear'));
+                if (strlen($songReleaseYear) != 4)
+                    $data['yearError'] = "Musisz podać rok wydania utworu!";
+                elseif ($songReleaseYear > (int) date("Y") + 30 || $songReleaseYear < 1000)
+                    $data['yearError'] = "Musisz podać poprawny rok wydania utworu!";
+            }
+
+            $this->load->view('templates/song', $data);
+        }
+        else redirect('logout');
+    }
+
     /**
-     * Accepts detailed song reviews.
+     * Creates, updates and displays reviews.
      *
      * @return void
      */
@@ -296,22 +336,21 @@ class Song extends CI_Controller
             $userAuthorised = $userAuthenticated && $data['song']->SongVisible && !$data['song']->SongDeleted;
             if ($userAuthorised) {
                 //Check if there is an existing review
-                $data['body'] = "song/reviewSong";
-                $reviewExists = (array) $this->SongModel->getSongReview($songId, $_SESSION['userId']);
-                $data['existingReview'] = count($reviewExists) == 1 ? false : $reviewExists;
+                $reviewExists = $this->SongModel->getSongReview($songId, $_SESSION['userId']);
+                $data['existingReview'] = $reviewExists === false ? false : (array) $reviewExists;
                 $data['errorMessage'] = "";
 
-                //Check if the post review form was submitted
-                if (isset($_POST['reviewMusic'])) {
+                //Process a review if one was submitted
+                if ($this->input->post()) {
                     //Get the numeric data
-                    $review['reviewText'] = isset($_POST['reviewText']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewText'])) : 0;
-                    $review['reviewMusic'] = trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewMusic']));
-                    $review['reviewImpact'] = isset($_POST['reviewImpact']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewImpact'])) : 0;
-                    $review['reviewRh'] = isset($_POST['reviewRh']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewRh'])) : 0;
-                    $review['reviewComp'] = isset($_POST['reviewComp']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewComp'])) : 0;
-                    $review['reviewReflection'] = isset($_POST['reviewReflection']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewReflection'])) : 0;
-                    $review['reviewUber'] = isset($_POST['reviewUber']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewUber'])) : 0;
-                    $review['reviewPartner'] = isset($_POST['reviewPartner']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewPartner'])) : 0;
+                    $review['reviewText'] = $this->input->post('reviewText') ?? 0;
+                    $review['reviewMusic'] = trim($this->input->post('reviewMusic'));
+                    $review['reviewImpact'] = $this->input->post('reviewImpact') ?? 0;
+                    $review['reviewRh'] = $this->input->post('reviewRh') ?? 0;
+                    $review['reviewComp'] = $this->input->post('reviewComp') ?? 0;
+                    $review['reviewReflection'] = $this->input->post('reviewReflection') ?? 0;
+                    $review['reviewUber'] = $this->input->post('reviewUber') ?? 0;
+                    $review['reviewPartner'] = $this->input->post('reviewPartner') ?? 0;
                     $data['errorMessage'] = "";
                     $data['successMessage'] = 0;
 
@@ -329,26 +368,24 @@ class Song extends CI_Controller
                         elseif ($revPiece > $maxAllowed)
                             $data['errorMessage'] .= "Podano niepoprawną wartość maksymalną dla ".$optName.". Ocena musi być mniejsza lub równa ".$maxAllowed."!<br>";
                         elseif (fmod($revPiece, 0.5) != 0)
-                            $data['errorMessage'] .= "Podano niepoprawną ocenę dla ".$optName.". Ocena musi być pełną liczbą lub zakończoną połówką, np. 5.5!<br>";
+                            $data['errorMessage'] .= "Podano niepoprawną ocenę dla ".$optName.". Ocena musi być liczbą pełną lub zakończoną połówką, np. 5.5!<br>";
                     }
 
                     //Get the non-numeric data
-                    $review['reviewDate'] = isset($_POST['reviewDate']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewDate'])) : NULL;
-                    $review['reviewRev'] = isset($_POST['reviewRev']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_POST['reviewRev'])) : NULL;
+                    $review['reviewDate'] = $this->input->post('reviewDate');
+                    $review['reviewRev'] = $this->input->post('reviewRev');
                     $review['reviewSongId'] = $songId;
                     $review['reviewUserId'] = $_SESSION['userId'];
 
-                    //Verify that a correct review date was provided
-                    if (!is_null($review['reviewDate']) && strlen($review['reviewDate']) != 10) {
+                    //Verify that a correct review date was provided and format the date to match the DB formatting
+                    $review['reviewDate'] = str_replace('/', '-', trim($review['reviewDate']));
+                    $review['reviewDate'] = ($d = DateTime::createFromFormat('Y-m-d', $review['reviewDate'])) && $d->format('Y-m-d') === $review['reviewDate'] ? $d->format('Y-m-d') : null;
+                    if (is_null($review['reviewDate'])) {
                         $data['errorMessage'] .= "Podano niepoprawną datę.<br>";
                     }
 
                     //Only submit or update the review if there were no errors in the form
                     if ($data['errorMessage'] == "") {
-                        //Format the date to match the DB formatting
-                        $review['reviewDate'] = str_replace('/', '-', $review['reviewDate']);
-                        $review['reviewDate'] = date("Y-m-d", strtotime($review['reviewDate']));
-
                         //If the review already exists, replace it
                         $data['successMessage'] = 1;
                         if ($data['existingReview']) {
@@ -357,14 +394,13 @@ class Song extends CI_Controller
                         }
                         else
                             $this->SongModel->insertSongReview($review);
-
-                        $this->LogModel->createLog('song', $songId, "Zrecenzowano utwór.");
                     }
 
                     //Populate the review fields for user convenience
                     $data['existingReview'] = $review;
                 }
 
+                $data['body'] = "song/reviewSong";
                 $this->load->view('templates/main', $data);
             }
             else redirect('logout');

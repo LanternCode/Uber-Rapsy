@@ -62,13 +62,13 @@ class PlaylistItems extends CI_Controller
             //Confirm the user is authorised or the playlist is public
             $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['listId']);
             $data['title'] = $data['playlist']->ListName . " | Playlista Uber Rapsy";
-            $data['isOwner'] = isset($_SESSION['userId']) && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
+            $data['isOwner'] = isset($_SESSION['userId']) && $this->PlaylistModel->getListOwnerById($data['listId']) == $_SESSION['userId'];
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
                 $data['searchQuery'] = $this->input->get('searchQuery') ?? '';
                 $data['isReviewer'] = isset($_SESSION['userRole']) && $_SESSION['userRole'] == "reviewer";
-                $data['allPlaylists'] = $this->PlaylistModel->GetListsIdsAndNames();
+                $data['allPlaylists'] = $this->PlaylistModel->getListsIdsAndNames();
                 $data['songs'] = [];
 
                 //Define various checkbox-related properties in one place - first the db name, then the button name, then the display name
@@ -189,8 +189,8 @@ class PlaylistItems extends CI_Controller
         if (strlen($data['searchQuery']) > 0) {
             $data['songs'] = $this->PlaylistSongModel->getPlaylistSongsFromSearch($data['searchQuery']);
             if (count($data['songs']) > 0 && count($data['songs']) < 301) {
-                $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
-                $data['userOwnedPlaylists'] = isset($_SESSION['userId']) ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->FetchUserPlaylistsIDs($_SESSION['userId'])) : [];
+                $data['lists'] = $this->PlaylistModel->getListsIdsAndNames();
+                $data['userOwnedPlaylists'] = isset($_SESSION['userId']) ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->fetchUserPlaylistsIDs($_SESSION['userId'])) : [];
                 foreach ($data['songs'] as $song) {
                     //Display values without decimals at the end if the decimals are only 0's (ex. 5.50 -> 5.5)
                     $this->setSongGrades($song);
@@ -223,7 +223,7 @@ class PlaylistItems extends CI_Controller
             //Fetch the playlist and check if the user is authorised (or the list is public)
             $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['listId']);
             $data['title'] = $data['playlist']->ListName . " | Playlista Uber Rapsy";
-            $data['isOwner'] = isset($_SESSION['userId']) && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
+            $data['isOwner'] = isset($_SESSION['userId']) && $this->PlaylistModel->getListOwnerById($data['listId']) == $_SESSION['userId'];
             $userAuthenticated = $this->SecurityModel->authenticateUser();
             $userAuthorised = ($userAuthenticated && $data['isOwner']) || $data['playlist']->ListPublic;
             if ($userAuthorised) {
@@ -233,7 +233,7 @@ class PlaylistItems extends CI_Controller
 
                 //Fetch other relevant data to complete the tierlist
                 $data['songs'] = $this->PlaylistSongModel->getTopPlaylistSongs($data['listId'], $data['filter']);
-                $data['lists'] = $this->PlaylistModel->GetListsIdsAndNames();
+                $data['lists'] = $this->PlaylistModel->getListsIdsAndNames();
 
                 //Pre-compute every song's average and trim trailing zeros
                 foreach ($data['songs'] as $song) {
@@ -280,8 +280,8 @@ class PlaylistItems extends CI_Controller
         if ($playlistIdValid) {
             //Check if the user is allowed to update grades from the playlist or the various songs found through the search engine
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userOwnedPlaylists = $userAuthenticated ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->FetchUserPlaylistsIDs($_SESSION['userId'])) : [];
-            $userAuthorised = !($playlistId == "search") && $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
+            $userOwnedPlaylists = $userAuthenticated ? array_map(fn($item) => $item->ListId, $this->PlaylistModel->fetchUserPlaylistsIDs($_SESSION['userId'])) : [];
+            $userAuthorised = !($playlistId == "search") && $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $_SESSION['userId'];
             $searchUpdateAuthenticated = $playlistId == "search" && count($userOwnedPlaylists) > 0;
             $reviewerAuthenticated = $this->SecurityModel->authenticateReviewer();
             if ($userAuthorised || $searchUpdateAuthenticated || $reviewerAuthenticated) {
@@ -438,7 +438,7 @@ class PlaylistItems extends CI_Controller
                                 $newPlaylistSongId = $this->PlaylistSongModel->copyToAnotherPlaylist($currentPlaylistSong->id, $formInput['copyToPlaylist']);
                                 if ($newPlaylistSongId) {
                                     $sourceName = $playlistId === "search" ? "wyszukiwarki" : "playlisty " . $playlist->ListName;
-                                    $targetName = $this->PlaylistModel->GetPlaylistNameById($formInput['copyToPlaylist']);
+                                    $targetName = $this->PlaylistModel->getPlaylistNameById($formInput['copyToPlaylist']);
                                     $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
                                     $localResultMessage .= "Skopiowano do: ".$targetName;
                                     $this->LogModel->createLog("playlist_song", $newPlaylistSongId, "Nuta skopiowana z ".$sourceName." do ".$targetName);
@@ -457,7 +457,7 @@ class PlaylistItems extends CI_Controller
 
                             //Copy songs to integrated playlists
                             $copyRequired = $formInput['copyToPlaylist'] != $playlistId && $formInput['copyToPlaylist'] != 0;
-                            $copyToIntegratedRequired = $copyRequired && $this->PlaylistModel->GetPlaylistIntegratedById($formInput['copyToPlaylist']);
+                            $copyToIntegratedRequired = $copyRequired && $this->PlaylistModel->getPlaylistIntegratedById($formInput['copyToPlaylist']);
                             if ($copyToIntegratedRequired && $newPlaylistSongId) {
                                 $data['displayErrorMessage'] = ($data['displayErrorMessage'] ?? "")."<br>".$this->InsertSongService->copySongToIntegratedPlaylist($currentPlaylistSong, $formInput['copyToPlaylist'], $newPlaylistSongId, $localResultMessage);
                             }
@@ -473,7 +473,7 @@ class PlaylistItems extends CI_Controller
                 $data['resultMessage'] = $resultMessage . "</pre>";
 
                 //Submit a report
-                $newReportId = $this->LogModel->SubmitReport(htmlspecialchars($data['resultMessage']));
+                $newReportId = $this->LogModel->submitReport(htmlspecialchars($data['resultMessage']));
 
                 //Create a log
                 $where = $playlistId === "search" ? "z wyszukiwarki" : "z playlisty";
@@ -507,10 +507,10 @@ class PlaylistItems extends CI_Controller
 
         //Check if the user is logged in and has the required permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-        $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['listId']) == $_SESSION['userId'];
+        $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($data['listId']) == $_SESSION['userId'];
         if ($userAuthorised) {
             //Check if the playlist has a YouTube link.
-            $playlistUrl = $this->PlaylistModel->GetListUrlById($data['listId']);
+            $playlistUrl = $this->PlaylistModel->getListUrlById($data['listId']);
             if (!empty($playlistUrl)) {
                 //Refresh the playlist - if everything went well, the message will be empty
                 $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($data['listId']);
@@ -536,7 +536,7 @@ class PlaylistItems extends CI_Controller
         if ($playlistSong !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistSong->listId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 //Update song visibility
                 $currentVisibility = $playlistSong->SongVisible;
@@ -568,7 +568,7 @@ class PlaylistItems extends CI_Controller
         if ($playlistSong !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistSong->listId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'song/delSong',

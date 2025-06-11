@@ -38,7 +38,7 @@ class RefreshPlaylistService
     public function refreshPlaylist(int $listId): string
     {
         //Fetch the YT playlist id based on the local playlist id
-        $externalPlaylistId = $this->CI->PlaylistModel->GetListUrlById($listId);
+        $externalPlaylistId = $this->CI->PlaylistModel->getListUrlById($listId);
 
         //Fetch the playlist videos from YT
         $songsJsonArray = $this->FetchSongsService->fetchPlaylistItemsFromYT($externalPlaylistId);
@@ -143,7 +143,7 @@ class RefreshPlaylistService
 
             //Songs were loaded correctly - submit a report
             $refreshReport .= "</pre>";
-            $newReportId = $this->CI->LogModel->SubmitReport(htmlspecialchars($refreshReport));
+            $newReportId = $this->CI->LogModel->submitReport(htmlspecialchars($refreshReport));
 
             //Create a log with the report
             $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";

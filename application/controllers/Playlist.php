@@ -45,7 +45,7 @@ class Playlist extends CI_Controller
             $data = array(
                 'body' => 'playlist/playlistDashboard',
                 'title' => 'Uber Rapsy | Zarządzaj playlistami!',
-                'playlists' => $this->PlaylistModel->GetAllLists()
+                'playlists' => $this->PlaylistModel->getAllLists()
             );
             $this->load->view('templates/main', $data);
         }
@@ -64,7 +64,7 @@ class Playlist extends CI_Controller
             $data = array(
                 'body' => 'playlist/myPlaylists',
                 'title' => 'Uber Rapsy | Moje playlisty',
-                'playlists' => $this->PlaylistModel->FetchUserPlaylists($_SESSION['userId'])
+                'playlists' => $this->PlaylistModel->fetchUserPlaylists($_SESSION['userId'])
             );
             $this->load->view('templates/main', $data);
         }
@@ -81,7 +81,7 @@ class Playlist extends CI_Controller
         $listId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if ($listId) {
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($listId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($listId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'playlist/details',
@@ -91,7 +91,7 @@ class Playlist extends CI_Controller
                     'isReviewer' => $this->SecurityModel->authenticateReviewer(),
                     'redirectSource' => $this->input->get('src')
                 );
-                $data['playlistOwnerUsername'] = $this->AccountModel->FetchUsernameById($data['playlist']->ListOwnerId);
+                $data['playlistOwnerUsername'] = $this->AccountModel->fetchUsernameById($data['playlist']->ListOwnerId);
 
                 $this->load->view('templates/main', $data);
             }
@@ -110,7 +110,7 @@ class Playlist extends CI_Controller
         $listId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if ($listId) {
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($listId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($listId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'playlist/edit',
@@ -149,13 +149,12 @@ class Playlist extends CI_Controller
                         'btnBelowHalfNine' => $this->input->post('btnBelowHalfNine') ?: 0,
                     );
 
-                    if ($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
-                        $this->PlaylistModel->UpdatePlaylist($queryData);
+                    if ($queryData['ListName'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
+                        $this->PlaylistModel->updatePlaylist($queryData);
                         $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
                     }
                     else {
                         $data['resultMessage'] = $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
-                        $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
                         $data['resultMessage'] .= $queryData['ListPublic'] == "" ? "Status Widoczności Playlisty jest wymagany!</br>" : '';
                     }
@@ -182,7 +181,7 @@ class Playlist extends CI_Controller
         $playlistId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if ($playlistId) {
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'playlist/hidePlaylist',
@@ -194,7 +193,7 @@ class Playlist extends CI_Controller
                 //If the user pressed yes, reverse the current ListPublic status (to hide or show the playlist)
                 $hidePlaylist = $this->input->get('switch');
                 if ($hidePlaylist) {
-                    $this->PlaylistModel->SetPlaylistPublicProperty($data['playlist']->ListPublic, $playlistId);
+                    $this->PlaylistModel->setPlaylistPublicStatus(!$data['playlist']->ListPublic, $playlistId);
 
                     //Fetch the playlist to show it to the user after making changes
                     $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($playlistId);
@@ -294,10 +293,10 @@ class Playlist extends CI_Controller
                         $playlistData['ListUrl'] = $response->id;
 
                         //Save the playlist into the database
-                        $this->PlaylistModel->InsertPlaylist($playlistData);
+                        $this->PlaylistModel->insertPlaylist($playlistData);
 
                         //Fetch the local id of the newly created playlist
-                        $listId = $this->PlaylistModel->GetListIdByUrl($playlistData['ListUrl']);
+                        $listId = $this->PlaylistModel->getListIdByUrl($playlistData['ListUrl']);
 
                         //Create a log
                         $this->LogModel->createLog('playlist', $listId, "Stworzono zintegrowaną playlistę");
@@ -349,9 +348,9 @@ class Playlist extends CI_Controller
                 //Obtain the unique playlist ID from the url given
                 $queryData['ListUrl'] = $this->UtilityModel->extractPlaylistIdFromLink($queryData['ListUrl']);
 
-                if ($queryData['ListName'] && $queryData['ListDesc'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
+                if ($queryData['ListName'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
                     //Insert the playlist to the local db
-                    $newListId = $this->PlaylistModel->InsertPlaylist($queryData);
+                    $newListId = $this->PlaylistModel->insertPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
 
                     //If a YT URL was provided, fetch the songs and refresh the playlist
@@ -365,7 +364,6 @@ class Playlist extends CI_Controller
                 }
                 else {
                     $data['resultMessage'] = $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
-                    $data['resultMessage'] .= $queryData['ListDesc'] == "" ? "Opis Playlisty jest wymagany!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
                     $data['resultMessage'] .= $queryData['ListPublic'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
                 }
@@ -386,7 +384,7 @@ class Playlist extends CI_Controller
         $playlistId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if ($playlistId) {
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'playlist/deleteLocal',
@@ -398,7 +396,7 @@ class Playlist extends CI_Controller
                 //Delete the local playlist if confirmed by the user
                 $deleteLocal = $this->input->get('del');
                 if ($deleteLocal) {
-                    $this->PlaylistModel->DeleteLocalPlaylist($playlistId);
+                    $this->PlaylistModel->deleteLocalPlaylist($playlistId);
                     redirect('myPlaylists');
                 }
 
@@ -440,7 +438,7 @@ class Playlist extends CI_Controller
                         if ($linkValid) {
                             $data['playlistUpdatedMessage'] = "<h2>Playlista została zaktualizowana!</h2>";
                             $data['playlistUpdatedStatus'] = true;
-                            $this->PlaylistModel->UpdatePlaylistIntegrationStatus($playlistId, $updatedIntegrationStatus, $updatedLink);
+                            $this->PlaylistModel->updatePlaylistIntegrationStatus($playlistId, $updatedIntegrationStatus, $updatedLink);
                             $this->LogModel->createLog('playlist', $playlistId,
                                 $updatedIntegrationStatus ? "Playlista została zintegrowana z YouTube" : "Wyłączono integrację playlisty z YouTube");
                         }

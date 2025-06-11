@@ -9,6 +9,7 @@
 <p>Nazwa playlisty: <?=$playlist->ListName?></p><br>
 <p>Opis playlisty: <?=$playlist->ListDesc?></p><br>
 <p>Data dodania playlisty: <?=$playlist->ListCreatedAt?></p><br>
+<p>Ilość utworów na playliście: <?=count($songs)?></p><br>
 <?php if ($isReviewer): ?>
     <p>Playlista zintegrowana z YT: <?=$playlist->ListIntegrated ? "Tak" : "Nie"?> <a href="<?=base_url('playlist/integrate?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">(Zmień status integracji)</a></p><br>
 <?php endif; ?>

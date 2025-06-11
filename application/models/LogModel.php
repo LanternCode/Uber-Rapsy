@@ -3,9 +3,8 @@
 if (!isset($_SESSION))
     session_start();
 
-
 /**
- * Class responsible for managing the Log table in the database
+ * Model responsible for managing the Log database table.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -14,18 +13,18 @@ if (!isset($_SESSION))
  */
 class LogModel extends CI_Model
 {
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
     }
 
     /**
-     * Creates a new log
+     * Create a log.
      *
      * @param string $entityType type of the object to attach the log to (song, playlist, user, playlist_song)
      * @param int $entityId unique entity id
      * @param string $description the logged message
-     * @param int $reportId if attaching a report to the log, provide the report id
+     * @param int $reportId provide the report id if attaching a report to the log
      * @return bool true if query worked, false otherwise
      */
     public function createLog(string $entityType, int $entityId, string $description, int $reportId = 0): bool
@@ -45,20 +44,22 @@ class LogModel extends CI_Model
     }
 
     /**
-     * Fetch playlist logs
+     * Fetch playlist logs.
      *
      * @param int $playlistId
+     * @return array
      */
-    function GetPlaylistLog(int $playlistId): array
+    public function getPlaylistLog(int $playlistId): array
     {
         $sql = "SELECT * FROM log WHERE EntityType = 'playlist' AND EntityId = $playlistId";
         return $this->db->query($sql)->result();
     }
 
     /**
-     * Fetches playlist_song logs
+     * Fetch playlist_song logs.
      *
      * @param int $playlistSongId
+     * @return array
      */
     public function getPlaylistSongLogs(int $playlistSongId): array
     {
@@ -67,7 +68,7 @@ class LogModel extends CI_Model
     }
 
     /**
-     * Fetches a report with the specified id number
+     * Fetch a report.
      *
      * @param string $reportId
      * @return object
@@ -79,12 +80,12 @@ class LogModel extends CI_Model
     }
 
     /**
-     * This function submits the provided report and returns its id
+     * Submit a report and return its id.
      *
      * @param string $reportText
-     * @return int id of the report or 0 if submission failed
+     * @return int new report's id or 0 if the submission failed
      */
-    function SubmitReport(string $reportText)
+    public function submitReport(string $reportText): int
     {
         $sql = "INSERT INTO report (`reportText`) VALUES ('$reportText')";
         if ($this->db->query($sql))
@@ -93,10 +94,10 @@ class LogModel extends CI_Model
     }
 
     /**
-     * Fetches the report owner's id
+     * Fetch a report owner's id.
      *
      * @param int $reportId
-     * @return int valid user id or 0
+     * @return int valid user id or 0 if no owner was found
      */
     public function getReportOwnerById(int $reportId): int
     {

@@ -67,13 +67,13 @@ class Log extends CI_Controller
         if ($playlistId) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($playlistId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'playlist/showLog',
                     'title' => 'Uber Rapsy | Historia playlisty',
                     'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
-                    'playlistLog' => $this->LogModel->GetPlaylistLog($playlistId),
+                    'playlistLog' => $this->LogModel->getPlaylistLog($playlistId),
                     'redirectSource' => $this->input->get('src')
                 );
 
@@ -97,7 +97,7 @@ class Log extends CI_Controller
         if ($data['playlistSong'] !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->GetListOwnerById($data['playlistSong']->listId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($data['playlistSong']->listId) == $_SESSION['userId'];
             if ($userAuthorised) {
                 $data['body']  = 'playlistSong/showLog';
                 $data['title'] = "Uber Rapsy | Historia nuty";

@@ -32,7 +32,7 @@ class SecurityModel extends CI_Model
         //Automatic sign-in
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
         if (isset($_COOKIE["login"]) && !$userLoggedIn) {
-            $this->AccountModel->AutomaticSignIn();
+            $this->AccountModel->automaticSignIn();
         }
 
         //Fetch user credentials

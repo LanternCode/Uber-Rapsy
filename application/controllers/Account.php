@@ -46,7 +46,7 @@ class Account extends CI_Controller
 
         //Only attempt the login if the form was submitted or the cookie is set
         if (filter_var($email ?? '', FILTER_VALIDATE_EMAIL)) {
-            $loginSuccess = $this->AccountModel->SignIn($email, $password);
+            $loginSuccess = $this->AccountModel->signIn($email, $password);
             if ($loginSuccess) {
                 //Save the session if the user pressed the 'do not logout' button
                 $doNotLogout = $this->input->post('doNotLogout');
@@ -152,7 +152,7 @@ class Account extends CI_Controller
                 //Automatically sign the user in for 7 days after registration
                 session_unset();
                 session_destroy();
-                $authSuccess = $this->AccountModel->SignIn($email, $password);
+                $authSuccess = $this->AccountModel->signIn($email, $password);
                 $loginSessionDetails = array(
                     'userEmail' => $email,
                     'userPassword' => $password

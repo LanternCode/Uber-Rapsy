@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Class responsible for managing the user table in the database.
+ * Model responsible for managing the User database table.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -10,8 +10,7 @@
  */
 class AccountModel extends CI_Model
 {
-
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
     }
@@ -19,53 +18,54 @@ class AccountModel extends CI_Model
     /**
      * Returns the user data requires for authentication.
      *
-     * @param string $email  email of the user
-     * @return int|object      returns 0 if the user was not found, or their data if found
+     * @param string $email user email
+     * @return int|object returns 0 if the user was not found, or their data if found
      */
-    function GetUserData(string $email)
+    public function getUserData(string $email): int|object
     {
         $sql = "SELECT id, password, role FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
         if (isset($query->row()->password) && $query->row()->password)
-            return (object)$query->row();
+            return $query->row();
         else return 0;
     }
 
     /**
-     * Inserts a new user into the database.
+     * Insert a new user into the database.
      *
-     * @param array $queryData  user to be inserted
-     * @return int the local db id of the inserted user
+     * @param array $queryData new account details
+     * @return int id of the newly inserted user
      */
-    function RegisterNewUser(array $queryData = []): int
+    public function registerNewUser(array $queryData): int
     {
         $this->db->insert('user', $queryData);
         return $this->db->conn_id->insert_id;
     }
 
     /**
-     * Checks whether an account with this email address exists.
+     * Check whether an account with this email address exists.
      *
-     * @param string $email  email to check
-     * @return boolean      returns 0 if the email is not unique and 1 otherwise
+     * @param string $email
+     * @return bool true if no such account exists, false otherwise
      */
-    function isEmailUnique(string $email): bool
+    public function isEmailUnique(string $email): bool
     {
         $sql = "SELECT email FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->email) && $query->row()->email) return false;
+        if (isset($query->row()->email) && $query->row()->email)
+            return false;
         else return true;
     }
 
     /**
-     * Generates a password reset key.
+     * Generate a password reset key.
      *
-     * @return string      returns the password reset key
-     * @author stack overflow (original author unknown)
+     * @return string
+     * @author Stack Overflow (original author unknown)
      */
-    function getToken(): string
+    public function getToken(): string
     {
         $token = "";
         $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -81,12 +81,12 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Inserts a password reset key into the database.
+     * Attach a password reset key to the user.
      *
-     * @param string $email  email of the user who resets their password
-     * @return string      returns the password reset key
+     * @param string $email user's email address
+     * @return string the password reset key
      */
-    function insertPasswordUpdateLink(string $email): string
+    public function insertPasswordUpdateLink(string $email): string
     {
         $keyToInsert = $this->getToken();
         $sql = "UPDATE user SET passwordResetKey = '$keyToInsert' WHERE email = '$email'";
@@ -96,13 +96,13 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Mails the password reset link to the user.
+     * Mail the password reset link to the user.
      *
-     * @param string $email  email of the user
-     * @param string $resetKey  password reset key
+     * @param string $email
+     * @param string $resetKey
      * @return void
      */
-    function sendPasswordChangeEmail(string $email, string $resetKey)
+    public function sendPasswordChangeEmail(string $email, string $resetKey): void
     {
         $resetLink = base_url('forgottenPassword/reset?qs='.$resetKey);
         $subject = "Zresetuj hasło w RAPPAR";
@@ -113,37 +113,37 @@ class AccountModel extends CI_Model
             'Content-Type: text/html; charset=UTF-8'
         );
         $txt = "Otrzymaliśmy prośbę o zresetowanie hasła przypisanego do tego adresu email <br />
-                na platformie RAPPAR. Jeżeli to Ty wysłałeś zgłoszenie, użyj poniższy link aby
-                zresetować swoje hasło.<br /><br />
-                Zresetuj hasło: <a href='$resetLink' target='_blank'>$resetLink</a><br /><br />
-                Jeżeli to nie Ty wysłałeś zgłoszenie, zignoruj tę wiadomość.";
+                na platformie RAPPAR. Skorzystaj z poniższego linku by zresetować swoje
+                hasło lub zignoruj tę wiadomość.<br /><br />
+                Zresetuj hasło: <a href='$resetLink' target='_blank'>$resetLink</a><br /><br />.";
 
         mail($email, $subject, $txt, implode("\r\n", $headers));
     }
 
     /**
-     * Checks whether the entered password reset key is valid.
+     * Check whether the entered password reset key is valid.
      *
-     * @param string $key  password reset key used
-     * @return int|object      returns 0 if invalid or the user id when valid
+     * @param string $key
+     * @return int|object returns the id of the matching user's password reset key, or 0 if no matching user was found
      */
-    function validatePasswordResetString(string $key)
+    public function validatePasswordResetString(string $key): int|object
     {
         $sql = "SELECT id FROM user WHERE passwordResetKey = '$key'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->id) && $query->row()->id) return $query->row()->id;
+        if (isset($query->row()->id) && $query->row()->id)
+            return $query->row()->id;
         else return 0;
     }
 
     /**
-     * Updates user's password in the database
+     * Update the user's password.
      *
-     * @param string $password  new password entered by the user
-     * @param string $userId  id of the user to update
+     * @param string $password the new password entered by the user
+     * @param string $userId
      * @return void
      */
-    function updateUserPassword(string $password, string $userId)
+    public function updateUserPassword(string $password, string $userId): void
     {
         $newPass = password_hash($password, PASSWORD_BCRYPT);
         $sql = "UPDATE user SET passwordResetKey = NULL, password = '$newPass' WHERE id = $userId";
@@ -151,20 +151,19 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Fetches user data and compares the input password with the real password
-     * If the sign in is successful, a user session is set
+     * Fetch user credentials and compare the inputted password with the actual password.
+     * Set a user session upon a successful sign in is.
      *
      * @param string $email
      * @param string $password
-     * @return bool
+     * @return bool true if the sign in was successful, false otherwise
      */
-    function SignIn(string $email, string $password): bool
+    public function signIn(string $email, string $password): bool
     {
-        $userData = $this->GetUserData($email);
+        $userData = $this->getUserData($email);
         $passwordToCompare = $userData->password ?? 0;
 
-        if ($passwordToCompare && password_verify($password, $passwordToCompare))
-        {
+        if ($passwordToCompare && password_verify($password, $passwordToCompare)) {
             $_SESSION['userLoggedIn'] = 1;
             $_SESSION['userRole'] = $userData->role;
             $_SESSION['userId'] = $userData->id;
@@ -174,39 +173,41 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * If the login cookie exists, the function signs the user in when vising the homepage
-     * @return bool authentication status
+     * Automatically sign the user in upon visiting the homepage if a valid login cookie exists.
+     *
+     * @return bool true if the sign in was successful, false otherwise
      */
-    function AutomaticSignIn(): bool
+    public function automaticSignIn(): bool
     {
         $data['email'] = json_decode($_COOKIE["login"])->userEmail;
         $data['password'] = json_decode($_COOKIE["login"])->userPassword;
 
         if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            return $this->SignIn($data['email'], $data['password']);
+            return $this->signIn($data['email'], $data['password']);
         }
         else return false;
     }
 
     /**
-     * Fetches the username of the user with the provided id number
+     * Fetch the user's username.
      *
      * @param int $userId
      * @return string
      */
-    function FetchUsernameById($userId): string
+    public function fetchUsernameById(int $userId): string
     {
         $sql = "SELECT username FROM user WHERE id = $userId";
         return $this->db->query($sql)->row()->username;
     }
 
     /**
-     * Fetches all safe user data of all users to display in the users dashboard
-     * Safe user data is: database id, username, role, accountLocked status
+     * Fetch all safe user data of every user on the platform.
+     * This data is displayed in a dashboard only visible to RAPPAR staff.
+     * Safe user data includes: user id in the database, username, role, accountLocked status.
      *
-     * @return array returns all found users' safe data
+     * @return array
      */
-    function fetchAllSafeUserdata(): array
+    public function fetchAllSafeUserdata(): array
     {
         $sql = "SELECT id, username, role, accountLocked FROM user";
         $query = $this->db->query($sql);

@@ -43,6 +43,7 @@
     <label><input type="checkbox" <?=$playlist->btnTop ? "checked" : ""?> name="btnTop"> X15</label><br>
     <label><input type="checkbox" <?=$playlist->btnXD ? "checked" : ""?> name="btnXD"> XD</label><br>
     <label><input type="checkbox" <?=$playlist->btnDiscomfort ? "checked" : ""?> name="btnDiscomfort"> Strefa Dyskomfortu</label><br>
+    <label><input type="checkbox" <?=$playlist->btnDepA ? "checked" : ""?> name="btnDepA"> Dep. Abroad</label><br>
     <label><input type="checkbox" <?=$playlist->btnNotRap ? "checked" : ""?> name="btnNotRap"> To nie rapsik</label><br>
     <label><input type="checkbox" <?=$playlist->btnNoGrade ? "checked" : ""?> name="btnNoGrade"> Nie oceniam</label><br>
     <label><input type="checkbox" <?=$playlist->btnVeto ? "checked" : ""?> name="btnVeto"> VETO</label><br>
