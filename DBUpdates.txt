@@ -85,8 +85,8 @@ DROP COLUMN SongDepA,
 DROP COLUMN SongPlaylistItemsId,
 ADD `SongChannelName` VARCHAR(50) NOT NULL AFTER `SongTitle`;
 
-
 COMMIT;
 ===================================
 
 ALTER TABLE `song` ADD `SongReleaseYear` INT NOT NULL AFTER `SongChannelName`;
+ALTER TABLE `song` CHANGE `SongURL` `SongURL` VARCHAR(11) CHARACTER SET utf8mb3 COLLATE utf8mb3_polish_ci NULL COMMENT 'YouTube song ID';

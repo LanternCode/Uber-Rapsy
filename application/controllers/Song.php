@@ -19,6 +19,7 @@ if (!isset($_SESSION))
  * @property CI_Input $input
  * @property CI_DB_mysqli_driver $db
  * @property CI_Session $session
+ * @property CI_Upload $upload
  */
 class Song extends CI_Controller
 {
@@ -77,8 +78,9 @@ class Song extends CI_Controller
             $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
 
             $this->load->view('templates/song', $data);
+        } else {
+            redirect('logout');
         }
-        else redirect('logout');
     }
 
     /**
@@ -98,14 +100,16 @@ class Song extends CI_Controller
             //Check if the user already rated the song
             if ($queryData['songGrade'] && $queryData['songId']) {
                 $songUnrated = !$this->SongModel->checkSongRatingExists($queryData['songId'], $queryData['userId']);
-                if ($songUnrated)
+                if ($songUnrated) {
                     $this->SongModel->addSongRating($queryData);
-                else
+                } else {
                     $this->SongModel->updateSongRating($queryData);
+                }
             }
             redirect('frontpage');
+        } else {
+            redirect('logout');
         }
-        else redirect('logout');
     }
 
     /**
@@ -219,8 +223,7 @@ class Song extends CI_Controller
                 $this->session->set_tempdata('playlistItems', ($songItems), 86400);
                 //Set a manual verification page for the author to review the contents
                 $data['body'] = 'song/confirmSongImport';
-            }
-            else {
+            } else {
                 //If no items were found, show an error
                 $data['error'] = '<h3>Nie znaleziono żadnych utworów. Upewnij się, że playlista bądź wskazany utwór są publiczne, i że playlista zawiera przynajmniej jeden publiczny utwór.</h3><br>';
             }
@@ -250,16 +253,16 @@ class Song extends CI_Controller
         if (count($songItems) > 0) {
             foreach ($songItems as $song) {
                 //Import each song if it does not exist yet
-                $songChannelName = $this->input->post("songChannelName-".$i) != $song['songChannelName'] ? $this->input->post("songChannelName-".$i) : $song['songChannelName'];
+                $songChannelName = $this->input->post("songChannelName-" . $i) != $song['songChannelName'] ? $this->input->post("songChannelName-" . $i) : $song['songChannelName'];
                 $existingSongId = $this->SongModel->songExists($song['externalSongId'], $song['songTitle'], $songChannelName);
                 if ($existingSongId == 0) {
                     $songId = $this->SongModel->insertSong($song['externalSongId'], $song['songThumbnailLink'], $song['songTitle'], $songChannelName, $song['songPublishedAt']);
-                    $data['report'] .= "<h4>Utwór ".$song['songTitle']." został dodany do bazy danych Rappar!</h4><br>";
+                    $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " został dodany do bazy danych Rappar!</h4><br>";
                     $this->LogModel->createLog("song", $songId, "Nuta została importowana do bazy danych RAPPAR.");
                     $added++;
+                } else {
+                    $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " już istnieje w bazie danych Rappar!</h4><br>";
                 }
-                else
-                    $data['report'] .= "<h4>Utwór ".$song['songTitle']." już istnieje w bazie danych Rappar!</h4><br>";
 
                 $i++;
             }
@@ -267,13 +270,13 @@ class Song extends CI_Controller
 
         //Complete the report
         $word = $added === 1 ? 'utwór' : ($added === 2 || $added === 3 || $added === 4 ? 'utwory' : 'utworów');
-        $data['report'] .= "<h2>Łącznie dodano ".$added." ".$word." do bazy danych RAPPAR!</h2>";
+        $data['report'] .= "<h2>Łącznie dodano " . $added . " " . $word . " do bazy danych RAPPAR!</h2>";
         $this->session->unset_tempdata('playlistItems');
 
         //Submit the report and add a log
         if ($added > 0) {
             $repId = $this->LogModel->submitReport($data['report']);
-            $this->LogModel->createLog("user", $_SESSION['userId'], "Importowano ".$added." ".$word." do bazy danych RAPPAR!", $repId);
+            $this->LogModel->createLog("user", $_SESSION['userId'], "Importowano " . $added . " " . $word . " do bazy danych RAPPAR!", $repId);
         }
 
         $data['body'] = 'song/importSongsResult';
@@ -291,28 +294,96 @@ class Song extends CI_Controller
             if ($this->input->post()) {
                 //Pokazanie dodanego utworu i opcja z dodaniem następnego na jednym akranie
 
-
-
-                $songThumbnailLink = trim($this->input->post('songThumbnailLink'));
-                $customThumbnail = $this->input->post('customThumbnail');
-                $songThumbnailFile = trim($this->input->post('songThumbnailFile'));
-
                 //Validate the posted song title
                 $songTitle = trim($this->input->post('songTitle'));
-                if (!strlen($songTitle) > 0)
-                    $data['titleError'] = "Musisz podać tytuł utworu!";
+                if (!strlen($songTitle) > 0) {
+                    $data['titleError'] = "<p class='errorMessage'>Musisz podać tytuł utworu!</p>";
+                }
 
                 //Validate the posted song author
                 $songAuthor = trim($this->input->post('songAuthor'));
-                if (!strlen($songAuthor) > 0)
-                    $data['authorError'] = "Musisz podać przynajmniej jednego autora utworu!";
+                if (!strlen($songAuthor) > 0) {
+                    $data['authorError'] = "<p class='errorMessage'>Musisz podać przynajmniej jednego autora utworu!</p>";
+                }
 
                 //Validate the posted song release year
                 $songReleaseYear = trim($this->input->post('songReleaseYear'));
-                if (strlen($songReleaseYear) != 4)
-                    $data['yearError'] = "Musisz podać rok wydania utworu!";
-                elseif ($songReleaseYear > (int) date("Y") + 30 || $songReleaseYear < 1000)
-                    $data['yearError'] = "Musisz podać poprawny rok wydania utworu!";
+                if (strlen($songReleaseYear) != 4) {
+                    $data['yearError'] = "<p class='errorMessage'>Musisz podać rok wydania utworu!</p>";
+                } elseif ($songReleaseYear > (int)date("Y") + 30 || $songReleaseYear < 1800) {
+                    $data['yearError'] = "<p class='errorMessage'>Musisz podać poprawny rok wydania utworu!</p>";
+                }
+
+                //Validate the thumbnail link if one was posted
+                $linkProvided = false;
+                $songThumbnailLink = trim($this->input->post('songThumbnailLink'));
+                if (strlen($songThumbnailLink) > 0) {
+                    $linkProvided = true;
+                    if (!filter_var($songThumbnailLink, FILTER_VALIDATE_URL)) {
+                        $data['linkError'] = "<p class='errorMessage'>Podano niepoprawny link do miniatury!</p>";
+                    }
+                }
+
+                //Check whether a thumbnail file was posted
+                $uploadRequired = false;
+                $songThumbnailFile = $_FILES['songThumbnailFile'] ?? null;
+                if (isset($songThumbnailFile) && $songThumbnailFile['size'] > 0) {
+                    $uploadRequired = true;
+                }
+
+                //If no errors were found, check whether the song is unique
+                if (!isset($data['titleError']) && !isset($data['authorError']) && !isset($data['yearError']) && !isset($data['linkError'])) {
+                    $existingSongId = $this->SongModel->manualSongExists($songTitle, $songAuthor, $songReleaseYear);
+                    if (!$existingSongId) {
+                        $data['song']['songTitle'] = $songTitle;
+                        $data['song']['songAuthor'] = $songAuthor;
+                        $data['song']['songReleaseYear'] = $songReleaseYear;
+
+                        if ($uploadRequired) {
+                            //Specify the upload parameters and initialise the library
+                            $config['upload_path'] = './thumbnails/';
+                            $config['allowed_types'] = 'jpg|jpeg|png|gif|webp';
+                            $config['max_size'] = 10240; //10MB
+                            $config['max_width'] = 3840;
+                            $config['max_height'] = 2160;
+                            $config['file_name'] = time().'_'.bin2hex(random_bytes(4));
+                            $config['overwrite'] = false;
+                            $this->load->library('upload', $config);
+
+                            //Upload the file
+                            if (!$this->upload->do_upload('songThumbnailFile')) {
+                                $data['thumbnailError'] = "<p class='errorMessage'>Nie udało się przesłać miniatury z następujących powodów: <br>";
+                                $data['thumbnailError'] .= $this->upload->display_errors();
+                                $data['thumbnailError'] .= "</p>";
+                            }
+                            else {
+                                //Validate the minimum file dimensions
+                                $file_data = $this->upload->data();
+                                if ($file_data['image_width'] < 320 || $file_data['image_height'] < 180) {
+                                    unlink($file_data['full_path']);
+                                    $data['thumbnailError'] = "<p class='errorMessage'>Rozdzielczość miniatury nie spełnia minimalnych wymagań.</p>";
+                                }
+                                else {
+                                    $data['body'] = 'song/manualImportResult';
+                                    $data['song']['songThumbnailLink'] = base_url('thumbnails/' . $file_data['file_name']);
+                                }
+                            }
+                        }
+                        elseif ($linkProvided) {
+                            $data['body'] = 'song/manualImportResult';
+                            $data['song']['songThumbnailLink'] = $songThumbnailLink;
+                        }
+                        else {
+                            $data['body'] = 'song/manualImportResult';
+                            $data['song']['songThumbnailLink'] = base_url('thumbnails/default.png');
+                        }
+
+                        $data['insertedSongId'] = $this->SongModel->insertSong('', $data['song']['songThumbnailLink'], $songTitle, $songAuthor, $songReleaseYear);
+                    }
+                    else
+                        $data['songError'] = "<p class='errorMessage'>Ten utwór już istnieje w bazie danych RAPPAR! Kliknij <a href='".base_url('songPage?songId=' . $existingSongId)."' target='_blank'>tutaj</a> by do niego przejść.</p><br>";
+
+                }
             }
 
             $this->load->view('templates/song', $data);

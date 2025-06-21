@@ -33,7 +33,7 @@ class SongModel extends CI_Model
      * Every song fetched from our YT playlist is next fetched using YT API
      * and saved into the database, so it is never lost
      *
-     * @param string $songURL YT url of the song (without youtu.be/)
+     * @param string $songURL YT url of the song (without youtu.be/). Can be left empty for manual importing.
      * @param string $songThumbnailURL YT URL of the song's thumbnail
      * @param string $songTitle title of the song on YT
      * @param string $songChannelName the name of the YT channel that uploaded the song
@@ -235,5 +235,29 @@ class SongModel extends CI_Model
     public function updateSongReview(array $songReview): void
     {
         $this->db->replace('review', $songReview);
+    }
+
+    /**
+     * Check if the song with the selected title, made by the same authors and released the same year
+     *  already exists in the database. If it does, return its id.
+     *
+     * This method is used when inserting songs manually. Because such songs do not have YouTube IDs,
+     *  their originality must be separately checked against the database.
+     *
+     * @param string $songTitle
+     * @param string $songAuthors
+     * @param string $songReleaseYear
+     * @return int song id (or 0 if not found)
+     */
+    public function manualSongExists(string $songTitle, string $songAuthors, string $songReleaseYear): int
+    {
+        $query = $this->db->select('SongId')
+            ->from('song')
+            ->where('SongTitle', $songTitle)
+            ->where('SongChannelName', $songAuthors)
+            ->where('SongReleaseYear', $songReleaseYear)
+            ->get();
+
+        return $query->row()->SongId ?? 0;
     }
 }

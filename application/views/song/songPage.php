@@ -24,7 +24,7 @@
         <div class="song-container songBackground">
             <div class="song-header songBackground">
                 <div class="songBackground">
-                    <h2 class="song-title songBackground"><?=$song->SongTitle?></h2>
+                    <h2 class="song-title songBackground"><?=$song->SongURL != '' ? '<a href="https://youtu.be/<?=$song->SongURL?>">' : ''?><?=$song->SongTitle?><?=$song->SongURL != '' ? '</a>' : ''?></h2>
                     <p class="song-authors songBackground"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
                 </div>
                 <div class="song-awards songBackground">

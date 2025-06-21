@@ -366,11 +366,6 @@ html {
     font-size: 1.7rem;
 }
 
-.song-authors {
-    font-size: 1rem;
-    color: #555;
-}
-
 .song-awards {
     text-align: right;
     font-size: 1rem;
@@ -391,7 +386,7 @@ html {
 .song-thumbnail {
     width: 320px;
     height: 180px;
-    object-fit: cover;
+    object-fit: fill;
     border: 2px solid #000;
 }
 
@@ -403,6 +398,43 @@ html {
 .song-grades p {
     margin-bottom: 8px;
     font-size: 1.2rem; /* slightly larger text for grades */
+}
+
+#previewContainer {
+    width: 320px;
+    height: 180px;
+    border: 1px solid #ccc;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f8f8;
+}
+
+#previewImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: fill;
+}
+
+.song-meta {
+    display: flex;
+    gap: 0.25em; /* odstęp między autorami a rokiem */
+    flex-wrap: wrap; /* zabezpiecza przed wychodzeniem poza kontener */
+}
+
+.song-authors,
+.song-year {
+    display: inline;
+    font-size: 1rem;
+    color: #555;
+}
+
+.errorMessage {
+    color: red;
+    font-size: 15px;
+    margin: 5px;
+    font-weight: bold;
 }
 
 /* ==========================

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Class responsible for the Playlist_Song table.
+ * Model responsible for managing the Playlist_Song database table.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -10,18 +10,18 @@
  */
 class PlaylistSongModel extends CI_Model
 {
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
     }
 
     /**
-     * Returns a single playlist_song item.
+     * Return a single playlist_song item.
      *
      * @param string $playlistSongId
      * @return object
      */
-    function getPlaylistSong(string $playlistSongId): object
+    public function getPlaylistSong(string $playlistSongId): object
     {
         $sql = "SELECT * FROM playlist_song WHERE id = $playlistSongId";
         return $this->db->query($sql)->row();
@@ -31,11 +31,11 @@ class PlaylistSongModel extends CI_Model
      * Fetch songs from a playlist, filtering by the song title.
      * Only visible songs, that is, not manually hidden by the user, are returned.
      *
-     * @param int $listId id of the playlist to get songs from
+     * @param int $listId
      * @param string $search title filter
-     * @return array returns an array containing the songs found
+     * @return array
      */
-    function getPlaylistSongs(int $listId, string $search = ""): array
+    public function getPlaylistSongs(int $listId, string $search = ""): array
     {
         $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle  
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
@@ -51,12 +51,12 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * Fetch all playlists' songs filtering by the title.
+     * Fetch all playlists' songs, filtering by the title.
      *
      * @param string $search title filter
-     * @return array found songs array
+     * @return array
      */
-    function getPlaylistSongsFromSearch(string $search = ""): array
+    public function getPlaylistSongsFromSearch(string $search = ""): array
     {
         //Define the search query
         $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle 
@@ -64,12 +64,13 @@ class PlaylistSongModel extends CI_Model
                     JOIN list AS l ON ps.listId = l.ListId 
                     WHERE s.SongTitle LIKE '%$search%'";
 
-        //If logged in, search in your playlists and in public playlists
+        //If logged in, search both in your playlists and in public playlists
         if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']) {
             $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId IN (1, " . $_SESSION['userId'] . "))";
-        } else $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId = 1)";
+        }
+        else $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId = 1)";
 
-        //Admin staff can scan through private playlists for compliance and CS reasons
+        //Admin staff can scan through private playlists for compliance and to provide CS
         if (!$this->SecurityModel->debuggingEnabled())
             $sql .= $ownerCondition;
 
@@ -77,13 +78,13 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * Fetch songs of one reviewer, sorted by grade descending.
+     * Fetch songs of one reviewer, sorted by grade, descending.
      *
-     * @param int $listId id of the list to fetch from
-     * @param string $filter name of the reviewer
-     * @return array           returns an array containing the songs found
+     * @param int $listId
+     * @param string $filter reviewer's name (Adam/Churchie/Owner)
+     * @return array
      */
-    function getTopPlaylistSongs(int $listId, string $filter): array
+    public function getTopPlaylistSongs(int $listId, string $filter): array
     {
         $cond = $filter === "Adam" ? "ps.SongGradeAdam" : ($filter === "Churchie" ? "ps.SongGradeChurchie" : ($filter === "Owner" ? "ps.SongGradeOwner" : "(ps.SongGradeAdam+ps.SongGradeChurchie+ps.SongGradeOwner)/3"));
         $sql = "SELECT ps.*, s.SongURL, s.SongThumbnailURL, s.SongTitle 
@@ -94,10 +95,10 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * Insert a song into a playlist
+     * Insert a song into a playlist.
      *
-     * @param int $listId id of the playlist the song is inserted into
-     * @param int $songId id of the song
+     * @param int $listId
+     * @param int $songId
      * @param string $songPlaylistItemsId unique YT PlaylistItemsId (For API calls)
      * @return int id of the inserted playlist_song
      */
@@ -114,10 +115,10 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * This method checks if a song already belongs to the playlist. If it does, its id is returned.
+     * Check if the song already belongs to the playlist. If it does, return its id.
      *
-     * @param int $listId playlist id
-     * @param int $songId internal song id
+     * @param int $listId
+     * @param int $songId
      * @return int playlist_song id (or 0 if not found)
      */
     public function playlistSongExists(int $listId, int $songId): int
@@ -133,9 +134,9 @@ class PlaylistSongModel extends CI_Model
      * @param float|string $gradeAdam Adam's grade
      * @param float|string $gradeKoscielny Kościelny's grade
      * @param float|string $gradeOwner Playlist owner's grade
-     * @return bool true if the query worked, false if it failed
+     * @return bool true if the query worked, false otherwise
      */
-    function updatePlaylistSongScores(int $playlistSongId, mixed $gradeAdam, mixed $gradeKoscielny, mixed $gradeOwner): bool
+    public function updatePlaylistSongScores(int $playlistSongId, mixed $gradeAdam, mixed $gradeKoscielny, mixed $gradeOwner): bool
     {
         $sql = "UPDATE playlist_song SET SongGradeAdam = '$gradeAdam', SongGradeChurchie = '$gradeKoscielny', SongGradeOwner = '$gradeOwner' WHERE id = $playlistSongId";
 
@@ -145,31 +146,31 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * There are lots of checkboxes for each song entry and this function makes it possible
-     * to update any one of them.
+     * There are lots of checkboxes for each playlist_song entry. Choose one and update it.
      *
-     * @param $playlistSongId int song id to update
-     * @param $propertyName string the name of the checkbox property to update
+     * @param $playlistSongId int
+     * @param $propertyName string the database name of the checkbox property to update
      * @param $propertyValue bool the value to update the property to
      * @return bool
      */
-    function updateSongCheckboxProperty(int $playlistSongId, string $propertyName, bool $propertyValue): bool
+    public function updateSongCheckboxProperty(int $playlistSongId, string $propertyName, bool $propertyValue): bool
     {
         $propertyValue = $propertyValue != 1 ? 0 : 1;
         $sql = "UPDATE playlist_song SET $propertyName = $propertyValue WHERE id = $playlistSongId";
 
-        if ($this->db->simple_query($sql)) return true;
+        if ($this->db->simple_query($sql))
+            return true;
         else return false;
     }
 
     /**
-     * The function duplicates a playlist song to another playlist
+     * Duplicate a playlist_song to another playlist.
      *
-     * @param $playlistSongId int playlist_song id
+     * @param $playlistSongId int
      * @param $playlistId int id of the playlist to copy the song to
-     * @return false|int false if the transaction failed, duplicated item's id otherwise
+     * @return false|int duplicated item's id if the transaction worked, false otherwise
      */
-    function copyToAnotherPlaylist(int $playlistSongId, int $playlistId): false|int
+    public function copyToAnotherPlaylist(int $playlistSongId, int $playlistId): false|int
     {
         //Fetch the playlist_song
         $this->db->trans_start();
@@ -194,15 +195,15 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * Update a playlist_song with the new PlaylistItemsId and PlaylistId after moving.
-     * An integrated playlist_song is moved to a playlist integrated with YT.
+     * Update a playlist_song with new PlaylistItemsId and PlaylistId after moving.
+     * An integrated playlist_song is moved to a playlist that's integrated with YT.
      *
-     * @param int $playlistSongId id of the playlist_song to update
+     * @param int $playlistSongId
      * @param int $newPlaylistId id of the playlist the playlist_song was moved to
      * @param string $newSongPlaylistItemsId unique YT PlaylistItemsId (API item)
-     * @return bool true if query worked, false otherwise
+     * @return bool true if the query worked, false otherwise
      */
-    function updateIntegratedSongPlaylistId(int $playlistSongId, int $newPlaylistId, string $newSongPlaylistItemsId): bool
+    public function updateIntegratedSongPlaylistId(int $playlistSongId, int $newPlaylistId, string $newSongPlaylistItemsId): bool
     {
         $sql = "UPDATE playlist_song SET listId = $newPlaylistId, SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE id = $playlistSongId";
 
@@ -212,16 +213,16 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * Update a copied playlist_song with a new PlaylistItemsId.
+     * Provide a copied playlist_song with a new PlaylistItemsId.
      *
      * An integrated playlist_song is copied to a playlist integrated with YT, and the ItemsId
-     * is required to later delete it from youtube (if the user needs to).
+     * is required to delete it from youtube (once the user decides to do so).
      *
-     * @param int $playlistSongId id of the playlist_song to update
+     * @param int $playlistSongId
      * @param string $newSongPlaylistItemsId unique YT PlaylistItemsId (API item)
-     * @return boolean true if query worked, false otherwise
+     * @return bool true if query worked, false otherwise
      */
-    function updateCopiedSongItemsId(int $playlistSongId, string $newSongPlaylistItemsId): bool
+    public function updateCopiedSongItemsId(int $playlistSongId, string $newSongPlaylistItemsId): bool
     {
         $sql = "UPDATE playlist_song SET SongPlaylistItemsId = '$newSongPlaylistItemsId' WHERE id = $playlistSongId";
 

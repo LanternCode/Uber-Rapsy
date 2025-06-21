@@ -14,10 +14,12 @@
             <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
             <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
                 <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Playlisty</a>
-                <?php if($_SESSION['userRole'] === 'reviewer'): ?>
-                    <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
-                    <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
-                <?php endif; ?>
+            <?php endif; ?>
+            <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
+            <?php if($_SESSION['userRole'] === 'reviewer'): ?>
+                <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
+            <?php endif; ?>
+            <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
                 <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
             <?php else: ?>
                 <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>
