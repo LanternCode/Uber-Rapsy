@@ -16,7 +16,7 @@
                 <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Playlisty</a>
             <?php endif; ?>
             <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
-            <?php if($_SESSION['userRole'] === 'reviewer'): ?>
+            <?php if(isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
                 <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
             <?php endif; ?>
             <?php if(isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>

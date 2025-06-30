@@ -40,7 +40,7 @@ class SongModel extends CI_Model
      * @param string $songReleaseYear song release year
      * @return int id of the inserted song
      */
-    function insertSong(string $songURL, string $songThumbnailURL, string $songTitle, string $songChannelName, string $songReleaseYear): int
+    public function insertSong(string $songURL, string $songThumbnailURL, string $songTitle, string $songChannelName, string $songReleaseYear): int
     {
         $queryData = array(
             'SongURL' => $songURL,
@@ -52,6 +52,17 @@ class SongModel extends CI_Model
 
         $this->db->insert('song', $queryData);
         return $this->db->conn_id->insert_id;
+    }
+
+    /**
+     * Update an existing song.
+     *
+     * @param array $queryData
+     * @return void
+     */
+    public function updateSong(array $queryData): void
+    {
+        $this->db->replace('song', $queryData);
     }
 
     /**

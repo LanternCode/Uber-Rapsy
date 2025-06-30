@@ -3,36 +3,31 @@
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-        <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
+        <a class="optionsURL" href="<?=base_url("songPage?songId=".$song->SongId)?>">Wróc do utworu</a>
         <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
             <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <?php endif; ?>
         <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
     <?php endif; ?>
-    <form class="optionsURL optionsRight" method="get" action="<?=base_url("songSearch")?>">
-        <label class="optionsSearchLabel">Szukaj nuty</label>
-        <input type="text" placeholder="Strumień" name="searchQuery" required/>
-        <input type="submit" value="Szukaj" />
-    </form>
 </header>
 <main>
     <br><br><br><br>
-    <h2>Manualne dodawanie utworu</h2><br>
-    <form method="post" action="<?=base_url('manualImport')?>" id="manualImport" enctype="multipart/form-data">
+    <h2>Edycja utworu</h2><br>
+    <form method="post" action="<?=base_url('song/edit?songId='.$song->SongId)?>" id="manualImport" enctype="multipart/form-data">
         <label>Tytuł utworu:
-            <input type="text" name="songTitle" placeholder="Dawid Obserwator - Pasterka (prod. Pablo)" value="<?=$songTitle ?? ''?>" required>
+            <input type="text" name="songTitle" placeholder="<?=$song->SongTitle?>" value="<?=$songTitle ?? $song->SongTitle?>" required>
             <?=isset($titleError) ? '<br>'.$titleError : ''?>
         </label><br><br>
         <label>Autorzy utworu:
-            <input type="text" name="songAuthor" placeholder="Słoń, Frosti, Popiół to kot, Leny Da Fam" value="<?=$songAuthor ?? ''?>" required>
+            <input type="text" name="songAuthor" placeholder="<?=$song->SongChannelName?>" value="<?=$songAuthor ?? $song->SongChannelName?>" required>
             <?=isset($authorError) ? '<br>'.$authorError : ''?>
         </label><br><br>
         <label>Rok wydania:
-            <input type="text" name="songReleaseYear" placeholder="2024" value="<?=$songReleaseYear ?? ''?>" required>
+            <input type="text" name="songReleaseYear" placeholder="<?=$song->SongReleaseYear?>" value="<?=$songReleaseYear ?? $song->SongReleaseYear?>" required>
             <?=isset($yearError) ? '<br>'.$yearError : ''?>
         </label><br><br>
         <label>Link do miniaturki (jeśli zostawisz pole puste, zostanie użyta domyślna miniatura):
-            <input type="text" name="songThumbnailLink" value="<?=$songThumbnailLink ?? ''?>">
+            <input type="text" name="songThumbnailLink" value="<?=$songThumbnailLink ?? $song->SongThumbnailURL?>">
             <?=isset($linkError) ? '<br>'.$linkError : ''?>
         </label><br><br>
         <label>Zamiast linku chcę wysłać plik z miniaturką:<br>
@@ -52,9 +47,9 @@
     <div class="song-container songBackground">
         <div class="song-header songBackground">
             <div class="songBackground">
-                <h2 class="song-title songBackground"><?=$songTitle ?? 'Tytuł'?></h2>
+                <h2 class="song-title songBackground"><?=$songTitle ?? $song->SongTitle?></h2>
                 <p class="song-meta songBackground">
-                    <span class="song-authors"><?=$songAuthor ?? 'Autorzy'?></span><span class="song-year">(<?=$songReleaseYear ?? 'Rok Wydania'?>)</span>
+                    <span class="song-authors"><?=$songAuthor ?? $song->SongChannelName?></span><span class="song-year">(<?=$songReleaseYear ?? $song->SongReleaseYear?>)</span>
                 </p>
             </div>
             <div class="song-awards songBackground">
@@ -62,7 +57,7 @@
             </div>
         </div>
         <div class="song-content songBackground">
-            <img alt="Podgląd miniatury" class="song-thumbnail" id="previewImage" src="<?=$songThumbnailLink ?? ''?>" />
+            <img alt="Podgląd miniatury" class="song-thumbnail" id="previewImage" src="<?=$songThumbnailLink ?? $song->SongThumbnailURL?>" />
             <div class="song-grades">
                 <p>Moja Ocena</p>
                 <p>Ocena Adama</p>
@@ -72,7 +67,7 @@
         </div>
     </div>
     <div class="centered">
-        <input form="manualImport" type="submit" value="Dodaj utwór do RAPPAR" class="big-button">
+        <input form="manualImport" type="submit" value="Zaktualizuj utwór" class="big-button">
     </div>
 </main>
 <script type="text/javascript" src="<?=base_url('scripts/manualImporting.js')?>"></script>

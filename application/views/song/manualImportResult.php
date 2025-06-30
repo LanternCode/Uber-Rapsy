@@ -22,9 +22,9 @@
     <div class="song-container songBackground">
         <div class="song-header songBackground">
             <div class="songBackground">
-                <h2 class="song-title songBackground"><?=$song['songTitle']?></h2>
+                <h2 class="song-title songBackground"><?=$songTitle?></h2>
                 <p class="song-meta songBackground">
-                    <span class="song-authors"><?=$song['songAuthor']?></span><span class="song-year">(<?=$song['songReleaseYear']?>)</span>
+                    <span class="song-authors"><?=$songAuthor?></span><span class="song-year">(<?=$songReleaseYear?>)</span>
                 </p>
             </div>
             <div class="song-awards songBackground">
@@ -32,7 +32,7 @@
             </div>
         </div>
         <div class="song-content songBackground">
-            <img src="<?=$song['songThumbnailLink']?>" alt="Song Thumbnail" class="song-thumbnail" />
+            <img src="<?=$songThumbnailLink?>" alt="Song Thumbnail" class="song-thumbnail" />
             <div class="song-grades">
                 <p>Moja Ocena</p>
                 <p>Ocena Adama</p>
