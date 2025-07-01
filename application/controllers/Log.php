@@ -111,4 +111,29 @@ class Log extends CI_Controller
         }
         else redirect('logout');
     }
+
+    /**
+     * Show song logs.
+     *
+     * @return void
+     */
+    public function showSongLog(): void
+    {
+        //Validate the submitted song id and fetch said song
+        $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        $data['song'] = $songId ? $this->SongModel->getSong($songId) : false;
+        if ($data['song'] !== false) {
+            //Check if the user is logged in and has the required permissions
+            $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+            if ($userAuthenticated) {
+                $data['body']  = 'playlistSong/showLog';
+                $data['title'] = "Uber Rapsy | Historia nuty";
+                $data['songLog'] = $this->LogModel->getSongLogs($songId);
+
+                $this->load->view('templates/main', $data);
+            }
+            else redirect('logout');
+        }
+        else redirect('logout');
+    }
 }

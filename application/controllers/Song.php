@@ -123,7 +123,8 @@ class Song extends CI_Controller
             'body' => 'song/songSearch',
             'title' => 'Wyniki Wyszukiwania Nut | Uber Rapsy',
             'songs' => array(),
-            'searchQuery' => trim($this->input->get('searchQuery') ?? '')
+            'searchQuery' => trim($this->input->get('searchQuery') ?? ''),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
         //Fetch songs filtered by a valid search query

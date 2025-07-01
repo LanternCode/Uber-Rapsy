@@ -45,7 +45,18 @@
             <tbody>
             <?php foreach($songs as $song): ?>
                 <tr>
-                    <td><a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a></td>
+                    <td>
+                        <a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a>
+                        <a href="<?=base_url('?songId='.$song->SongId)?>" title="Recenzuj utwór">📝</a>
+                        <?php if ($isReviewer): ?>
+                            <a href="<?=base_url('song/edit?songId='.$song->SongId)?>" title="Edytuj utwór">🔧</a>
+                            <a href="<?=base_url('?songId='.$song->SongId)?>" title="Pokaż lub ukryj utwór">👁️</a>
+                            <a target="_blank" href="<?=base_url('song/showLog?songId='.$song->SongId)?>" title="Wyświetl logi utworu">📄️</a>
+                            <a href="<?=base_url('?songId='.$song->SongId)?>" title="Pokaż profil autora utworu">👤</a>
+                            <a href="<?=base_url('?songId='.$song->SongId)?>" title="Zarządzaj nagrodami utworu">🏆</a>
+                            <a href="<?=base_url('?songId='.$song->SongId)?>" title="Usuń utwór">❌</a>
+                        <?php endif; ?>
+                    </td>
                     <td><?=$song->myGrade != 0 ? $song->myGrade : '❌' ?></td>
                     <td><?=$song->communityAverage != 0 ? $song->communityAverage : '❌'?></td>
                     <?php foreach($song->awards as $award): ?>
