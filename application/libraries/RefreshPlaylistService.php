@@ -35,7 +35,7 @@ class RefreshPlaylistService
      * @param $listId int the RAPPAR playlist id
      * @return string An error message ("" means no errors)
      */
-    public function refreshPlaylist(int $listId): string
+    public function refreshPlaylist(int $listId, $userId): string
     {
         //Fetch the YT playlist id based on the local playlist id
         $externalPlaylistId = $this->CI->PlaylistModel->getListUrlById($listId);
@@ -108,7 +108,7 @@ class RefreshPlaylistService
 
             //Insert every new song into the database
             foreach ($newSongItems as &$songToInsert) {
-                $songId = $this->CI->SongModel->insertSong($songToInsert['externalSongId'], $songToInsert['songThumbnailLink'], $songToInsert['songTitle'], $songToInsert['songChannelName'], $songToInsert['songPublishedAt']);
+                $songId = $this->CI->SongModel->insertSong($songToInsert['externalSongId'], $userId, $songToInsert['songThumbnailLink'], $songToInsert['songTitle'], $songToInsert['songChannelName'], $songToInsert['songPublishedAt']);
                 $songToInsert['existingSongId'] = $songId;
             }
             unset($songToInsert);

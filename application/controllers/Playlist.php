@@ -327,8 +327,11 @@ class Playlist extends CI_Controller
      */
     public function addLocalPlaylist(): void
     {
-        $userAuthenticated = $this->SecurityModel->authenticateUser();
-        if ($userAuthenticated) {
+        //Make sure the user is logged in to continue
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+        $userId = $this->SecurityModel->getCurrentUserId();
+        $userAuthorised = $userAuthenticated && $userId !== false;
+        if ($userAuthorised) {
             $data = array(
                 'body' => 'playlist/addLocalPlaylist',
                 'title' => 'Uber Rapsy | Dodaj lokalnie playlistę!',
@@ -356,7 +359,7 @@ class Playlist extends CI_Controller
                     //If a YT URL was provided, fetch the songs and refresh the playlist
                     if (!empty($queryData['ListUrl'])) {
                         //Refresh the playlist - if everything went well, the message will be empty
-                        $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($newListId);
+                        $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($newListId, $userId);
                     }
 
                     //Create a log

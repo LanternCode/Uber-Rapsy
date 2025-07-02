@@ -496,31 +496,32 @@ class PlaylistItems extends CI_Controller
      */
     public function downloadSongs(): void
     {
+        //Fetch the submitted playlist id
         $listId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
         $listId = is_numeric($listId) ? $listId : 0;
         $data = array(
             'body' => 'downloadPlaylistSongs',
             'title' => 'Aktualizacja playlisty!',
-            'listId' => $listId,
-            'displayErrorMessage' => ''
+            'listId' => $listId
         );
 
         //Check if the user is logged in and has the required permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-        $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($data['listId']) == $_SESSION['userId'];
+        $userId = $this->SecurityModel->getCurrentUserId();
+        $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($listId) == $userId;
         if ($userAuthorised) {
             //Check if the playlist has a YouTube link.
             $playlistUrl = $this->PlaylistModel->getListUrlById($data['listId']);
             if (!empty($playlistUrl)) {
                 //Refresh the playlist - if everything went well, the message will be empty
-                $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($data['listId']);
+                $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($data['listId'], $userId);
             }
             else
                 $data['displayErrorMessage'] = "Nie znaleziono linku do tej playlisty na YT!";
+
+            $this->load->view('templates/main', $data);
         }
         else redirect('logout');
-
-        $this->load->view('templates/main', $data);
     }
 
     /**

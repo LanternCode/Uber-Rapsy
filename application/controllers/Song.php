@@ -245,50 +245,59 @@ class Song extends CI_Controller
      */
     public function confirmSongImport(): void
     {
-        $i = 0;
-        $added = 0;
-        $data['report'] = "";
+        //Make sure the user is logged in to continue
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userId = $this->SecurityModel->getCurrentUserId();
+        $userAuthorised = $userAuthenticated && $userId !== false;
+        if ($userAuthorised) {
+            $i = 0;
+            $added = 0;
+            $data['report'] = "";
 
-        //Load the previously fetched songs array
-        $songItems = $this->session->tempdata('playlistItems');
-        if (count($songItems) > 0) {
-            foreach ($songItems as $song) {
-                //Import each song if it does not exist yet
-                $songChannelName = $this->input->post("songChannelName-" . $i) != $song['songChannelName'] ? $this->input->post("songChannelName-" . $i) : $song['songChannelName'];
-                $existingSongId = $this->SongModel->songExists($song['externalSongId'], $song['songTitle'], $songChannelName);
-                if ($existingSongId == 0) {
-                    $songId = $this->SongModel->insertSong($song['externalSongId'], $song['songThumbnailLink'], $song['songTitle'], $songChannelName, $song['songPublishedAt']);
-                    $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " został dodany do bazy danych Rappar!</h4><br>";
-                    $this->LogModel->createLog("song", $songId, "Nuta została importowana do bazy danych RAPPAR.");
-                    $added++;
-                } else {
-                    $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " już istnieje w bazie danych Rappar!</h4><br>";
+            //Load the previously fetched songs array
+            $songItems = $this->session->tempdata('playlistItems');
+            if (count($songItems) > 0) {
+                foreach ($songItems as $song) {
+                    //Import each song if it does not exist yet
+                    $songChannelName = $this->input->post("songChannelName-" . $i) != $song['songChannelName'] ? $this->input->post("songChannelName-" . $i) : $song['songChannelName'];
+                    $existingSongId = $this->SongModel->songExists($song['externalSongId'], $song['songTitle'], $songChannelName);
+                    if ($existingSongId == 0) {
+                        $songId = $this->SongModel->insertSong($song['externalSongId'], $userId, $song['songThumbnailLink'], $song['songTitle'], $songChannelName, $song['songPublishedAt']);
+                        $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " został dodany do bazy danych Rappar!</h4><br>";
+                        $this->LogModel->createLog("song", $songId, "Nuta została importowana do bazy danych RAPPAR.");
+                        $added++;
+                    } else {
+                        $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " już istnieje w bazie danych Rappar!</h4><br>";
+                    }
+
+                    $i++;
                 }
-
-                $i++;
             }
+
+            //Complete the report
+            $word = $added === 1 ? 'utwór' : ($added === 2 || $added === 3 || $added === 4 ? 'utwory' : 'utworów');
+            $data['report'] .= "<h2>Łącznie dodano " . $added . " " . $word . " do bazy danych RAPPAR!</h2>";
+            $this->session->unset_tempdata('playlistItems');
+
+            //Submit the report and add a log
+            if ($added > 0) {
+                $repId = $this->LogModel->submitReport($data['report']);
+                $this->LogModel->createLog("user", $userId, "Importowano " . $added . " " . $word . " do bazy danych RAPPAR!", $repId);
+            }
+
+            $data['body'] = 'song/importSongsResult';
+            $this->load->view('templates/song', $data);
         }
-
-        //Complete the report
-        $word = $added === 1 ? 'utwór' : ($added === 2 || $added === 3 || $added === 4 ? 'utwory' : 'utworów');
-        $data['report'] .= "<h2>Łącznie dodano " . $added . " " . $word . " do bazy danych RAPPAR!</h2>";
-        $this->session->unset_tempdata('playlistItems');
-
-        //Submit the report and add a log
-        if ($added > 0) {
-            $repId = $this->LogModel->submitReport($data['report']);
-            $this->LogModel->createLog("user", $_SESSION['userId'], "Importowano " . $added . " " . $word . " do bazy danych RAPPAR!", $repId);
-        }
-
-        $data['body'] = 'song/importSongsResult';
-        $this->load->view('templates/song', $data);
+        else redirect('logout');
     }
 
     public function manualImport(): void
     {
-        //Check if the user is logged in and has the required permissions
+        //Make sure the user is logged in to continue
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
-        if ($userAuthenticated) {
+        $userId = $this->SecurityModel->getCurrentUserId();
+        $userAuthorised = $userAuthenticated && $userId !== false;
+        if ($userAuthorised) {
             $data['body'] = 'song/manualImport';
 
             //Proceed to import the song if the form was submitted
@@ -364,7 +373,7 @@ class Song extends CI_Controller
                         //Insert the song if no thumbnail errors were detected
                         if (!isset($data['thumbnailError'])) {
                             $data['body'] = 'song/manualImportResult';
-                            $data['insertedSongId'] = $this->SongModel->insertSong('', $data['songThumbnailLink'] , $data['songTitle'], $data['songAuthor'], $data['songReleaseYear']);
+                            $data['insertedSongId'] = $this->SongModel->insertSong('', $userId, $data['songThumbnailLink'] , $data['songTitle'], $data['songAuthor'], $data['songReleaseYear']);
                         }
                     }
                     else

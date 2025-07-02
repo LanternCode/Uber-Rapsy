@@ -12,6 +12,7 @@ class SongModel extends CI_Model
 {
     function __construct()
     {
+        $this->load->model('SecurityModel');
         parent::__construct();
     }
 
@@ -34,16 +35,18 @@ class SongModel extends CI_Model
      * and saved into the database, so it is never lost
      *
      * @param string $songURL YT url of the song (without youtu.be/). Can be left empty for manual importing.
+     * @param string $userId current user inserting the song
      * @param string $songThumbnailURL YT URL of the song's thumbnail
      * @param string $songTitle title of the song on YT
      * @param string $songChannelName the name of the YT channel that uploaded the song
      * @param string $songReleaseYear song release year
      * @return int id of the inserted song
      */
-    public function insertSong(string $songURL, string $songThumbnailURL, string $songTitle, string $songChannelName, string $songReleaseYear): int
+    public function insertSong(string $songURL, string $userId, string $songThumbnailURL, string $songTitle, string $songChannelName, string $songReleaseYear): int
     {
         $queryData = array(
             'SongURL' => $songURL,
+            'SongAddedBy' => $userId,
             'SongThumbnailURL' => $songThumbnailURL,
             'SongTitle' => $songTitle,
             'SongChannelName' => $songChannelName,

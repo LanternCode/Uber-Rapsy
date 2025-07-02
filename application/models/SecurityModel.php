@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
-if(!isset($_SESSION)){
+if (!isset($_SESSION)){
     session_start();
 }
 
@@ -37,7 +37,7 @@ class SecurityModel extends CI_Model
 
         //Fetch user credentials
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
-        if($userLoggedIn)
+        if ($userLoggedIn)
             return true;
         else return false;
     }
@@ -52,7 +52,7 @@ class SecurityModel extends CI_Model
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
         $userRole = $_SESSION['userRole'] ?? 0;
 
-        if($userLoggedIn === 1 && $userRole === 'reviewer')
+        if ($userLoggedIn === 1 && $userRole === 'reviewer')
             return true;
         else return false;
     }
@@ -65,7 +65,7 @@ class SecurityModel extends CI_Model
     function debuggingEnabled(): bool
     {
         $userCanDebug = $this->authenticateReviewer();
-        if($userCanDebug) {
+        if ($userCanDebug) {
             return $_SESSION['debuggingEnabled'] ?? 0;
         }
         else return false;
@@ -137,5 +137,15 @@ class SecurityModel extends CI_Model
         }
 
         return $token_expired;
+    }
+
+    /**
+     * Fetch the current user's id. If no user is logged in, return false.
+     *
+     * @return int|bool
+     */
+    public function getCurrentUserId(): int|bool
+    {
+        return $_SESSION['userId'] ?? false;
     }
 }
