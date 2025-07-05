@@ -59,8 +59,7 @@
                     <td><a href="<?=base_url('playlistItems/updatePlaylistSongVisibility?songId='.$song->id.'&src='.$redirectSource)?>"><?=$song->SongVisible ? "Ukryj" : "Upublicznij"?></a></td>
                     <td><a href="<?=base_url('playlist/delSong?songId='.$song->id.'&src='.$redirectSource)?>">Usuń</a></td>
                 <?php endif; ?>
-                <td><a href="<?=base_url('song/showLog?songId='.$song->id.'&src='.$redirectSource)?>">Historia</a></td>
-                <td><a href="<?=base_url('song/showLog?songId='.$song->id.'&src='.$redirectSource)?>">Historia</a></td>
+                <td><a href="<?=base_url('playlistItems/showLog?songId='.$song->id.'&src='.$redirectSource)?>">Historia</a></td>
             </tr>
         <?php endforeach; ?>
     </table>

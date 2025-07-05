@@ -97,7 +97,8 @@ class Log extends CI_Controller
         if ($data['playlistSong'] !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($data['playlistSong']->listId) == $_SESSION['userId'];
+            $reviewerAuthenticated = $this->SecurityModel->authenticateReviewer();
+            $userAuthorised = $reviewerAuthenticated || ($userAuthenticated && $this->PlaylistModel->getListOwnerById($data['playlistSong']->listId) == $this->SecurityModel->getCurrentUserId());
             if ($userAuthorised) {
                 $data['body']  = 'playlistSong/showLog';
                 $data['title'] = "Uber Rapsy | Historia nuty";

@@ -29,17 +29,23 @@ class PlaylistSongModel extends CI_Model
 
     /**
      * Fetch songs from a playlist, filtering by the song title.
-     * Only visible songs, that is, not manually hidden by the user, are returned.
+     * By default only visible songs, that is, not manually hidden by the user, are returned.
+     * When including deleted songs, since they've been deleted, only the title is returned
+     *  so that the song is not added again. They cannot be shown in playlists.
      *
      * @param int $listId
      * @param string $search title filter
+     * @param bool $includeHidden whether to fetch hidden songs
+     * @param bool $includeDeleted whether to fetch deleted songs)
      * @return array
      */
-    public function getPlaylistSongs(int $listId, string $search = ""): array
+    public function getPlaylistSongs(int $listId, string $search = "", bool $includeHidden = false, bool $includeDeleted = false): array
     {
         $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle  
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
-                WHERE ps.listId = $listId AND ps.SongVisible = 1 AND ps.SongDeleted = 0";
+                WHERE ps.listId = $listId";
+        $sql .= $includeHidden ? "" : " AND ps.SongVisible = 1";
+        $sql .= $includeDeleted ? "" : " AND ps.SongDeleted = 0";
 
         //Apply the search filter
         if ($search != "") {
@@ -287,7 +293,7 @@ class PlaylistSongModel extends CI_Model
     function updatePlaylistSongVisibility(int $playlistSongId, bool $newVisibility)
     {
         $sql = "UPDATE playlist_song SET SongVisible = '$newVisibility' WHERE id = $playlistSongId";
-        $this->db->query($sql);
+        $this->db->simple_query($sql);
     }
 
     /**

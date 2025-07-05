@@ -5,6 +5,7 @@
     <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
         <a class="optionsURL" href="<?=base_url("songPage?songId=".$song->SongId)?>">Wróc do utworu</a>
         <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+            <a class="optionsURL" href="<?=base_url('song/awards?songId='.$song->SongId)?>">Zarządzaj nagrodami</a>
             <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <?php endif; ?>
         <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
@@ -13,6 +14,10 @@
 <main>
     <br><br><br><br>
     <h2>Edycja utworu</h2><br>
+    <h3>Widoczność:</h3><br>
+    <p>Utwór jest <?=$song->SongVisible ? 'publiczny' : 'ukryty'?>.</p><br>
+    <p>Kliknij <a href="<?=base_url('song/updateVisibility?songId='.$song->SongId.'&src=edit')?>">tutaj</a> żeby zmienić jego widoczność.</p><br><br>
+    <h3>Dane utworu:</h3><br>
     <form method="post" action="<?=base_url('song/edit?songId='.$song->SongId)?>" id="manualImport" enctype="multipart/form-data">
         <label>Tytuł utworu:
             <input type="text" name="songTitle" placeholder="<?=$song->SongTitle?>" value="<?=$songTitle ?? $song->SongTitle?>" required>

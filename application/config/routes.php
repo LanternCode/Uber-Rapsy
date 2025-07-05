@@ -27,7 +27,7 @@ $route['playlist/integrate'] = 'Playlist/integratePlaylist';
 $route['playlist/showLog'] = 'Log/showPlaylistLog';
 
 $route['song/rev'] = 'Song/reviewSong';
-$route['song/showLog'] = 'Log/showPlaylistSongLog';
+$route['playlistItems/showLog'] = 'Log/showPlaylistSongLog';
 $route['playlistItems/updatePlaylistSongVisibility'] = 'PlaylistItems/updatePlaylistSongVisibility';
 
 $route['frontpage'] = 'Song/frontpage';
@@ -40,6 +40,7 @@ $route['manualImport'] = 'Song/manualImport';
 $route['song/edit'] = 'Song/editSong';
 $route['song/showLog'] = 'Log/showSongLog';
 $route['song/awards'] = 'Song/manageSongAwards';
+$route['song/updateVisibility'] = 'Song/updateSongVisibility';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';

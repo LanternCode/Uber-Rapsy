@@ -68,7 +68,7 @@ class Song extends CI_Controller
         if ($songId) {
             $data = array(
                 'body' => 'song/songPage',
-                'title' => 'Uber Rapsy | Oceń nutę',
+                'title' => 'Uber Rapsy | Strona utworu',
                 'song' => $this->SongModel->getSong($songId),
                 'myRating' => isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $_SESSION['userId'])) : 0,
                 'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
@@ -78,9 +78,8 @@ class Song extends CI_Controller
             $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
 
             $this->load->view('templates/song', $data);
-        } else {
-            redirect('logout');
         }
+        else redirect('logout');
     }
 
     /**
@@ -286,6 +285,7 @@ class Song extends CI_Controller
             }
 
             $data['body'] = 'song/importSongsResult';
+            $data['title'] = 'RAPPAR | Importuj utwór';
             $this->load->view('templates/song', $data);
         }
         else redirect('logout');
@@ -299,6 +299,7 @@ class Song extends CI_Controller
         $userAuthorised = $userAuthenticated && $userId !== false;
         if ($userAuthorised) {
             $data['body'] = 'song/manualImport';
+            $data['title'] = 'RAPPAR | Importuj utwór';
 
             //Proceed to import the song if the form was submitted
             if ($this->input->post()) {
@@ -402,6 +403,7 @@ class Song extends CI_Controller
             $userAuthorised = $this->SecurityModel->authenticateReviewer();
             if ($userAuthorised) {
                 $data['body'] = 'song/editSong';
+                $data['title'] = 'RAPPAR | Edytuj utwór';
 
                 //Update the song if the form was submitted
                 if ($this->input->post()) {
@@ -509,6 +511,7 @@ class Song extends CI_Controller
             $userAuthorised = $this->SecurityModel->authenticateReviewer();
             if ($userAuthorised) {
                 $data['body'] = 'song/manageRewards';
+                $data['title'] = 'RAPPAR | Zarządzaj nagrodami utworu';
                 $data['songAwards'] = $this->SongModel->fetchSongAwards($songId);
 
                 //Add an award if the form was submitted
@@ -531,6 +534,56 @@ class Song extends CI_Controller
                         $this->SongModel->cancelSongAward($awardId);
                         redirect('song/awards?songId='.$songId);
                     }
+                }
+
+                $this->load->view('templates/song', $data);
+            }
+            else redirect('logout');
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Hide (privatise) or show (publicise) an existing song.
+     *
+     * @return void
+     */
+    public function updateSongVisibility(): void
+    {
+        //Validate the submitted song id
+        $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        $song = $songId ? $this->SongModel->getSong($songId) : false;
+        if ($song !== false) {
+            //Check if the user is logged in and has the required permissions
+            $userAuthorised = $this->SecurityModel->authenticateReviewer();
+            $userId = $this->SecurityModel->getCurrentUserId();
+            if ($userAuthorised) {
+                $data = array(
+                    'body' => 'song/updateSongVisibility',
+                    'title' => 'Uber Rapsy | Zmień widoczność utworu',
+                    'song' => $song,
+                    'myRating' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $userId)),
+                    'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
+                    'songAwards' => $this->SongModel->fetchSongAwards($songId),
+                    'src' => $this->input->get('src'),
+                    'searchQuery' => $this->input->get('query')
+                );
+                $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
+                $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
+
+                //Update song visibility if approved
+                if ($this->input->get('switch')) {
+                    $currentVisibility = $data['song']->SongVisible;
+                    $newVisibility = $currentVisibility == 1 ? 0 : 1;
+
+                    $this->SongModel->updateSongVisibility($songId, $newVisibility);
+                    $this->LogModel->createLog('song', $songId, ($newVisibility ? "Upubliczniono" : "Ukryto")." utwór");
+
+                    //Return to the source view
+                    if ($data['src'] === 'search' && $data['searchQuery'])
+                        redirect('songSearch?searchQuery='.$data['searchQuery']);
+                    else
+                        redirect('song/edit?songId='.$song->SongId);
                 }
 
                 $this->load->view('templates/song', $data);

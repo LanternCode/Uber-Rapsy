@@ -46,11 +46,11 @@
             <?php foreach($songs as $song): ?>
                 <tr>
                     <td>
-                        <a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a>
+                        <a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?> <?=$song->SongVisible ? '' : '(ukryta)'?></a>
                         <a href="<?=base_url('?songId='.$song->SongId)?>" title="Recenzuj utwór">📝</a>
                         <?php if ($isReviewer): ?>
                             <a href="<?=base_url('song/edit?songId='.$song->SongId)?>" title="Edytuj utwór">🔧</a>
-                            <a href="<?=base_url('?songId='.$song->SongId)?>" title="Pokaż lub ukryj utwór">👁️</a>
+                            <a href="<?=base_url('song/updateVisibility?songId='.$song->SongId.'&src=search&query='.$searchQuery)?>" title="Pokaż lub ukryj utwór">👁️</a>
                             <a target="_blank" href="<?=base_url('song/showLog?songId='.$song->SongId)?>" title="Wyświetl logi utworu">📄️</a>
                             <a href="<?=base_url('user/details?uid='.$song->SongAddedBy)?>" title="Pokaż profil autora utworu">👤</a>
                             <a target="_blank" href="<?=base_url('song/awards?songId='.$song->SongId)?>" title="Zarządzaj nagrodami utworu">🏆</a>

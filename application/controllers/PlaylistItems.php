@@ -537,11 +537,12 @@ class PlaylistItems extends CI_Controller
         if ($playlistSong !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $_SESSION['userId'];
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $this->SecurityModel->getCurrentUserId();
             if ($userAuthorised) {
                 //Update song visibility
                 $currentVisibility = $playlistSong->SongVisible;
                 $newVisibility = $currentVisibility == 1 ? 0 : 1;
+
                 $this->PlaylistSongModel->updatePlaylistSongVisibility($playlistSongId, $newVisibility);
                 $this->LogModel->createLog('playlist_song', $playlistSongId, ($newVisibility ? "Upubliczniono" : "Ukryto")." nutę na playliście");
 

@@ -20,12 +20,12 @@ class SongModel extends CI_Model
      * Returns a single song item.
      *
      * @param string $songId
-     * @return object
+     * @return object|false
      */
-    public function getSong(string $songId): object
+    public function getSong(string $songId): object|false
     {
         $sql = "SELECT * FROM song WHERE SongId = $songId";
-        return $this->db->query($sql)->row();
+        return $this->db->query($sql)->row() ?? false;
     }
 
     /**
@@ -300,5 +300,18 @@ class SongModel extends CI_Model
             ->get();
 
         return $query->row()->SongId ?? 0;
+    }
+
+    /**
+     * Update the song's visibility status.
+     *
+     * @param int $songId
+     * @param bool $newVisibility 1 to make the song visible, 0 to hide it
+     * @return void
+     */
+    public function updateSongVisibility(int $songId, bool $newVisibility): void
+    {
+        $sql = "UPDATE song SET SongVisible = '$newVisibility' WHERE SongId = $songId";
+        $this->db->simple_query($sql);
     }
 }
