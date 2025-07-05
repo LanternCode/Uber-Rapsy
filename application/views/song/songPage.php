@@ -5,6 +5,7 @@
     <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
         <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <a class="optionsURL" href="<?=base_url("song/edit?songId=".$song->SongId)?>">Edytuj Utwór</a>
+        <a target="_blank" class="optionsURL" href="<?=base_url('song/awards?songId='.$song->SongId)?>">Zarządzaj nagrodami</a>
     <?php endif; ?>
     <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
         <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>

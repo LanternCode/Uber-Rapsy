@@ -185,6 +185,33 @@ class SongModel extends CI_Model
     }
 
     /**
+     * Insert a new song award.
+     *
+     * @param string $songId
+     * @param string $awardName
+     * @return void
+     */
+    public function insertSongAward(string $songId, string $awardName): void
+    {
+        $award = [
+            'songId' => $songId,
+            'award' => strtoupper($awardName)
+        ];
+        $this->db->insert('song_award', $award);
+    }
+
+    /**
+     * Delete a song award.
+     *
+     * @param $songAwardId
+     * @return void
+     */
+    public function cancelSongAward($songAwardId): void
+    {
+        $this->db->delete('song_award', ['id' => $songAwardId]);
+    }
+
+    /**
      * Fetch songs, filtering by the song title.
      * Only visible songs, that is, not hidden by staff, are visible
      *

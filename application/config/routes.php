@@ -39,6 +39,7 @@ $route['confirmImporting'] = 'Song/confirmSongImport';
 $route['manualImport'] = 'Song/manualImport';
 $route['song/edit'] = 'Song/editSong';
 $route['song/showLog'] = 'Log/showSongLog';
+$route['song/awards'] = 'Song/manageSongAwards';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';

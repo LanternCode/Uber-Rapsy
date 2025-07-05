@@ -495,6 +495,52 @@ class Song extends CI_Controller
     }
 
     /**
+     * Add and remove song awards.
+     *
+     * @return void
+     */
+    public function manageSongAwards(): void
+    {
+        //Validate the submitted song id
+        $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        $data['song'] = $songId ? $this->SongModel->getSong($songId) : false;
+        if ($data['song'] !== false) {
+            //Check if the user is logged in and has the required permissions
+            $userAuthorised = $this->SecurityModel->authenticateReviewer();
+            if ($userAuthorised) {
+                $data['body'] = 'song/manageRewards';
+                $data['songAwards'] = $this->SongModel->fetchSongAwards($songId);
+
+                //Add an award if the form was submitted
+                if ($this->input->post()) {
+                    //Validate the posted award
+                    $songAward = $this->input->post('awardName') !== null ? trim($this->input->post('awardName')) : null;
+                    if (strlen($songAward) < 2)
+                        $data['awardError'] = "<p class='errorMessage'>Nagroda musi mieć przynajmniej dwa znaki długości!</p>";
+
+                    if (!isset($data['awardError'])) {
+                        $this->SongModel->insertSongAward($songId, $songAward);
+                        redirect('song/awards?songId='.$songId);
+                    }
+                }
+
+                //Delete an award if the button next to an existing award was pressed
+                if ($awardId = $this->input->get('delAward')) {
+                    //Check whether the award belongs to said song
+                    if (in_array($awardId, array_column($data['songAwards'], 'id'))) {
+                        $this->SongModel->cancelSongAward($awardId);
+                        redirect('song/awards?songId='.$songId);
+                    }
+                }
+
+                $this->load->view('templates/song', $data);
+            }
+            else redirect('logout');
+        }
+        else redirect('logout');
+    }
+
+    /**
      * Creates, updates and displays reviews.
      *
      * @return void
