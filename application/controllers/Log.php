@@ -127,7 +127,7 @@ class Log extends CI_Controller
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateReviewer();
             if ($userAuthenticated) {
-                $data['body']  = 'playlistSong/showLog';
+                $data['body']  = 'song/songLog';
                 $data['title'] = "Uber Rapsy | Historia nuty";
                 $data['songLog'] = $this->LogModel->getSongLogs($songId);
 

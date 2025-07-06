@@ -218,9 +218,10 @@ class SongModel extends CI_Model
      * @param string $search title filter
      * @return array returns an array containing the songs found
      */
-    public function searchSongs(string $search = ""): array
+    public function searchSongs(string $search = "", bool $isReviewer = false): array
     {
-        $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$search%' AND SongVisible = 1 AND SongDeleted = 0";
+        $sql = "SELECT * FROM song WHERE SongTitle LIKE '%$search%'";
+        $sql .= !$isReviewer ? ' AND SongVisible = 1 AND SongDeleted = 0' : '';
         return $this->db->query($sql)->result();
     }
 
@@ -313,5 +314,32 @@ class SongModel extends CI_Model
     {
         $sql = "UPDATE song SET SongVisible = '$newVisibility' WHERE SongId = $songId";
         $this->db->simple_query($sql);
+    }
+
+    /**
+     * Delete a song.
+     * A deleted song is marked as deleted and cannot be viewed by the users.
+     * The reviewers see the entry as deleted and its data is retained so it is not added again.
+     *
+     * @param int $songId
+     * @return void
+     */
+    public function deleteSong(int $songId): void
+    {
+        $sql = "UPDATE song SET SongDeleted = true WHERE SongId = $songId";
+        $this->db->simple_query($sql);
+    }
+
+    /**
+     * Check whether a song is active on RAPPAR.
+     * Deleted songs are considered inactive.
+     *
+     * @param int $songId
+     * @return bool
+     */
+    public function isSongActive(int $songId): bool
+    {
+        $sql = "SELECT SongDeleted FROM song WHERE SongId = $songId";
+        return $this->db->query($sql)->row()->SongDeleted ?? false;
     }
 }

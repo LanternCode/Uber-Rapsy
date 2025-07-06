@@ -41,6 +41,7 @@ $route['song/edit'] = 'Song/editSong';
 $route['song/showLog'] = 'Log/showSongLog';
 $route['song/awards'] = 'Song/manageSongAwards';
 $route['song/updateVisibility'] = 'Song/updateSongVisibility';
+$route['song/deleteSong'] = 'Song/deleteSong';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';

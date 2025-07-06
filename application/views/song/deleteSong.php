@@ -12,7 +12,9 @@
     <?php endif; ?>
 </header>
 <br><br><br><br>
-<h2><?= $song->SongVisible === "1" ? "Ukrywasz" : "Upubliczniasz" ?> następujący utwór:</h2><br><br>
+<h2>Usuwasz następujący utwór:</h2><br><br>
+<h3>Uwaga! Ta decyzja jest nieodwracalna! Usuniętego utworu nie można dodać ponownie ani też nie zostanie on przywrócony manualnie!<br>
+Ta opcja istnieje by blokować materiały nie będące utworami muzycznymi (parodie są akceptowane - nie usuwamy ich).<br></h3>
 <div class="song-container songBackground">
     <div class="song-header songBackground">
         <div class="songBackground">
@@ -39,9 +41,9 @@
 <h3>Kontynuować?</h3><br>
 
 <?php if ($src === 'search'): ?>
-    <a href="<?= base_url('song/updateVisibility?songId='.$song->SongId.'&switch=true&src=search&query='.$searchQuery)?>">Tak, zmień widoczność utworu</a><br>
+    <a href="<?= base_url('song/deleteSong?songId='.$song->SongId.'&confirmDeletion=true&src=search&query='.$searchQuery)?>">Tak, usuń utwór</a><br>
     <a href="<?=base_url('songSearch?searchQuery='.$searchQuery)?>">Nie, powrót</a>
 <?php else: ?>
-    <a href="<?= base_url('song/updateVisibility?songId='.$song->SongId.'&switch=true&src=edit')?>">Tak, zmień widoczność utworu</a><br>
+    <a href="<?= base_url('song/deleteSong?songId='.$song->SongId.'&confirmDeletion=true&src=edit')?>">Tak, usuń utwór</a><br>
     <a href="<?= base_url('song/edit?songId='.$song->SongId) ?>">Nie, powrót</a>
 <?php endif; ?>

@@ -46,15 +46,21 @@
             <?php foreach($songs as $song): ?>
                 <tr>
                     <td>
-                        <a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?> <?=$song->SongVisible ? '' : '(ukryta)'?></a>
-                        <a href="<?=base_url('?songId='.$song->SongId)?>" title="Recenzuj utwór">📝</a>
-                        <?php if ($isReviewer): ?>
-                            <a href="<?=base_url('song/edit?songId='.$song->SongId)?>" title="Edytuj utwór">🔧</a>
-                            <a href="<?=base_url('song/updateVisibility?songId='.$song->SongId.'&src=search&query='.$searchQuery)?>" title="Pokaż lub ukryj utwór">👁️</a>
+                        <?php if ($song->SongDeleted): ?>
+                            <?=$song->SongTitle?> (usunięta)
                             <a target="_blank" href="<?=base_url('song/showLog?songId='.$song->SongId)?>" title="Wyświetl logi utworu">📄️</a>
                             <a href="<?=base_url('user/details?uid='.$song->SongAddedBy)?>" title="Pokaż profil autora utworu">👤</a>
-                            <a target="_blank" href="<?=base_url('song/awards?songId='.$song->SongId)?>" title="Zarządzaj nagrodami utworu">🏆</a>
-                            <a href="<?=base_url('?songId='.$song->SongId)?>" title="Usuń utwór">❌</a>
+                        <?php else: ?>
+                            <a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a> <?=$song->SongDeleted ? '(usunięta)' : ($song->SongVisible ? '' : '(ukryta)')?>
+                            <a href="<?=base_url('?songId='.$song->SongId)?>" title="Recenzuj utwór">📝</a>
+                            <?php if ($isReviewer): ?>
+                                <a href="<?=base_url('song/edit?songId='.$song->SongId)?>" title="Edytuj utwór">🔧</a>
+                                <a href="<?=base_url('song/updateVisibility?songId='.$song->SongId.'&src=search&query='.$searchQuery)?>" title="Pokaż lub ukryj utwór">👁️</a>
+                                <a target="_blank" href="<?=base_url('song/showLog?songId='.$song->SongId)?>" title="Wyświetl logi utworu">📄️</a>
+                                <a href="<?=base_url('user/details?uid='.$song->SongAddedBy)?>" title="Pokaż profil autora utworu">👤</a>
+                                <a target="_blank" href="<?=base_url('song/awards?songId='.$song->SongId)?>" title="Zarządzaj nagrodami utworu">🏆</a>
+                                <a href="<?=base_url('song/deleteSong?songId='.$song->SongId.'&src=search&query='.$searchQuery)?>" title="Usuń utwór">❌</a>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </td>
                     <td><?=$song->myGrade != 0 ? $song->myGrade : '❌' ?></td>

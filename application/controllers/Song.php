@@ -129,7 +129,7 @@ class Song extends CI_Controller
         //Fetch songs filtered by a valid search query
         if (strlen($data['searchQuery']) >= 1) {
             //Fetch per-song properties if 300 or less songs were returned
-            $data['songs'] = $this->SongModel->searchSongs($data['searchQuery']);
+            $data['songs'] = $this->SongModel->searchSongs($data['searchQuery'], $data['isReviewer']);
             if (count($data['songs']) <= 300) {
                 foreach ($data['songs'] as $song) {
                     $song->myGrade = isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($song->SongId, $_SESSION['userId'])) : 0;
@@ -265,9 +265,9 @@ class Song extends CI_Controller
                         $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " został dodany do bazy danych Rappar!</h4><br>";
                         $this->LogModel->createLog("song", $songId, "Nuta została importowana do bazy danych RAPPAR.");
                         $added++;
-                    } else {
-                        $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " już istnieje w bazie danych Rappar!</h4><br>";
                     }
+                    else
+                        $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " już istnieje w bazie danych Rappar! Jeśli nie pojawia się w wynikach wyszukiwania, to znaczy, że został usunięty.</h4><br>";
 
                     $i++;
                 }
@@ -377,6 +377,8 @@ class Song extends CI_Controller
                             $data['insertedSongId'] = $this->SongModel->insertSong('', $userId, $data['songThumbnailLink'] , $data['songTitle'], $data['songAuthor'], $data['songReleaseYear']);
                         }
                     }
+                    elseif (!$this->SongModel->isSongActive($existingSongId))
+                         $data['songError'] = "<p class='errorMessage'>Ten utwór już kiedyś istniał w bazie danych RAPPAR, jednak został z niej usunięty. Jeśli uważasz, że to błąd, skontaktuj się z administracją.</p><br>";
                     else
                         $data['songError'] = "<p class='errorMessage'>Ten utwór już istnieje w bazie danych RAPPAR! Kliknij <a href='".base_url('songPage?songId=' . $existingSongId)."' target='_blank'>tutaj</a> by do niego przejść.</p><br>";
 
@@ -578,6 +580,54 @@ class Song extends CI_Controller
 
                     $this->SongModel->updateSongVisibility($songId, $newVisibility);
                     $this->LogModel->createLog('song', $songId, ($newVisibility ? "Upubliczniono" : "Ukryto")." utwór");
+
+                    //Return to the source view
+                    if ($data['src'] === 'search' && $data['searchQuery'])
+                        redirect('songSearch?searchQuery='.$data['searchQuery']);
+                    else
+                        redirect('song/edit?songId='.$song->SongId);
+                }
+
+                $this->load->view('templates/song', $data);
+            }
+            else redirect('logout');
+        }
+        else redirect('logout');
+    }
+
+    /**
+     * Delete a song.
+     * Deleted songs are marked as deleted and cannot be added again or restored.
+     *
+     * @return void
+     */
+    public function deleteSong(): void
+    {
+        //Validate the submitted song id
+        $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        $song = $songId ? $this->SongModel->getSong($songId) : false;
+        if ($song !== false) {
+            //Check if the user is logged in and has the required permissions
+            $userAuthorised = $this->SecurityModel->authenticateReviewer();
+            $userId = $this->SecurityModel->getCurrentUserId();
+            if ($userAuthorised) {
+                $data = array(
+                    'body' => 'song/deleteSong',
+                    'title' => 'Uber Rapsy | Permanentnie usuń utwór',
+                    'song' => $song,
+                    'myRating' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $userId)),
+                    'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
+                    'songAwards' => $this->SongModel->fetchSongAwards($songId),
+                    'src' => $this->input->get('src'),
+                    'searchQuery' => $this->input->get('query')
+                );
+                $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
+                $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
+
+                //Delete the song if approved
+                if ($this->input->get('confirmDeletion')) {
+                    $this->SongModel->deleteSong($songId);
+                    $this->LogModel->createLog('song', $songId,"Usunięto utwór z RAPPAR.");
 
                     //Return to the source view
                     if ($data['src'] === 'search' && $data['searchQuery'])
