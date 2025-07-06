@@ -303,70 +303,18 @@ class Song extends CI_Controller
 
             //Proceed to import the song if the form was submitted
             if ($this->input->post()) {
-                //Validate the posted song title
-                $data['songTitle'] = $this->input->post('songTitle') !== null ? trim($this->input->post('songTitle')) : null;
-                if (!strlen($data['songTitle']) > 0)
-                    $data['titleError'] = "<p class='errorMessage'>Musisz podać tytuł utworu!</p>";
-
-                //Validate the posted song author
-                $data['songAuthor'] = $this->input->post('songAuthor') !== null ? trim($this->input->post('songAuthor')) : null;
-                if (!strlen($data['songAuthor']) > 0)
-                    $data['authorError'] = "<p class='errorMessage'>Musisz podać przynajmniej jednego autora utworu!</p>";
-
-                //Validate the posted song release year
-                $data['songReleaseYear'] = $this->input->post('songReleaseYear') !== null ? trim($this->input->post('songReleaseYear')) : null;
-                if (strlen($data['songReleaseYear']) != 4)
-                    $data['yearError'] = "<p class='errorMessage'>Musisz podać rok wydania utworu!</p>";
-                elseif ($data['songReleaseYear'] > (int)date("Y") + 30 || $data['songReleaseYear'] < 1800)
-                    $data['yearError'] = "<p class='errorMessage'>Musisz podać poprawny rok wydania utworu!</p>";
-
-                //Validate the thumbnail link if one was posted
-                $linkProvided = false;
-                $data['songThumbnailLink'] = $this->input->post('songThumbnailLink') !== null ? trim($this->input->post('songThumbnailLink')) : null;
-                if (strlen($data['songThumbnailLink']) > 0) {
-                    $linkProvided = true;
-                    if (!filter_var($data['songThumbnailLink'], FILTER_VALIDATE_URL))
-                        $data['linkError'] = "<p class='errorMessage'>Podano niepoprawny link do miniatury!</p>";
-                }
-
-                //Check whether a thumbnail file was posted
-                $uploadRequired = false;
-                $songThumbnailFile = $_FILES['songThumbnailFile'] ?? null;
-                if (isset($songThumbnailFile) && $songThumbnailFile['size'] > 0)
-                    $uploadRequired = true;
+                //Validate the song title, author, release date and thumbnail link information
+                $flags = $this->validateSongInput($data);
+                $linkProvided = $flags['linkProvided'];
+                $uploadRequired = $flags['uploadRequired'];
 
                 //If no errors were found, check whether the song is unique
                 if (!isset($data['titleError']) && !isset($data['authorError']) && !isset($data['yearError']) && !isset($data['linkError'])) {
                     $existingSongId = $this->SongModel->manualSongExists($data['songTitle'], $data['songAuthor'], $data['songReleaseYear']);
                     if (!$existingSongId) {
-                        //Process the thumbnail
+                        //Upload a thumbnail file, use the provided link or use the default thumbnail
                         if ($uploadRequired) {
-                            //Specify the upload parameters and initialise the library
-                            $config['upload_path'] = './thumbnails/';
-                            $config['allowed_types'] = 'jpg|jpeg|png|gif|webp';
-                            $config['max_size'] = 10240; //10MB
-                            $config['max_width'] = 3840;
-                            $config['max_height'] = 2160;
-                            $config['file_name'] = time().'_'.bin2hex(random_bytes(4));
-                            $config['overwrite'] = false;
-                            $this->load->library('upload', $config);
-
-                            //Upload the file
-                            if (!$this->upload->do_upload('songThumbnailFile')) {
-                                $data['thumbnailError'] = "<p class='errorMessage'>Nie udało się przesłać miniatury z następujących powodów: <br>";
-                                $data['thumbnailError'] .= $this->upload->display_errors();
-                                $data['thumbnailError'] .= "</p>";
-                            }
-                            else {
-                                //Validate the minimum file dimensions
-                                $file_data = $this->upload->data();
-                                if ($file_data['image_width'] < 320 || $file_data['image_height'] < 180) {
-                                    unlink($file_data['full_path']);
-                                    $data['thumbnailError'] = "<p class='errorMessage'>Rozdzielczość miniatury nie spełnia minimalnych wymagań.</p>";
-                                }
-                                else
-                                    $data['songThumbnailLink'] = base_url('thumbnails/' . $file_data['file_name']);
-                            }
+                            $this->processThumbnailFileUpload($data, 'songThumbnailLink');
                         }
                         elseif (!$linkProvided)
                             $data['songThumbnailLink'] = base_url('thumbnails/default.png');
@@ -375,6 +323,9 @@ class Song extends CI_Controller
                         if (!isset($data['thumbnailError'])) {
                             $data['body'] = 'song/manualImportResult';
                             $data['insertedSongId'] = $this->SongModel->insertSong('', $userId, $data['songThumbnailLink'] , $data['songTitle'], $data['songAuthor'], $data['songReleaseYear']);
+                            $this->LogModel->createLog("song", $data['insertedSongId'], "Nuta została manualnie importowana do bazy danych RAPPAR.");
+                            if ($uploadRequired)
+                                $this->LogModel->createLog("song", $data['insertedSongId'], "W trakcie importu wgrano plik z miniaturą, która została zapisana pod tym adresem: ".$data['songThumbnailLink'].".");
                         }
                     }
                     elseif (!$this->SongModel->isSongActive($existingSongId))
@@ -409,71 +360,20 @@ class Song extends CI_Controller
 
                 //Update the song if the form was submitted
                 if ($this->input->post()) {
-                    //Validate the posted song title
-                    $data['songTitle'] = $this->input->post('songTitle') !== null ? trim($this->input->post('songTitle')) : null;
-                    if (!strlen($data['songTitle']) > 0)
-                        $data['titleError'] = "<p class='errorMessage'>Musisz podać tytuł utworu!</p>";
+                    //Validate the song title, author, release date and thumbnail link information
+                    $flags = $this->validateSongInput($data);
+                    $linkProvided = $flags['linkProvided'];
+                    $uploadRequired = $flags['uploadRequired'];
 
-                    //Validate the posted song author
-                    $data['songAuthor'] = $this->input->post('songAuthor') !== null ? trim($this->input->post('songAuthor')) : null;
-                    if (!strlen($data['songAuthor']) > 0)
-                        $data['authorError'] = "<p class='errorMessage'>Musisz podać przynajmniej jednego autora utworu!</p>";
-
-                    //Validate the posted song release year
-                    $data['songReleaseYear'] = $this->input->post('songReleaseYear') !== null ? trim($this->input->post('songReleaseYear')) : null;
-                    if (strlen($data['songReleaseYear']) != 4)
-                        $data['yearError'] = "<p class='errorMessage'>Musisz podać rok wydania utworu!</p>";
-                    elseif ($data['songReleaseYear'] > (int)date("Y") + 30 || $data['songReleaseYear'] < 1800)
-                        $data['yearError'] = "<p class='errorMessage'>Musisz podać poprawny rok wydania utworu!</p>";
-
-                    //Validate the thumbnail link if one was posted
-                    $linkProvided = false;
-                    $data['songThumbnailLink'] = $this->input->post('songThumbnailLink') !== null ? trim($this->input->post('songThumbnailLink')) : null;
-                    if (strlen($data['songThumbnailLink']) > 0) {
-                        $linkProvided = true;
-                        if (!filter_var($data['songThumbnailLink'], FILTER_VALIDATE_URL))
-                            $data['linkError'] = "<p class='errorMessage'>Podano niepoprawny link do miniatury!</p>";
-                    }
-
-                    //Check whether a thumbnail file was posted
-                    $uploadRequired = false;
-                    $songThumbnailFile = $_FILES['songThumbnailFile'] ?? null;
-                    if (isset($songThumbnailFile) && $songThumbnailFile['size'] > 0)
-                        $uploadRequired = true;
-
-                    //If no errors were found, check whether the song is unique
+                    //If no errors were found proceed to the thumbnail selection
                     if (!isset($data['titleError']) && !isset($data['authorError']) && !isset($data['yearError']) && !isset($data['linkError'])) {
                         $songData['SongTitle'] = $data['songTitle'];
                         $songData['SongChannelName'] = $data['songAuthor'];
                         $songData['SongReleaseYear'] = $data['songReleaseYear'];
 
+                        //Upload a thumbnail file, use the provided link or use the default thumbnail
                         if ($uploadRequired) {
-                            //Specify the upload parameters and initialise the library
-                            $config['upload_path'] = './thumbnails/';
-                            $config['allowed_types'] = 'jpg|jpeg|png|gif|webp';
-                            $config['max_size'] = 10240; //10MB
-                            $config['max_width'] = 3840;
-                            $config['max_height'] = 2160;
-                            $config['file_name'] = time().'_'.bin2hex(random_bytes(4));
-                            $config['overwrite'] = false;
-                            $this->load->library('upload', $config);
-
-                            //Upload the file
-                            if (!$this->upload->do_upload('songThumbnailFile')) {
-                                $data['thumbnailError'] = "<p class='errorMessage'>Nie udało się przesłać miniatury z następujących powodów: <br>";
-                                $data['thumbnailError'] .= $this->upload->display_errors();
-                                $data['thumbnailError'] .= "</p>";
-                            }
-                            else {
-                                //Validate the minimum file dimensions
-                                $file_data = $this->upload->data();
-                                if ($file_data['image_width'] < 320 || $file_data['image_height'] < 180) {
-                                    unlink($file_data['full_path']);
-                                    $data['thumbnailError'] = "<p class='errorMessage'>Rozdzielczość miniatury nie spełnia minimalnych wymagań.</p>";
-                                }
-                                else
-                                     $songData['SongThumbnailURL'] = base_url('thumbnails/' . $file_data['file_name']);
-                            }
+                            $this->processThumbnailFileUpload($data, 'SongThumbnailURL');
                         }
                         elseif ($linkProvided)
                             $songData['SongThumbnailURL'] = $data['songThumbnailLink'];
@@ -482,8 +382,25 @@ class Song extends CI_Controller
 
                         //Update the song if the thumbnail is valid
                         if (!isset($data['thumbnailError'])) {
+                            //Process the update
                             $songData['SongId'] = $data['song']->SongId;
                             $this->SongModel->updateSong($songData);
+                            $this->LogModel->createLog("song", $songData['SongId'], "Zaktualizowano dane utworu.");
+
+                            //Delete the previous thumbnail file if one was present
+                            $parsedSongUrl = parse_url($data['song']->SongThumbnailURL);
+                            if (isset($parsedSongUrl['host']) && $parsedSongUrl['host'] === $_SERVER['HTTP_HOST']) {
+                                $filePath = $_SERVER['DOCUMENT_ROOT'].$parsedSongUrl['path'];
+                                if (file_exists($filePath)) {
+                                    unlink($filePath);
+                                    $this->LogModel->createLog("song", $songData['SongId'], "W trakcie aktualizacji usunięto poprzednią miniaturę, która znajdowałą się pod adresem: ".$data['song']->SongThumbnailURL.".");
+                                }
+                            }
+
+                            //Create a new thumbnail upload log
+                            if ($uploadRequired)
+                                $this->LogModel->createLog("song", $songData['SongId'], "W trakcie aktualizacji wgrano plik z miniaturą, która została zapisana pod tym adresem: ".$songData['SongThumbnailURL'].".");
+
                             redirect("songPage?songId=".$songData['SongId']);
                         }
                     }
@@ -729,5 +646,92 @@ class Song extends CI_Controller
             else redirect('logout');
         }
         else redirect('logout');
+    }
+
+    /**
+     * Validate the song title, song authors, song release year and the song thumbnail link provided by the user.
+     * Check if file upload is necessary.
+     *
+     * @param array $data the data object passes by reference (to store error messages)
+     * @return bool[] return two flags: whether a thumbnail link was provided and whether file upload is required.
+     */
+    private function validateSongInput(array &$data): array
+    {
+        //Validate the posted song title
+        $data['songTitle'] = $this->input->post('songTitle') !== null ? trim($this->input->post('songTitle')) : null;
+        if (!strlen($data['songTitle']) > 0)
+            $data['titleError'] = "<p class='errorMessage'>Musisz podać tytuł utworu!</p>";
+
+        //Validate the posted song author
+        $data['songAuthor'] = $this->input->post('songAuthor') !== null ? trim($this->input->post('songAuthor')) : null;
+        if (!strlen($data['songAuthor']) > 0)
+            $data['authorError'] = "<p class='errorMessage'>Musisz podać przynajmniej jednego autora utworu!</p>";
+
+        //Validate the posted song release year
+        $data['songReleaseYear'] = $this->input->post('songReleaseYear') !== null ? trim($this->input->post('songReleaseYear')) : null;
+        if (strlen($data['songReleaseYear']) != 4)
+            $data['yearError'] = "<p class='errorMessage'>Musisz podać rok wydania utworu!</p>";
+        elseif ($data['songReleaseYear'] > (int)date("Y") + 30 || $data['songReleaseYear'] < 1800)
+            $data['yearError'] = "<p class='errorMessage'>Musisz podać poprawny rok wydania utworu!</p>";
+
+        //Validate the thumbnail link if one was posted
+        $linkProvided = false;
+        $data['songThumbnailLink'] = $this->input->post('songThumbnailLink') !== null ? trim($this->input->post('songThumbnailLink')) : null;
+        if (strlen($data['songThumbnailLink']) > 0) {
+            $linkProvided = true;
+            if (!filter_var($data['songThumbnailLink'], FILTER_VALIDATE_URL))
+                $data['linkError'] = "<p class='errorMessage'>Podano niepoprawny link do miniatury!</p>";
+        }
+
+        //Check whether a thumbnail file was posted
+        $uploadRequired = false;
+        $songThumbnailFile = $_FILES['songThumbnailFile'] ?? null;
+        if (isset($songThumbnailFile) && $songThumbnailFile['size'] > 0)
+            $uploadRequired = true;
+
+        return [
+            'linkProvided' => $linkProvided,
+            'uploadRequired' => $uploadRequired
+        ];
+    }
+
+    /**
+     * Validate the thumbnail file provided by the user.
+     * If it is correct, upload it and return the link.
+     * If it is faulty, provide an error message.
+     *
+     * @param array $data the data object passed by reference to store the error messages
+     * @param string $arrayKeyName importing and editing use a different key
+     * @return void
+     */
+    private function processThumbnailFileUpload(array &$data, string $arrayKeyName): void
+    {
+        //Specify the upload parameters and initialise the library
+        $config['upload_path'] = './thumbnails/';
+        $config['allowed_types'] = 'jpg|jpeg|png|gif|webp';
+        $config['max_size'] = 10240; //10MB
+        $config['max_width'] = 3840;
+        $config['max_height'] = 2160;
+        $config['file_name'] = time().'_'.bin2hex(random_bytes(4));
+        $config['overwrite'] = false;
+        $this->load->library('upload', $config);
+
+        //Upload the file
+        if (!$this->upload->do_upload('songThumbnailFile')) {
+            $data['thumbnailError'] = "<p class='errorMessage'>Nie udało się przesłać miniatury z następujących powodów: <br>";
+            $data['thumbnailError'] .= $this->upload->display_errors();
+            $data['thumbnailError'] .= "</p>";
+        }
+        else {
+            //Validate the minimum file dimensions
+            $file_data = $this->upload->data();
+            if ($file_data['image_width'] < 320 || $file_data['image_height'] < 180) {
+                unlink($file_data['full_path']);
+                $data['thumbnailError'] = "<p class='errorMessage'>Rozdzielczość miniatury nie spełnia minimalnych wymagań.</p>";
+            }
+            else {
+                $data[$arrayKeyName] = base_url('thumbnails/' . $file_data['file_name']);
+            }
+        }
     }
 }
