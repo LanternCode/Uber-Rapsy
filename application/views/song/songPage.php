@@ -12,7 +12,7 @@
     <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
         <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
         <?php if (!$song->SongDeleted): ?>
-            <input type="submit" form="toplist" value="Zapisz Oceny" class="optionsURL" />
+            <p id="confirmation" class="optionsURL">Przesuń suwak by ocenić utwór!</p>
         <?php endif; ?>
     <?php else: ?>
         <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>
@@ -25,7 +25,7 @@
 </header>
 <main>
     <br><br><br>
-    <form id="toplist" method="post" action="<?=base_url("song/saveGrades")?>">
+    <form id="toplist" method="post" data-url="<?=base_url("song/autoSave")?>">
         <input type="hidden" name="songId" value="<?=$song->SongId?>">
         <div class="song-container songBackground">
             <div class="song-header songBackground">
@@ -42,14 +42,14 @@
             <div class="song-content songBackground">
                 <img src="<?=$song->SongThumbnailURL?>" alt="Song Thumbnail" class="song-thumbnail" />
                 <div class="song-grades">
-                    <p>Moja Ocena: <?=$myRating != 0 ? $myRating : 'Nieoceniona' ?></p>
+                    <p id="myRating">Moja Ocena: <?=$myRating != 0 ? $myRating : 'Nieoceniona' ?></p>
                     <p>Ocena Adama: <?=$song->SongGradeAdam != 0 ? $song->SongGradeAdam : 'Nieoceniona' ?></p>
                     <p>Ocena Kościelnego: <?=$song->SongGradeChurchie != 0 ? $song->SongGradeChurchie : 'Nieoceniona' ?></p>
-                    <p>Średnia Społeczności: <?=$communityAverage != 0 ? $communityAverage : 'Nieoceniona' ?></p>
+                    <p id="commAvg">Średnia Społeczności: <?=$communityAverage != 0 ? $communityAverage : 'Nieoceniona' ?></p>
                 </div>
             </div>
             <div class="song-slider songBackground">
-                <input type="range" min="1" max="10" step="0.5" value="<?=$myRating ?? 0?>" name="songGrade">
+                <input id="gradeSlider" type="range" min="1" max="10" step="0.5" value="<?=$myRating ?? 0?>" name="songGrade">
                 <div class="slider-labels">
                     <!-- n from 0..9, so label=1 => n=0, label=10 => n=9 -->
                     <span style="left: calc((0/9) * (100% - var(--thumb-size)) + var(--thumb-center) - var(--offset-adjust));">
@@ -87,3 +87,4 @@
         </div>
     </form>
 </main>
+<script type="text/javascript" src="<?=base_url('scripts/autoSaveGrade.js')?>"></script>

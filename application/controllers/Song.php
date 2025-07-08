@@ -83,31 +83,57 @@ class Song extends CI_Controller
     }
 
     /**
-     * Saves user grades.
-     *
      * @return void
      */
-    public function rateSong(): void
+    public function rateSongAuto(): void
     {
+        //Authenticate the user
         $userAuthenticated = $this->SecurityModel->authenticateUser();
         if ($userAuthenticated) {
-            //Fetch the new ratings
-            $queryData['userId'] = $_SESSION['userId'];
-            $queryData['songGrade'] = filter_var($this->input->post('songGrade'), FILTER_VALIDATE_FLOAT);
+            //Make sure the song exists and is active
             $queryData['songId'] = filter_var($this->input->post('songId'), FILTER_VALIDATE_INT);
+            $song = $queryData['songId'] !== false ? $this->SongModel->getSong($queryData['songId']) : false;
+            $songDeleted = $song !== false && $song->SongDeleted;
+            if (!$songDeleted) {
+                //Fetch the new song grade and make sure the proposed grade is different and valid
+                $queryData['userId'] = $this->SecurityModel->getCurrentUserId();
+                $queryData['songGrade'] = filter_var($this->input->post('songGrade'), FILTER_VALIDATE_FLOAT);
+                $existingRating = $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($queryData['songId'], $queryData['userId']));
+                $newRatingValid = $queryData['songGrade'] !== false && $queryData['songGrade'] >= 1 && $queryData['songGrade'] <= 10;
+                $approveUpdate = $newRatingValid && $queryData['songGrade'] != $existingRating;
+                if ($approveUpdate) {
+                    //Update or insert the grade
+                    $songUnrated = !$this->SongModel->checkSongRatingExists($queryData['songId'], $queryData['userId']);
+                    if ($songUnrated)
+                        $this->SongModel->addSongRating($queryData);
+                    else
+                        $this->SongModel->updateSongRating($queryData);
 
-            //Check if the user already rated the song
-            if ($queryData['songGrade'] && $queryData['songId']) {
-                $songUnrated = !$this->SongModel->checkSongRatingExists($queryData['songId'], $queryData['userId']);
-                if ($songUnrated) {
-                    $this->SongModel->addSongRating($queryData);
-                } else {
-                    $this->SongModel->updateSongRating($queryData);
+                    $communityAverage = $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($queryData['songId']));
+
+                    //Respond with JSON
+                    $this->output
+                        ->set_content_type('application/json')
+                        ->set_output(json_encode([
+                            'status' => 'success',
+                            'my_rating' => $queryData['songGrade'],
+                            'community_average' => $communityAverage
+                        ]));
                 }
+                else $error = true;
             }
-            redirect('frontpage');
-        } else {
-            redirect('logout');
+            else $error = true;
+        }
+        else $error = true;
+
+        //Refuse the request if any errors were detected
+        if (isset($error) && $error) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'failure',
+                ]));
         }
     }
 
@@ -442,15 +468,19 @@ class Song extends CI_Controller
 
                     if (!isset($data['awardError'])) {
                         $this->SongModel->insertSongAward($songId, $songAward);
+                        $this->LogModel->createLog("song", $songId, "Utworowi przyznano następującą nagrodę: ".$songAward.".");
                         redirect('song/awards?songId='.$songId);
                     }
                 }
 
                 //Delete an award if the button next to an existing award was pressed
                 if ($awardId = $this->input->get('delAward')) {
-                    //Check whether the award belongs to said song
-                    if (in_array($awardId, array_column($data['songAwards'], 'id'))) {
+                    //Check whether the award belongs to said song and fetch its description
+                    $indexedAwards = array_column($data['songAwards'], null, 'id');
+                    $awardValue = $indexedAwards[$awardId]['award'] ?? null;
+                    if ($awardValue !== null) {
                         $this->SongModel->cancelSongAward($awardId);
+                        $this->LogModel->createLog("song", $songId, "Usunięto następującą nagrodę utworu: ".$awardValue.".");
                         redirect('song/awards?songId='.$songId);
                     }
                 }

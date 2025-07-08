@@ -31,7 +31,6 @@ $route['playlistItems/showLog'] = 'Log/showPlaylistSongLog';
 $route['playlistItems/updatePlaylistSongVisibility'] = 'PlaylistItems/updatePlaylistSongVisibility';
 
 $route['frontpage'] = 'Song/frontpage';
-$route['song/saveGrades'] = 'Song/rateSong';
 $route['songSearch'] = 'Song/songSearch';
 $route['songPage'] = 'Song/songPage';
 $route['importSongs'] = 'Song/importSongs';
@@ -42,6 +41,7 @@ $route['song/showLog'] = 'Log/showSongLog';
 $route['song/awards'] = 'Song/manageSongAwards';
 $route['song/updateVisibility'] = 'Song/updateSongVisibility';
 $route['song/deleteSong'] = 'Song/deleteSong';
+$route['song/autoSave'] = 'Song/rateSongAuto';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';
