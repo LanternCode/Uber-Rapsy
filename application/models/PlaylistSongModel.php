@@ -19,12 +19,12 @@ class PlaylistSongModel extends CI_Model
      * Return a single playlist_song item.
      *
      * @param string $playlistSongId
-     * @return object
+     * @return object|false
      */
-    public function getPlaylistSong(string $playlistSongId): object
+    public function getPlaylistSong(string $playlistSongId): object|false
     {
         $sql = "SELECT * FROM playlist_song WHERE id = $playlistSongId";
-        return $this->db->query($sql)->row();
+        return $this->db->query($sql)->row() ?? false;
     }
 
     /**
@@ -140,15 +140,12 @@ class PlaylistSongModel extends CI_Model
      * @param float|string $gradeAdam Adam's grade
      * @param float|string $gradeKoscielny Kościelny's grade
      * @param float|string $gradeOwner Playlist owner's grade
-     * @return bool true if the query worked, false otherwise
+     * @return void
      */
-    public function updatePlaylistSongScores(int $playlistSongId, mixed $gradeAdam, mixed $gradeKoscielny, mixed $gradeOwner): bool
+    public function updatePlaylistSongScores(int $playlistSongId, mixed $gradeAdam, mixed $gradeKoscielny, mixed $gradeOwner): void
     {
         $sql = "UPDATE playlist_song SET SongGradeAdam = '$gradeAdam', SongGradeChurchie = '$gradeKoscielny', SongGradeOwner = '$gradeOwner' WHERE id = $playlistSongId";
-
-        if ($this->db->simple_query($sql))
-            return true;
-        else return false;
+        $this->db->simple_query($sql);
     }
 
     /**
@@ -157,16 +154,13 @@ class PlaylistSongModel extends CI_Model
      * @param $playlistSongId int
      * @param $propertyName string the database name of the checkbox property to update
      * @param $propertyValue bool the value to update the property to
-     * @return bool
+     * @return void
      */
-    public function updateSongCheckboxProperty(int $playlistSongId, string $propertyName, bool $propertyValue): bool
+    public function updateSongCheckboxProperty(int $playlistSongId, string $propertyName, bool $propertyValue): void
     {
         $propertyValue = $propertyValue != 1 ? 0 : 1;
         $sql = "UPDATE playlist_song SET $propertyName = $propertyValue WHERE id = $playlistSongId";
-
-        if ($this->db->simple_query($sql))
-            return true;
-        else return false;
+        $this->db->simple_query($sql);
     }
 
     /**
@@ -174,17 +168,13 @@ class PlaylistSongModel extends CI_Model
      *
      * @param $playlistSongId int
      * @param $playlistId int id of the playlist to copy the song to
-     * @return false|int duplicated item's id if the transaction worked, false otherwise
+     * @return int duplicated item's new id
      */
-    public function copyToAnotherPlaylist(int $playlistSongId, int $playlistId): false|int
+    public function copyToAnotherPlaylist(int $playlistSongId, int $playlistId): int
     {
         //Fetch the playlist_song
         $this->db->trans_start();
         $row = $this->db->where('id', $playlistSongId)->get('playlist_song')->row_array();
-        if (!$row) {
-            $this->db->trans_rollback();
-            return false;
-        }
 
         //Update the listId and reset the primary key
         unset($row['id']);
@@ -197,7 +187,7 @@ class PlaylistSongModel extends CI_Model
         $newId = $this->db->insert_id();
         $this->db->trans_complete();
 
-        return $this->db->trans_status() ? $newId : false;
+        return $newId;
     }
 
     /**
@@ -242,15 +232,12 @@ class PlaylistSongModel extends CI_Model
      *
      * @param int $playlistSongId
      * @param string $songComment
-     * @return bool
+     * @return void
      */
-    function updateSongComment(int $playlistSongId, string $songComment): bool
+    function updateSongComment(int $playlistSongId, string $songComment): void
     {
         $sql = "UPDATE playlist_song SET SongComment = '$songComment' WHERE id = $playlistSongId";
-
-        if ($this->db->simple_query($sql))
-            return true;
-        else return false;
+        $this->db->simple_query($sql);
     }
 
     /**

@@ -27,19 +27,19 @@
     <br><br><br>
     <form id="toplist" method="post" data-url="<?=base_url("song/autoSave")?>">
         <input type="hidden" name="songId" value="<?=$song->SongId?>">
-        <div class="song-container songBackground">
-            <div class="song-header songBackground">
-                <div class="songBackground">
-                    <h2 class="song-title songBackground"><?=$song->SongURL != '' ? '<a href="https://youtu.be/<?=$song->SongURL?>">' : ''?><?=$song->SongTitle?><?=$song->SongURL != '' ? '</a>' : ''?></h2>
-                    <p class="song-authors songBackground"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
+        <div class="song-container">
+            <div class="song-header">
+                <div class="">
+                    <h2 class="song-title"><?=$song->SongURL != '' ? '<a href="https://youtu.be/<?=$song->SongURL?>">' : ''?><?=$song->SongTitle?><?=$song->SongURL != '' ? '</a>' : ''?></h2>
+                    <p class="song-authors"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
                 </div>
-                <div class="song-awards songBackground">
+                <div class="song-awards">
                     <?php foreach($songAwards as $award): ?>
-                        <p class="songBackground"><?=$award->award?></p>
+                        <p class=""><?=$award->award?></p>
                     <?php endforeach; ?>
                 </div>
             </div>
-            <div class="song-content songBackground">
+            <div class="song-content">
                 <img src="<?=$song->SongThumbnailURL?>" alt="Song Thumbnail" class="song-thumbnail" />
                 <div class="song-grades">
                     <p id="myRating">Moja Ocena: <?=$myRating != 0 ? $myRating : 'Nieoceniona' ?></p>
@@ -48,7 +48,7 @@
                     <p id="commAvg">Średnia Społeczności: <?=$communityAverage != 0 ? $communityAverage : 'Nieoceniona' ?></p>
                 </div>
             </div>
-            <div class="song-slider songBackground">
+            <div class="song-slider">
                 <input id="gradeSlider" type="range" min="1" max="10" step="0.5" value="<?=$myRating ?? 0?>" name="songGrade">
                 <div class="slider-labels">
                     <!-- n from 0..9, so label=1 => n=0, label=10 => n=9 -->
@@ -86,5 +86,14 @@
             </div>
         </div>
     </form>
+    <div class="reviews-container">
+        <div class="my-review-section">
+            <h3>Moja recenzja</h3>
+            <a href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>">Zrecenzuj utwór</a>
+        </div>
+        <div class="user-reviews-section">
+            <h3>Recenzje użytkowników RAPPAR</h3>
+        </div>
+    </div>
 </main>
 <script type="text/javascript" src="<?=base_url('scripts/autoSaveGrade.js')?>"></script>

@@ -10,7 +10,7 @@
  */
 class SongModel extends CI_Model
 {
-    function __construct()
+    public function __construct()
     {
         $this->load->model('SecurityModel');
         parent::__construct();
@@ -84,8 +84,9 @@ class SongModel extends CI_Model
             ->where('SongURL', $songExternalId)
             ->get();
 
-        if (isset($query->row()->SongId) && $query->row()->SongId > 0)
+        if (isset($query->row()->SongId) && $query->row()->SongId > 0) {
             return $query->row()->SongId;
+        }
 
         $query = $this->db->select('SongId')
             ->from('song')
@@ -93,10 +94,14 @@ class SongModel extends CI_Model
             ->get();
 
         if (isset($query->row()->SongTitle) && isset($query->row()->SongChannelName)) {
-            if ($query->row()->SongChannelName == $songChannelName)
+            if ($query->row()->SongChannelName == $songChannelName) {
                 return $query->row()->SongId;
-            else return 0;
-        } else return 0;
+            } else {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -243,33 +248,46 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Inserts a new song review
+     * Insert a new song review and return its id.
      *
      * @param array $songReview
-     * @return void
+     * @return int
      */
-    public function insertSongReview(array $songReview): void
+    public function insertSongReview(array $songReview): int
     {
         $this->db->insert('review', $songReview);
+        return $this->db->conn_id->insert_id;
     }
 
     /**
-     * Fetches a song review.
+     * Check whether the user already reviewed the song.
+     * A user should only have one review active for the same song.
+     * They can update their review whenever needed.
      *
-     * @param int $songId id of the song for which the review is made
-     * @param int $userId id of the user submitting the review
-     * @return object|bool the review object or false if it does not exist
+     * @param int $songId
+     * @param int $userId
+     * @return int|false song review id or false if the user did not review said song
      */
-    public function getSongReview(int $songId, int $userId): bool|object
+    public function checkIfUserReviewedSong(int $songId, int $userId): int|false
     {
-        $sql = "SELECT * FROM review WHERE reviewSongId = $songId AND reviewUserId = $userId";
-        if (isset($this->db->query($sql)->row()->reviewId))
-            return $this->db->query($sql)->row();
-        else return false;
+        $sql = "SELECT reviewId FROM review WHERE reviewSongId = $songId AND reviewUserId = $userId";
+        return $this->db->query($sql)->row()->reviewId ?? false;
     }
 
     /**
-     * Replaces an existing user review with their new review.
+     * Fetch a song review.
+     *
+     * @param int $reviewId
+     * @return object|false
+     */
+    public function getSongReview(int $reviewId): object|false
+    {
+        $sql = "SELECT * FROM review WHERE reviewId = $reviewId";
+        return $this->db->query($sql)->row() ?? false;
+    }
+
+    /**
+     * Replace an existing song review.
      *
      * @param array $songReview
      * @return void
@@ -340,6 +358,7 @@ class SongModel extends CI_Model
     public function isSongActive(int $songId): bool
     {
         $sql = "SELECT SongDeleted FROM song WHERE SongId = $songId";
-        return $this->db->query($sql)->row()->SongDeleted ?? false;
+        $songDeleted = $this->db->query($sql)->row()->SongDeleted ?? true;
+        return !$songDeleted;
     }
 }

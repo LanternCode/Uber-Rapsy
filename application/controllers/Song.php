@@ -17,9 +17,11 @@ if (!isset($_SESSION))
  * @property UtilityModel $UtilityModel
  * @property LogModel $LogModel
  * @property CI_Input $input
+ * @property CI_Output $output
  * @property CI_DB_mysqli_driver $db
  * @property CI_Session $session
  * @property CI_Upload $upload
+ * @property HTMLSanitiser $htmlsanitiser
  */
 class Song extends CI_Controller
 {
@@ -31,6 +33,7 @@ class Song extends CI_Controller
         $this->load->model('PlaylistModel');
         $this->load->model('UtilityModel');
         $this->load->model('LogModel');
+        $this->load->library('htmlsanitiser');
         $this->load->library('FetchSongsService');
         $this->FetchSongsService = new FetchSongsService();
     }
@@ -591,91 +594,169 @@ class Song extends CI_Controller
     }
 
     /**
-     * Creates, updates and displays reviews.
+     * Open and process the new song review form.
      *
      * @return void
      */
-    public function reviewSong(): void
+    public function newSongReview(): void
     {
-        //Validate the submitted song id
-        $songId = filter_var($this->input->get('id'), FILTER_VALIDATE_INT);
-        $data['song'] = $songId ? $this->SongModel->getSong($songId) : false;
-        if ($data['song'] !== false) {
-            //Check if the user is logged in and has the required permissions
-            $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $data['song']->SongVisible && !$data['song']->SongDeleted;
-            if ($userAuthorised) {
-                //Check if there is an existing review
-                $reviewExists = $this->SongModel->getSongReview($songId, $_SESSION['userId']);
-                $data['existingReview'] = $reviewExists === false ? false : (array) $reviewExists;
-                $data['errorMessage'] = "";
+        //Make sure the user is logged in
+        $userId = $this->SecurityModel->getCurrentUserId();
+        if ($userId === false)
+            redirect('logout');
 
-                //Process a review if one was submitted
-                if ($this->input->post()) {
-                    //Get the numeric data
-                    $review['reviewText'] = $this->input->post('reviewText') ?? 0;
-                    $review['reviewMusic'] = trim($this->input->post('reviewMusic'));
-                    $review['reviewImpact'] = $this->input->post('reviewImpact') ?? 0;
-                    $review['reviewRh'] = $this->input->post('reviewRh') ?? 0;
-                    $review['reviewComp'] = $this->input->post('reviewComp') ?? 0;
-                    $review['reviewReflection'] = $this->input->post('reviewReflection') ?? 0;
-                    $review['reviewUber'] = $this->input->post('reviewUber') ?? 0;
-                    $review['reviewPartner'] = $this->input->post('reviewPartner') ?? 0;
-                    $data['errorMessage'] = "";
-                    $data['successMessage'] = 0;
+        //Validate the provided song id
+        $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        $songActive = $songId !== false && $this->SongModel->isSongActive($songId);
+        if (!$songActive)
+            redirect('logout');
 
-                    //Validate the numeric data
-                    foreach ($review as $key => $revPiece) {
-                        $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 : (($key == "reviewUber" || $key == "reviewPartner") ? 15 : (($key == "reviewImpact" || $key == "reviewRh") ? 5 : 10));
-                        $optName = ($key == "reviewText" ? "Tekst" : ($key == "reviewMusic" ? "Muzyka" : (($key == "reviewUber" ? "Ocena Uber"
-                            : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewImpact" ? "Popularność" : (($key == "reviewRh" ? "Słuchalność"
-                                : (($key == "reviewComp" ? "Kompozycja" : "Refleksyjność"))))))))))));
+        //Ensure the user has not already reviewed the song - if so, redirect them to their review
+        $uniqueReview = $this->SongModel->checkIfUserReviewedSong($songId, $userId);
+        if ($uniqueReview !== false)
+            redirect('song/showReview?reviewId='.$uniqueReview);
 
-                        if (!is_numeric($revPiece))
-                            $data['errorMessage'] .= "Podano niepoprawną wartość dla ".$optName."!<br>";
-                        elseif ($revPiece < 1)
-                            $data['errorMessage'] .= "Podano niepoprawną wartość minimalną dla ".$optName.". Ocena musi być większa lub równa 1!<br>";
-                        elseif ($revPiece > $maxAllowed)
-                            $data['errorMessage'] .= "Podano niepoprawną wartość maksymalną dla ".$optName.". Ocena musi być mniejsza lub równa ".$maxAllowed."!<br>";
-                        elseif (fmod($revPiece, 0.5) != 0)
-                            $data['errorMessage'] .= "Podano niepoprawną ocenę dla ".$optName.". Ocena musi być liczbą pełną lub zakończoną połówką, np. 5.5!<br>";
-                    }
+        //Process the new review form if one was submitted
+        if ($this->input->post()) {
+            //Get the numeric data
+            $formData['reviewText'] = $this->input->post('reviewText') ?? 0;
+            $formData['reviewMusic'] = $this->input->post('reviewMusic') ?? 0;
+            $formData['reviewImpact'] = $this->input->post('reviewImpact') ?? 0;
+            $formData['reviewRh'] = $this->input->post('reviewRh') ?? 0;
+            $formData['reviewComp'] = $this->input->post('reviewComp') ?? 0;
+            $formData['reviewReflection'] = $this->input->post('reviewReflection') ?? 0;
+            $formData['reviewUber'] = $this->input->post('reviewUber') ?? 0;
+            $formData['reviewPartner'] = $this->input->post('reviewPartner') ?? 0;
 
-                    //Get the non-numeric data
-                    $review['reviewDate'] = $this->input->post('reviewDate');
-                    $review['reviewRev'] = $this->input->post('reviewRev');
-                    $review['reviewSongId'] = $songId;
-                    $review['reviewUserId'] = $_SESSION['userId'];
+            //Validate the numeric data - each piece must be rated at least 1 and has a maximum grade. Halves are allowed.
+            $data['errorMessage'] = "";
+            foreach ($formData as $key => $reviewSection) {
+                $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 : (($key == "reviewUber" || $key == "reviewPartner") ? 15 : (($key == "reviewImpact" || $key == "reviewRh") ? 5 : 10));
+                $optName = ($key == "reviewText" ? "Tekst" : ($key == "reviewMusic" ? "Muzyka" : (($key == "reviewUber" ? "Ocena Uber"
+                    : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewImpact" ? "Popularność" : (($key == "reviewRh" ? "Słuchalność"
+                        : (($key == "reviewComp" ? "Kompozycja" : "Refleksyjność"))))))))))));
 
-                    //Verify that a correct review date was provided and format the date to match the DB formatting
-                    $review['reviewDate'] = str_replace('/', '-', trim($review['reviewDate']));
-                    $review['reviewDate'] = ($d = DateTime::createFromFormat('Y-m-d', $review['reviewDate'])) && $d->format('Y-m-d') === $review['reviewDate'] ? $d->format('Y-m-d') : null;
-                    if (is_null($review['reviewDate'])) {
-                        $data['errorMessage'] .= "Podano niepoprawną datę.<br>";
-                    }
-
-                    //Only submit or update the review if there were no errors in the form
-                    if ($data['errorMessage'] == "") {
-                        //If the review already exists, replace it
-                        $data['successMessage'] = 1;
-                        if ($data['existingReview']) {
-                            $review['reviewId'] = $data['existingReview']['reviewId'];
-                            $this->SongModel->updateSongReview($review);
-                        }
-                        else
-                            $this->SongModel->insertSongReview($review);
-                    }
-
-                    //Populate the review fields for user convenience
-                    $data['existingReview'] = $review;
-                }
-
-                $data['body'] = "song/reviewSong";
-                $this->load->view('templates/main', $data);
+                if (!is_numeric($reviewSection))
+                    $data['errorMessage'] .= "Podano niepoprawną wartość dla ".$optName."!<br>";
+                elseif ($reviewSection < 1)
+                    $data['errorMessage'] .= "Podano niepoprawną wartość minimalną dla ".$optName.". Ocena musi być większa lub równa 1!<br>";
+                elseif ($reviewSection > $maxAllowed)
+                    $data['errorMessage'] .= "Podano niepoprawną wartość maksymalną dla ".$optName.". Ocena musi być mniejsza lub równa ".$maxAllowed."!<br>";
+                elseif (fmod($reviewSection, 0.5) != 0)
+                    $data['errorMessage'] .= "Podano niepoprawną ocenę dla ".$optName.". Ocena musi być liczbą pełną lub zakończoną połówką, np. 5.5!<br>";
             }
-            else redirect('logout');
+
+            //Get the categorical data
+            $formData['reviewDate'] = $this->input->post('reviewDate');
+            $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
+
+            //Verify that a correct review date was provided and format the date to match the DB formatting
+            $formData['reviewDate'] = $this->validateReviewDate($formData['reviewDate']);
+            if (empty($formData['reviewDate']))
+                $data['errorMessage'] .= "Podano niepoprawną datę.<br>";
+
+            //Ensure the textual review is at least 120-characters long
+            $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent']);
+            if (strlen($formData['reviewTextContent']) < 120)
+                $data['errorMessage'] .= "Recenzja musi zawierać przynajmniej 120 znaków.<br>";
+
+            //Submit and show the review if no errors were found
+            if ($data['errorMessage'] == "") {
+                $formData['reviewSongId'] = $songId;
+                $formData['reviewUserId'] = $userId;
+                $reviewId = $this->SongModel->insertSongReview($formData);
+                redirect('song/showReview?reviewId='.$reviewId);
+            }
+
+            $data['input'] = $formData;
         }
-        else redirect('logout');
+
+        $data['song'] = $this->SongModel->getSong($songId);
+        $data['body'] = "song/newReview";
+        $this->load->view('templates/main', $data);
+    }
+
+    /**
+     * Display and update a song review.
+     *
+     * @return void
+     */
+    public function songReview(): void
+    {
+        //Validate the provided review id
+        $reviewId = filter_var($this->input->get('reviewId'), FILTER_VALIDATE_INT);
+        $data['review'] = $reviewId !== false ? $this->SongModel->getSongReview($reviewId) : false;
+        if ($data['review'] === false)
+            redirect('logout');
+
+        //Check if the current user owns the review
+        $currentUserId = $this->SecurityModel->getCurrentUserId();
+        $data['isReviewOwner'] = (int) $data['review']->reviewUserId === $currentUserId;
+
+        //Users can only access reviews which are public or written by them
+        $userAuthorised = $data['isReviewOwner'] || $data['review']->reviewActive;
+        if (!$userAuthorised)
+            redirect('logout');
+
+        //Process the review update form if the user is the review author
+        if ($this->input->post()) {
+            //Get the numeric data
+            $formData['reviewText'] = $this->input->post('reviewText');
+            $formData['reviewMusic'] = $this->input->post('reviewMusic');
+            $formData['reviewImpact'] = $this->input->post('reviewImpact');
+            $formData['reviewRh'] = $this->input->post('reviewRh');
+            $formData['reviewComp'] = $this->input->post('reviewComp');
+            $formData['reviewReflection'] = $this->input->post('reviewReflection');
+            $formData['reviewUber'] = $this->input->post('reviewUber');
+            $formData['reviewPartner'] = $this->input->post('reviewPartner');
+
+            //Validate the numeric data - each piece must be rated at least 1 and has a maximum grade. Halves are allowed.
+            $data['errorMessage'] = "";
+            foreach ($formData as $key => $reviewSection) {
+                $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 : (($key == "reviewUber" || $key == "reviewPartner") ? 15 : (($key == "reviewImpact" || $key == "reviewRh") ? 5 : 10));
+                $optName = ($key == "reviewText" ? "Tekst" : ($key == "reviewMusic" ? "Muzyka" : (($key == "reviewUber" ? "Ocena Uber"
+                    : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewImpact" ? "Popularność" : (($key == "reviewRh" ? "Słuchalność"
+                        : (($key == "reviewComp" ? "Kompozycja" : "Refleksyjność"))))))))))));
+
+                if (!is_numeric($reviewSection))
+                    $data['errorMessage'] .= "Podano niepoprawną wartość dla ".$optName."!<br>";
+                elseif ($reviewSection < 1)
+                    $data['errorMessage'] .= "Podano niepoprawną wartość minimalną dla ".$optName.". Ocena musi być większa lub równa 1!<br>";
+                elseif ($reviewSection > $maxAllowed)
+                    $data['errorMessage'] .= "Podano niepoprawną wartość maksymalną dla ".$optName.". Ocena musi być mniejsza lub równa ".$maxAllowed."!<br>";
+                elseif (fmod($reviewSection, 0.5) != 0)
+                    $data['errorMessage'] .= "Podano niepoprawną ocenę dla ".$optName.". Ocena musi być liczbą pełną lub zakończoną połówką, np. 5.5!<br>";
+            }
+
+            //Get the categorical data
+            $formData['reviewDate'] = $this->input->post('reviewDate');
+            $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
+
+            //Verify that a correct review date was provided and format the date to match the DB formatting
+            $formData['reviewDate'] = $this->validateReviewDate($formData['reviewDate']);
+            if (empty($formData['reviewDate']))
+                $data['errorMessage'] .= "Podano niepoprawną datę.<br>";
+
+            //Ensure the textual review is at least 120-characters long
+            $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent']);
+            if (strlen($formData['reviewTextContent']) < 120)
+                $data['errorMessage'] .= "Recenzja musi zawierać przynajmniej 120 znaków.<br>";
+
+            //Submit and show the review if no errors were found
+            if ($data['errorMessage'] == "") {
+                $formData['reviewId'] = $reviewId;
+                $formData['reviewSongId'] = $data['review']->reviewSongId;
+                $formData['reviewUserId'] = $currentUserId;
+                $this->SongModel->updateSongReview($formData);
+                redirect('song/showReview?reviewId='.$reviewId);
+            }
+
+            $data['input'] = $formData;
+        }
+
+        $data['song'] = $this->SongModel->getSong($data['review']->reviewSongId);
+        $data['body'] = "song/songReview";
+        $this->load->view('templates/main', $data);
     }
 
     /**
@@ -763,5 +844,37 @@ class Song extends CI_Controller
                 $data[$arrayKeyName] = base_url('thumbnails/' . $file_data['file_name']);
             }
         }
+    }
+
+    /**
+     * Validate the date provided by the user during the song review process.
+     * Reviews allow dates from 1975 (the widely accepted beginnings of rap) to today.
+     *
+     * @param $inputDate
+     * @return string|null return null if the entered date was incorrect
+     */
+    private function validateReviewDate($inputDate): string|null
+    {
+        //Specify recognised date formats
+        $formats = ['Y-m-d', 'd-m-Y', 'd/m/Y', 'm/d/Y'];
+
+        //Replace common separators with dashes
+        $inputDate = trim(str_replace(['/', '.'], '-', $inputDate));
+
+        //Check if the inserted date matches any of the recognised formats
+        foreach ($formats as $format) {
+            $d = DateTime::createFromFormat($format, $inputDate);
+            if ($d && $d->format($format) === $inputDate) {
+                $normalized = $d->format('Y-m-d');
+
+                //Check date bounds
+                if ($normalized > date('Y-m-d') || $normalized < '1975-01-01')
+                    return null;
+                else return $normalized;
+            }
+        }
+
+        //The entered date did not match any accepted format
+        return null;
     }
 }

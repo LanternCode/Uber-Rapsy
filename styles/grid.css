@@ -437,6 +437,15 @@ html {
     font-weight: bold;
 }
 
+.reviews-container {
+    width: 700px;
+    margin: 20px auto;
+    border: 2px solid #000;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+}
+
 /* ==========================
    SLIDER + LABEL ALIGNMENT
    ========================== */
