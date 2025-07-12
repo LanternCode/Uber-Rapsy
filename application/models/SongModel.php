@@ -275,15 +275,62 @@ class SongModel extends CI_Model
     }
 
     /**
+     * Return the number of public song reviews.
+     * Exclude reviews made by the current user if required.
+     *
+     * @param int $songId
+     * @param int $userId 0 means no user is logged in
+     * @return int
+     */
+    public function getSongReviewCount(int $songId, int $userId = 0): int
+    {
+        $this->db->where('reviewSongId', $songId);
+        $this->db->where('reviewActive', true);
+        if ($userId > 0)
+            $this->db->where('reviewUserId !=', $userId);
+        $query = $this->db->get('review');
+        return $query->num_rows();
+    }
+
+    /**
+     * Fetch ten most recent public song reviews.
+     * Exclude reviews made by the current user if required.
+     *
+     * @param int $songId
+     * @param int $userId 0 means no user is logged in
+     * @return array
+     */
+    public function fetchRecentSongReviews(int $songId, int $userId = 0): array
+    {
+        $this->db->join('user', 'review.reviewUserId = user.id');
+        $this->db->select('review.*, user.username');
+        $this->db->where('reviewSongId', $songId);
+        $this->db->where('reviewActive', true);
+        if ($userId > 0)
+            $this->db->where('reviewUserId !=', $userId);
+        $this->db->order_by('reviewInsertDate', 'DESC');
+        $this->db->limit(10);
+        $query = $this->db->get('review');
+        return $query->result();
+    }
+
+    /**
      * Fetch a song review.
+     * Also attach the reviewer's username if required.
      *
      * @param int $reviewId
+     * @param bool $includeUsername
      * @return object|false
      */
-    public function getSongReview(int $reviewId): object|false
+    public function getSongReview(int $reviewId, bool $includeUsername = false): object|false
     {
-        $sql = "SELECT * FROM review WHERE reviewId = $reviewId";
-        return $this->db->query($sql)->row() ?? false;
+        if ($includeUsername) {
+            $this->db->join('user', 'review.reviewUserId = user.id');
+            $this->db->select('review.*, user.username');
+        }
+        $this->db->where('reviewId', $reviewId);
+        $query = $this->db->get('review');
+        return $query->row() ?? false;
     }
 
     /**

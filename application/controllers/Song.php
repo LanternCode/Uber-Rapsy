@@ -67,22 +67,36 @@ class Song extends CI_Controller
      */
     public function songPage(): void
     {
+        //Validate the provided song ig
         $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
-        if ($songId) {
-            $data = array(
-                'body' => 'song/songPage',
-                'title' => 'Uber Rapsy | Strona utworu',
-                'song' => $this->SongModel->getSong($songId),
-                'myRating' => isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $_SESSION['userId'])) : 0,
-                'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
-                'songAwards' => $this->SongModel->fetchSongAwards($songId)
-            );
-            $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
-            $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
+        if ($songId === false)
+            redirect('logout');
 
-            $this->load->view('templates/song', $data);
+        //Fetch song data
+        $data = array(
+            'body' => 'song/songPage',
+            'title' => 'Uber Rapsy | Strona utworu',
+            'song' => $this->SongModel->getSong($songId),
+            'myRating' => isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $_SESSION['userId'])) : 0,
+            'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
+            'songAwards' => $this->SongModel->fetchSongAwards($songId),
+            'userAuthenticated' => $this->SecurityModel->authenticateUser(),
+            'userId' => $this->SecurityModel->getCurrentUserId()
+        );
+        $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
+        $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
+
+        //Fetch my song review if one exists
+        if ($data['userAuthenticated']) {
+            $myReviewId = $this->SongModel->checkIfUserReviewedSong($songId, $data['userId']);
+            $data['myReview'] = $myReviewId !== false ? $this->SongModel->getSongReview($myReviewId, true) : null;
         }
-        else redirect('logout');
+
+        //Fetch 10 most recent user reviews excluding my song review
+        $data['songReviewCount'] = $this->SongModel->getSongReviewCount($songId, $data['userId'] !== false ? $data['userId'] : 0);
+        $data['userReviews'] = $this->SongModel->fetchRecentSongReviews($songId, $data['userId'] !== false ? $data['userId'] : 0);
+
+        $this->load->view('templates/song', $data);
     }
 
     /**
@@ -647,8 +661,14 @@ class Song extends CI_Controller
             }
 
             //Get the categorical data
+            $formData['reviewTitle'] = $this->input->post('reviewTitle');
             $formData['reviewDate'] = $this->input->post('reviewDate');
             $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
+
+            //Ensure the review title is at least 1-character long
+            $formData['reviewTitle'] = $this->htmlsanitiser->purify($formData['reviewTitle']);
+            if (strlen($formData['reviewTitle']) < 1)
+                $data['errorMessage'] .= "Tytuł recenzji musi zawierać przynajmniej 1 znak.<br>";
 
             //Verify that a correct review date was provided and format the date to match the DB formatting
             $formData['reviewDate'] = $this->validateReviewDate($formData['reviewDate']);
@@ -729,8 +749,14 @@ class Song extends CI_Controller
             }
 
             //Get the categorical data
+            $formData['reviewTitle'] = $this->input->post('reviewTitle');
             $formData['reviewDate'] = $this->input->post('reviewDate');
             $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
+
+            //Ensure the review title is at least 1-character long
+            $formData['reviewTitle'] = $this->htmlsanitiser->purify($formData['reviewTitle']);
+            if (strlen($formData['reviewTitle']) < 1)
+                $data['errorMessage'] .= "Tytuł recenzji musi zawierać przynajmniej 1 znak.<br>";
 
             //Verify that a correct review date was provided and format the date to match the DB formatting
             $formData['reviewDate'] = $this->validateReviewDate($formData['reviewDate']);

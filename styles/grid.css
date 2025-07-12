@@ -209,9 +209,23 @@ html {
     display: block;
 }
 
+.reviewBoxTitle {
+    height: 25px;
+    font-size: 1.2em;
+    margin: 10px;
+    display: block;
+}
+
 .gradeInputReview {
     width: 50px;
     margin: 5px;
+}
+
+.titleInputReview {
+    width: 500px;
+    margin: 5px;
+    height: 25px;
+    font-size: 1.2em;
 }
 
 .reviewSuccess {

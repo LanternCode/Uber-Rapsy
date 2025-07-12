@@ -7,6 +7,10 @@
     <label class="reviewBox">Posłuchaj utworu w YouTube: <a href="<?=base_url('youtu.be/'.$song->SongURL)?>" target="_blank"><?=$song->SongTitle?></a></label><br>
 <?php endif; ?>
 <form method="POST" action="<?=base_url('song/reviewSong?songId='.$song->SongId)?>">
+    <article class="reviewBoxTitle">
+        <label>Tytuł Recenzji:</label>
+        <input class="titleInputReview" type="text" name="reviewTitle" value="<?=$input['reviewTitle'] ?? ''?>" required>
+    </article><br>
     <article class="reviewBoxDate">
         <label>Data Recenzji:</label>
         <input id="createdAt" type="date" name="reviewDate" value="<?=$input['reviewDate'] ?? ''?>" max="<?=date('Y-m-d')?>" min="1975-01-01">

@@ -7,10 +7,16 @@
     <label class="reviewBox">Posłuchaj utworu w YouTube: <a href="<?=base_url('youtu.be/'.$song->SongURL)?>" target="_blank"><?=$song->SongTitle?></a></label><br>
 <?php endif; ?>
 <form method="POST" action="<?=base_url('song/showReview?reviewId='.$review->reviewId)?>">
+    <article class="reviewBoxTitle">
+        <label>Tytuł Recenzji:</label>
+        <input class="titleInputReview" type="text" name="reviewTitle" value="<?=$input['reviewTitle'] ?? $review->reviewTitle?>" <?=!$isReviewOwner ? 'readonly' : ''?> required><br>
+    </article><br>
     <article class="reviewBoxDate">
         <label>Data Recenzji:</label>
         <input id="createdAt" type="text" name="reviewDate" value="<?=$input['reviewDate'] ?? $review->reviewDate?>" <?=!$isReviewOwner ? 'readonly' : ''?>>
-        <button onclick="createdAt.value = new Date().toISOString().slice(0, 10); return false;">Dzisiaj</button>
+        <?php if ($isReviewOwner): ?>
+            <button onclick="createdAt.value = new Date().toISOString().slice(0, 10); return false;">Dzisiaj</button>
+        <?php endif; ?>
     </article>
     <article class="reviewBox">
         <label>Tekst:</label>
@@ -50,7 +56,7 @@
     </article>
     <article class="reviewBox">
         <label>Recenzja:</label><br>
-        <textarea name="reviewTextContent" id="txt" <?=!$isReviewOwner ? 'readonly' : ''?>><?=$input['reviewTextContent'] ?? $review->reviewTextContent?></textarea>
+        <textarea name="reviewTextContent" id="txt"><?=$input['reviewTextContent'] ?? $review->reviewTextContent?></textarea>
     </article>
     <?php if ($isReviewOwner): ?>
         <input type="submit" class="btnSaveReview big-button" value="Zapisz Recenzję!">><br>
@@ -59,9 +65,11 @@
 <script type="text/javascript" src="<?=base_url('scripts/reviewTotal.js')?>"></script>
 <script src="https://cdn.tiny.cloud/1/622hecsg6zxldlharfjthzkv1fck34b6l7eufosk6rwayu6r/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
+    let isReadonly = <?=$isReviewOwner ? 0 : 1?>;
     tinymce.init({
         selector: '#txt',
         height: '420',
-        width: '840'
+        width: '840',
+        readonly: isReadonly
     });
 </script>

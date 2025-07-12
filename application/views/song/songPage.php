@@ -89,10 +89,25 @@
     <div class="reviews-container">
         <div class="my-review-section">
             <h3>Moja recenzja</h3>
-            <a href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>">Zrecenzuj utwór</a>
-        </div>
+            <?php if (!empty($myReview)): ?>
+                <a href="<?=base_url('song/showReview?reviewId='.$myReview->reviewId)?>"><?=$myReview->username?>: <?=$myReview->reviewTitle?></a>
+            <?php elseif ($userAuthenticated): ?>
+                <a href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>">+ Zrecenzuj utwór</a>
+            <?php else: ?>
+                <p><a href="<?=base_url('login')?>">Zaloguj</a> lub <a href="<?=base_url('newAccount')?>">zarejestruj się</a> i zacznij recenzować z RAPPAR!</p>
+            <?php endif; ?>
+        </div><br>
         <div class="user-reviews-section">
             <h3>Recenzje użytkowników RAPPAR</h3>
+            <?php if ($songReviewCount > 0): ?>
+                <?php foreach ($userReviews as $userReview): ?>
+                    <?=$userReview->username?>: <a href="<?=base_url('song/showReview?reviewId='.$userReview->reviewId)?>"><?=$userReview->reviewTitle?></a><br>
+                <?php endforeach; ?>
+            <?php elseif (!empty($myReview)): ?>
+                <p>Na ten moment jesteś jedyną osobą, która dodała recenzję. Zaproś znajomych i oceniajcie razem w RAPPAR!</p>
+            <?php else: ?>
+                <p>Na ten moment nikt nie zrecenzował tego utworu. Podziel się swoją opinią z innymi dodając recenzję!</p>
+            <?php endif; ?>
         </div>
     </div>
 </main>

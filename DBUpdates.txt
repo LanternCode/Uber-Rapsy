@@ -93,3 +93,4 @@ ALTER TABLE `song` CHANGE `SongURL` `SongURL` VARCHAR(11) CHARACTER SET utf8mb3 
 ALTER TABLE `song` ADD `SongAddedBy` INT NOT NULL COMMENT 'user id' AFTER `SongId`;
 ALTER TABLE `log` CHANGE `EntityType` `EntityType` VARCHAR(13) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'Must be a valid database entity (user/song/playlist)';
 ALTER TABLE `review` CHANGE `reviewRev` `reviewTextContent` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;
+ALTER TABLE `review` ADD `reviewTitle` VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL AFTER `reviewId`;
