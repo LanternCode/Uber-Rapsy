@@ -16,6 +16,7 @@ if (!isset($_SESSION))
  * @property PlaylistModel $PlaylistModel
  * @property UtilityModel $UtilityModel
  * @property LogModel $LogModel
+ * @property AccountModel $AccountModel
  * @property CI_Input $input
  * @property CI_Output $output
  * @property CI_DB_mysqli_driver $db
@@ -33,6 +34,7 @@ class Song extends CI_Controller
         $this->load->model('PlaylistModel');
         $this->load->model('UtilityModel');
         $this->load->model('LogModel');
+        $this->load->model('AccountModel');
         $this->load->library('htmlsanitiser');
         $this->load->library('FetchSongsService');
         $this->FetchSongsService = new FetchSongsService();
@@ -121,8 +123,10 @@ class Song extends CI_Controller
                 if ($approveUpdate) {
                     //Update or insert the grade
                     $songUnrated = !$this->SongModel->checkSongRatingExists($queryData['songId'], $queryData['userId']);
-                    if ($songUnrated)
+                    if ($songUnrated) {
                         $this->SongModel->addSongRating($queryData);
+                        $this->AccountModel->addUserScore($queryData['userId'], 'rating');
+                    }
                     else
                         $this->SongModel->updateSongRating($queryData);
 
@@ -307,6 +311,7 @@ class Song extends CI_Controller
                         $songId = $this->SongModel->insertSong($song['externalSongId'], $userId, $song['songThumbnailLink'], $song['songTitle'], $songChannelName, $song['songPublishedAt']);
                         $data['report'] .= "<h4>Utwór " . $song['songTitle'] . " został dodany do bazy danych Rappar!</h4><br>";
                         $this->LogModel->createLog("song", $songId, "Nuta została importowana do bazy danych RAPPAR.");
+                        $this->AccountModel->addUserScore($userId, 'song');
                         $added++;
                     }
                     else
@@ -367,6 +372,7 @@ class Song extends CI_Controller
                             $data['body'] = 'song/manualImportResult';
                             $data['insertedSongId'] = $this->SongModel->insertSong('', $userId, $data['songThumbnailLink'] , $data['songTitle'], $data['songAuthor'], $data['songReleaseYear']);
                             $this->LogModel->createLog("song", $data['insertedSongId'], "Nuta została manualnie importowana do bazy danych RAPPAR.");
+                            $this->AccountModel->addUserScore($userId, 'song');
                             if ($uploadRequired)
                                 $this->LogModel->createLog("song", $data['insertedSongId'], "W trakcie importu wgrano plik z miniaturą, która została zapisana pod tym adresem: ".$data['songThumbnailLink'].".");
                         }
@@ -592,6 +598,7 @@ class Song extends CI_Controller
                 if ($this->input->get('confirmDeletion')) {
                     $this->SongModel->deleteSong($songId);
                     $this->LogModel->createLog('song', $songId,"Usunięto utwór z RAPPAR.");
+                    $this->AccountModel->subtractUserScore($song->SongAddedBy, 'song');
 
                     //Return to the source view
                     if ($data['src'] === 'search' && $data['searchQuery'])
@@ -664,6 +671,7 @@ class Song extends CI_Controller
             $formData['reviewTitle'] = $this->input->post('reviewTitle');
             $formData['reviewDate'] = $this->input->post('reviewDate');
             $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
+            $formData['reviewActive'] = !is_null($this->input->post('reviewActive'));
 
             //Ensure the review title is at least 1-character long
             $formData['reviewTitle'] = $this->htmlsanitiser->purify($formData['reviewTitle']);
@@ -685,6 +693,8 @@ class Song extends CI_Controller
                 $formData['reviewSongId'] = $songId;
                 $formData['reviewUserId'] = $userId;
                 $reviewId = $this->SongModel->insertSongReview($formData);
+                $this->LogModel->createLog('user', $reviewId, "Napisano recenzję: ".$formData['reviewTitle']);
+                $this->AccountModel->addUserScore($userId, 'review');
                 redirect('song/showReview?reviewId='.$reviewId);
             }
 
@@ -693,7 +703,7 @@ class Song extends CI_Controller
 
         $data['song'] = $this->SongModel->getSong($songId);
         $data['body'] = "song/newReview";
-        $this->load->view('templates/main', $data);
+        $this->load->view('templates/song', $data);
     }
 
     /**
@@ -720,6 +730,16 @@ class Song extends CI_Controller
 
         //Process the review update form if the user is the review author
         if ($this->input->post()) {
+            //Check whether the user wants to delete the review
+            $deleteIntent = $this->input->post('deleteReview') ?? false;
+            $deleteConfirmation = $this->input->post('delReviewConf') ?? false;
+            if ($deleteIntent && $deleteConfirmation) {
+                $this->SongModel->deleteSongReview($reviewId);
+                $this->LogModel->createLog('user', $reviewId, "Usunięto recenzję: ".$data['review']->reviewTitle);
+                $this->AccountModel->subtractUserScore($data['review']->reviewUserId, 'review');
+                redirect('songPage?songId='.$data['review']->reviewSongId);
+            }
+
             //Get the numeric data
             $formData['reviewText'] = $this->input->post('reviewText');
             $formData['reviewMusic'] = $this->input->post('reviewMusic');
@@ -752,6 +772,7 @@ class Song extends CI_Controller
             $formData['reviewTitle'] = $this->input->post('reviewTitle');
             $formData['reviewDate'] = $this->input->post('reviewDate');
             $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
+            $formData['reviewActive'] = !is_null($this->input->post('reviewActive'));
 
             //Ensure the review title is at least 1-character long
             $formData['reviewTitle'] = $this->htmlsanitiser->purify($formData['reviewTitle']);
@@ -782,7 +803,7 @@ class Song extends CI_Controller
 
         $data['song'] = $this->SongModel->getSong($data['review']->reviewSongId);
         $data['body'] = "song/songReview";
-        $this->load->view('templates/main', $data);
+        $this->load->view('templates/song', $data);
     }
 
     /**

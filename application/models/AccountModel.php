@@ -26,9 +26,11 @@ class AccountModel extends CI_Model
         $sql = "SELECT id, password, role FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->password) && $query->row()->password)
+        if (isset($query->row()->password) && $query->row()->password) {
             return $query->row();
-        else return 0;
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -54,9 +56,11 @@ class AccountModel extends CI_Model
         $sql = "SELECT email FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->email) && $query->row()->email)
+        if (isset($query->row()->email) && $query->row()->email) {
             return false;
-        else return true;
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -104,7 +108,7 @@ class AccountModel extends CI_Model
      */
     public function sendPasswordChangeEmail(string $email, string $resetKey): void
     {
-        $resetLink = base_url('forgottenPassword/reset?qs='.$resetKey);
+        $resetLink = base_url('forgottenPassword/reset?qs=' . $resetKey);
         $subject = "Zresetuj hasło w RAPPAR";
         $headers = array(
             'From: "RAPPAR" <noreply@uberrapsy.pl>',
@@ -131,9 +135,11 @@ class AccountModel extends CI_Model
         $sql = "SELECT id FROM user WHERE passwordResetKey = '$key'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->id) && $query->row()->id)
+        if (isset($query->row()->id) && $query->row()->id) {
             return $query->row()->id;
-        else return 0;
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -168,8 +174,9 @@ class AccountModel extends CI_Model
             $_SESSION['userRole'] = $userData->role;
             $_SESSION['userId'] = $userData->id;
             return true;
+        } else {
+            return false;
         }
-        else return false;
     }
 
     /**
@@ -184,8 +191,9 @@ class AccountModel extends CI_Model
 
         if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             return $this->signIn($data['email'], $data['password']);
+        } else {
+            return false;
         }
-        else return false;
     }
 
     /**
@@ -213,5 +221,77 @@ class AccountModel extends CI_Model
         $query = $this->db->query($sql);
 
         return $query->result();
+    }
+
+    /**
+     * Add user score.
+     *
+     * @param int $userId
+     * @param string $actionType
+     * @return void
+     */
+    public function addUserScore(int $userId, string $actionType): void
+    {
+        switch ($actionType)
+        {
+            case 'review':
+            {
+                //Add ten points for each added review
+                $this->db->set('userScore', 'userScore + 10', FALSE);
+                break;
+            }
+            case 'song':
+            case 'rating':
+            {
+                //Add one point for each added and rated song
+                $this->db->set('userScore', 'userScore + 1', FALSE);
+                break;
+            }
+            default:
+            {
+                //Fallback case if no correct action was specified
+                $this->db->set('userScore', 'userScore', FALSE);
+                break;
+            }
+        }
+
+        $this->db->where('id', $userId);
+        $this->db->update('user');
+    }
+
+    /**
+     * Subtracts points from the user.
+     * This is required so that users do not create and immediately delete content to increase their score.
+     *
+     * @param int $userId
+     * @param string $actionType
+     * @return void
+     */
+    public function subtractUserScore(int $userId, string $actionType): void
+    {
+        switch ($actionType)
+        {
+            case 'review':
+            {
+                //Add ten points for each added review
+                $this->db->set('userScore', 'userScore - 10', FALSE);
+                break;
+            }
+            case 'song':
+            {
+                //Add one point for each added song
+                $this->db->set('userScore', 'userScore - 1', FALSE);
+                break;
+            }
+            default:
+            {
+                //Fallback case if no correct action was specified
+                $this->db->set('userScore', 'userScore', FALSE);
+                break;
+            }
+        }
+
+        $this->db->where('id', $userId);
+        $this->db->update('user');
     }
 }

@@ -1,13 +1,11 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
-    <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-        <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
-        <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
-            <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
-        <?php endif; ?>
-        <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+    <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
+    <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+        <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
     <?php endif; ?>
+    <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
 </header>
 <main>
     <br><br><br>

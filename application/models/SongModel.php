@@ -345,6 +345,18 @@ class SongModel extends CI_Model
     }
 
     /**
+     * Delete a song review.
+     *
+     * @param int $reviewId
+     * @return void
+     */
+    public function deleteSongReview(int $reviewId): void
+    {
+        $this->db->where('reviewId', $reviewId);
+        $this->db->delete('review');
+    }
+
+    /**
      * Check if the song with the selected title, made by the same authors and released the same year
      *  already exists in the database. If it does, return its id.
      *

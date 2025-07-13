@@ -94,3 +94,4 @@ ALTER TABLE `song` ADD `SongAddedBy` INT NOT NULL COMMENT 'user id' AFTER `SongI
 ALTER TABLE `log` CHANGE `EntityType` `EntityType` VARCHAR(13) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'Must be a valid database entity (user/song/playlist)';
 ALTER TABLE `review` CHANGE `reviewRev` `reviewTextContent` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL;
 ALTER TABLE `review` ADD `reviewTitle` VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL AFTER `reviewId`;
+ALTER TABLE `user` ADD `userScore` INT NOT NULL DEFAULT '0' AFTER `accountLocked`;

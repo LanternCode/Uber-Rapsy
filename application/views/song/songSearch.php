@@ -52,7 +52,7 @@
                             <a href="<?=base_url('user/details?uid='.$song->SongAddedBy)?>" title="Pokaż profil autora utworu">👤</a>
                         <?php else: ?>
                             <a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a> <?=$song->SongDeleted ? '(usunięta)' : ($song->SongVisible ? '' : '(ukryta)')?>
-                            <a href="<?=base_url('?songId='.$song->SongId)?>" title="Recenzuj utwór">📝</a>
+                            <a href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>" title="Recenzuj utwór">📝</a>
                             <?php if ($isReviewer): ?>
                                 <a href="<?=base_url('song/edit?songId='.$song->SongId)?>" title="Edytuj utwór">🔧</a>
                                 <a href="<?=base_url('song/updateVisibility?songId='.$song->SongId.'&src=search&query='.$searchQuery)?>" title="Pokaż lub ukryj utwór">👁️</a>

@@ -95,14 +95,13 @@ class LogModel extends CI_Model
      * Submit a report and return its id.
      *
      * @param string $reportText
-     * @return int new report's id or 0 if the submission failed
+     * @return int new report id
      */
     public function submitReport(string $reportText): int
     {
-        $sql = "INSERT INTO report (`reportText`) VALUES ('$reportText')";
-        if ($this->db->query($sql))
-            return $this->db->conn_id->insert_id;
-        else return 0;
+        $data = array('reportText' => $reportText);
+        $this->db->insert('report', $data);
+        return $this->db->insert_id();
     }
 
     /**
