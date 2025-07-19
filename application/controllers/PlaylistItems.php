@@ -263,7 +263,7 @@ class PlaylistItems extends CI_Controller
      * If 'transfer song' or 'copy song to another playlist' were queued, they will be processed here
      *
      * This method is called when the user clicks the 'Zapisz Oceny' button
-     * The button is available in the playlist, tierlist and searchResults views
+     * The button is available in the playlist and tierlist views
      *
      * Since each song, of which there may be hundreds, has almost 30 individual features,
      *  a JS script (playlist.js) checks if any updates were made before processing the features
@@ -273,207 +273,385 @@ class PlaylistItems extends CI_Controller
      */
     public function updateSongRatingsInPlaylist(): void
     {
-        //Check if the request comes from a valid playlist or the search engine
+        //Validate the submitted playlist id
         $playlistId = filter_var($this->input->post('playlistId'), FILTER_VALIDATE_INT);
-        $playlistIdValid = $playlistId == "search" || (is_int($playlistId) && $playlistId > 0);
-        if ($playlistIdValid) {
-            //Check if the user is logged in
-            $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $reviewerAuthenticated = $this->SecurityModel->authenticateReviewer();
-            $userId = $this->SecurityModel->getCurrentUserId();
-            if ($userId !== false && ($userAuthenticated || $reviewerAuthenticated)) {
-                //If the user is updating songs in playlist, they must be the owner of that playlist
-                $userOwnedPlaylists = array_map(fn($item) => $item->ListId, $this->PlaylistModel->fetchUserPlaylistsIDs($userId));
-                $userAuthorised = !($playlistId == "search") && $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $userId;
+        if (!$playlistId)
+            redirect('logout');
 
-                //If the user is updating songs through the search engine, they must own at least one playlist
-                $searchUpdateAuthenticated = $playlistId == "search" && count($userOwnedPlaylists) > 0;
+        //Check if the user is logged in
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $reviewerAuthenticated = $this->SecurityModel->authenticateReviewer();
+        $userId = $this->SecurityModel->getCurrentUserId();
+        if ($userId === false || (!$userAuthenticated && !$reviewerAuthenticated))
+            redirect("logout");
 
-                //Reviewers are allowed to update reviewer-specific fields. As long as any of these conditions are met - the update is authorised
-                if ($userAuthorised || $searchUpdateAuthenticated || $reviewerAuthenticated) {
-                    $data = array(
-                        'body' => 'updatePlaylistSongRatings',
-                        'title' => 'Oceny Zapisane!',
-                        'searchQuery' => $playlistId == "search" ? $this->input->post('searchQuery') : false
-                    );
-                    $resultMessage = "<pre>";
+        //The user must be the owner of the playlist they are updating songs in
+        $userOwnedPlaylists = array_map(fn($item) => $item->ListId, $this->PlaylistModel->fetchUserPlaylistsIDs($userId));
+        $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $userId;
 
-                    //Fetch the playlist to access its settings
-                    $playlist = false;
-                    if ($playlistId !== "search") {
-                        $playlist = $this->PlaylistModel->fetchPlaylistById($playlistId);
-                        $data['playlistId'] = $playlist->ListId;
-                        $reviewerAuthorised = $reviewerAuthenticated && $playlist->ListPublic;
-                    }
+        //Reviewers are allowed to update reviewer-specific fields. As long as any of these conditions are met - the update is authorised
+        if (!$userAuthorised && !$reviewerAuthenticated)
+            redirect('logout');
 
-                    //Process each song separately
-                    $i = 0;
-                    $data['processedSongsCount'] = 0;
-                    $data['processedAndUpdatedSongsCount'] = 0;
-                    while (isset($_POST["songUpdated-" . $i + 21])) {
-                        $i += ($data['processedSongsCount'] == 0) ? 0 : 28;
-                        $data['processedSongsCount'] += 1;
-                        //Only process songs that were actually updated
-                        $songUpdated = $this->input->post('songUpdated-'.$i+21);
-                        if ($songUpdated) {
-                            //Fetch the song-to-update and check if it and its primary song object exist
-                            $formInput['songId'] = $this->input->post('songId-'.$i);
-                            $currentPlaylistSong = $this->PlaylistSongModel->getPlaylistSong($formInput['songId']);
-                            $currentSong = $currentPlaylistSong !== false ? $this->SongModel->getSong($currentPlaylistSong->songId) : false;
-                            if ($currentPlaylistSong !== false && $currentSong !== false) {
-                                //check whether the user is allowed to update this playlist song (through search or playlist listing)
-                                $currentSongPlaylistPublicStatus = $this->PlaylistModel->getListPublicProperty($currentPlaylistSong->listId);
-                                $updateAuthorised = $playlistId == "search" ? (in_array($currentPlaylistSong->ListId, $userOwnedPlaylists) || ($reviewerAuthenticated && $currentSongPlaylistPublicStatus)) : ($userAuthorised || $reviewerAuthorised);
-                                if ($updateAuthorised) {
-                                    //Create a variable for the song's update message
-                                    $data['processedAndUpdatedSongsCount'] += 1;
-                                    $localResultMessage = "";
+        $data = array(
+            'body' => 'playlistSong/updatePlaylistSongRatings',
+            'title' => 'Oceny Zapisane!',
+            'searchQuery' => false
+        );
+        $resultMessage = "<pre>";
 
-                                    //Save the form data to a temp variable for easy db update - grades
-                                    $formInput['SongGradeAdam'] = $_POST["nwGradeA-" . $i + 1] ?? $currentPlaylistSong->SongGradeAdam;
-                                    $formInput['SongGradeChurchie'] = $_POST["nwGradeC-" . $i + 2] ?? $currentPlaylistSong->SongGradeChurchie;
-                                    $formInput['SongGradeOwner'] = $_POST["nwGradeM-" . $i + 27] ?? $currentPlaylistSong->SongGradeOwner;
+        //Fetch the playlist to access its settings
+        $playlist = $this->PlaylistModel->fetchPlaylistById($playlistId);
+        $data['playlistId'] = $playlist->ListId;
+        $reviewerAuthorised = $reviewerAuthenticated && $playlist->ListPublic;
 
-                                    //Buttons (checkboxes)
-                                    $formInput['SongRehearsal'] = $_POST["songRehearsal-" . $i + 4] ?? $currentPlaylistSong->SongRehearsal;
-                                    $formInput['SongDistinction'] = $_POST["songDistinction-" . $i + 5] ?? $currentPlaylistSong->SongDistinction;
-                                    $formInput['SongMemorial'] = $_POST["songMemorial-" . $i + 6] ?? $currentPlaylistSong->SongMemorial;
-                                    $formInput['SongXD'] = $_POST["songXD-" . $i + 7] ?? $currentPlaylistSong->SongXD;
-                                    $formInput['SongNotRap'] = $_POST["songNotRap-" . $i + 8] ?? $currentPlaylistSong->SongNotRap;
-                                    $formInput['SongDiscomfort'] = $_POST["songDiscomfort-" . $i + 9] ?? $currentPlaylistSong->SongDiscomfort;
-                                    $formInput['SongDepA'] = $_POST["songDepA-" . $i + 26] ?? $currentPlaylistSong->SongDepA;
-                                    $formInput['SongTop'] = $_POST["songTop-" . $i + 10] ?? $currentPlaylistSong->SongTop;
-                                    $formInput['SongNoGrade'] = $_POST["songNoGrade-" . $i + 11] ?? $currentPlaylistSong->SongNoGrade;
-                                    $formInput['SongUber'] = $_POST["songUber-" . $i + 12] ?? $currentPlaylistSong->SongUber;
-                                    $formInput['SongBelow'] = $_POST["songBelow-" . $i + 13] ?? $currentPlaylistSong->SongBelow;
-                                    $formInput['SongBelTen'] = $_POST["songBelTen-" . $i + 14] ?? $currentPlaylistSong->SongBelTen;
-                                    $formInput['SongBelNine'] = $_POST["songBelNine-" . $i + 15] ?? $currentPlaylistSong->SongBelNine;
-                                    $formInput['SongBelEight'] = $_POST["songBelEight-" . $i + 16] ?? $currentPlaylistSong->SongBelEight;
-                                    $formInput['SongBelFour'] = $_POST["songBelFour-" . $i + 17] ?? $currentPlaylistSong->SongBelFour;
-                                    $formInput['SongDuoTen'] = $_POST["songDuoTen-" . $i + 18] ?? $currentPlaylistSong->SongDuoTen;
-                                    $formInput['SongVeto'] = $_POST["songVeto-" . $i + 19] ?? $currentPlaylistSong->SongVeto;
-                                    $formInput['SongBelHalfSeven'] = $_POST["SongBelHalfSeven-" . $i + 23] ?? $currentPlaylistSong->SongBelHalfSeven;
-                                    $formInput['SongBelHalfEight'] = $_POST["SongBelHalfEight-" . $i + 24] ?? $currentPlaylistSong->SongBelHalfEight;
-                                    $formInput['SongBelHalfNine'] = $_POST["SongBelHalfNine-" . $i + 25] ?? $currentPlaylistSong->SongBelHalfNine;
+        //Process each song separately
+        $i = 0;
+        $data['processedSongsCount'] = 0;
+        $data['processedAndUpdatedSongsCount'] = 0;
+        while (isset($_POST["songUpdated-".$i+21])) {
+            //Count the number of songs flagged as requiring update
+            $i += ($data['processedSongsCount'] == 0) ? 0 : 28;
+            $data['processedSongsCount'] += 1;
 
-                                    //Move and copy song select boxes
-                                    $formInput['newPlaylistId'] = $_POST["nwPlistId-" . $i + 3];
-                                    $formInput['copyToPlaylist'] = $_POST["copyPlistId-" . $i + 20];
+            //Only process songs that were actually updated
+            $songUpdated = $this->input->post('songUpdated-'.$i+21);
+            if ($songUpdated) {
+                //Fetch the received songs and make sure they exist
+                $formInput['playlistSongId'] = $this->input->post('playlistSongId-'.$i);
+                $currentPlaylistSong = $this->PlaylistSongModel->getPlaylistSong($formInput['playlistSongId']);
+                $currentSong = $currentPlaylistSong !== false ? $this->SongModel->getSong($currentPlaylistSong->songId) : false;
+                if ($currentPlaylistSong !== false && $currentSong !== false) {
+                    //Check if the user is allowed to update this playlist song
+                    $updateAuthorised = $userAuthorised || $reviewerAuthorised;
+                    if (!$updateAuthorised)
+                        redirect('logout');
 
-                                    //Song comment textarea
-                                    $formInput['SongComment'] = $_POST["songComment-" . $i + 22] ?? $currentPlaylistSong->SongComment;
+                    //Count the number of updated songs
+                    $data['processedAndUpdatedSongsCount'] += 1;
+                    $localResultMessage = "";
 
-                                    //Fetch song properties that need updating by comparing the form input data with the current song data
-                                    $elementsToUpdate = $this->flagSongDataToUpdate($currentPlaylistSong, $formInput);
+                    //Fetch playlist song grades
+                    $formInput['SongGradeAdam'] = $this->input->post("newGradeAdam-".$i+1) ?? $currentPlaylistSong->SongGradeAdam;
+                    $formInput['SongGradeChurchie'] = $this->input->post("newGradeChurchie-".$i+2) ?? $currentPlaylistSong->SongGradeChurchie;
+                    $formInput['SongGradeOwner'] = $this->input->post("myNewGrade-".$i+27) ?? $currentPlaylistSong->SongGradeOwner;
 
-                                    //Update song grades
-                                    $createUpdateLog = false;
-                                    $adamGradeUpdated = in_array("SongGradeAdam", $elementsToUpdate);
-                                    $churchieGradeUpdated = in_array("SongGradeChurchie", $elementsToUpdate);
-                                    $ownerGradeUpdated = in_array("SongGradeOwner", $elementsToUpdate);
-                                    if ($adamGradeUpdated || $churchieGradeUpdated || $ownerGradeUpdated) {
-                                        //Some countries use comma and not the dot when expressing numbers. Ensure consistency by replacing commas with dots.
-                                        $newAdamRating = str_replace(',', '.', $formInput['SongGradeAdam']);
-                                        $newChurchieRating = str_replace(',', '.', $formInput['SongGradeChurchie']);
-                                        $newOwnerRating = str_replace(',', '.', $formInput['SongGradeOwner']);
+                    //Fetch playlist song buttons (checkboxes)
+                    $formInput['SongRehearsal'] = $this->input->post("songRehearsal-".$i+4) ?? $currentPlaylistSong->SongRehearsal;
+                    $formInput['SongDistinction'] = $this->input->post("songDistinction-".$i+5) ?? $currentPlaylistSong->SongDistinction;
+                    $formInput['SongMemorial'] = $this->input->post("songMemorial-".$i+6) ?? $currentPlaylistSong->SongMemorial;
+                    $formInput['SongXD'] = $this->input->post("songXD-".$i+7) ?? $currentPlaylistSong->SongXD;
+                    $formInput['SongNotRap'] = $this->input->post("songNotRap-".$i+8) ?? $currentPlaylistSong->SongNotRap;
+                    $formInput['SongDiscomfort'] = $this->input->post("songDiscomfort-".$i+9) ?? $currentPlaylistSong->SongDiscomfort;
+                    $formInput['SongDepA'] = $this->input->post("songDepA-".$i+26) ?? $currentPlaylistSong->SongDepA;
+                    $formInput['SongTop'] = $this->input->post("songTop-".$i+10) ?? $currentPlaylistSong->SongTop;
+                    $formInput['SongNoGrade'] = $this->input->post("songNoGrade-".$i+11) ?? $currentPlaylistSong->SongNoGrade;
+                    $formInput['SongUber'] = $this->input->post("songUber-".$i+12) ?? $currentPlaylistSong->SongUber;
+                    $formInput['SongBelow'] = $this->input->post("songBelow-".$i+13) ?? $currentPlaylistSong->SongBelow;
+                    $formInput['SongBelTen'] = $this->input->post("songBelTen-".$i+14) ?? $currentPlaylistSong->SongBelTen;
+                    $formInput['SongBelNine'] = $this->input->post("songBelNine-".$i+15) ?? $currentPlaylistSong->SongBelNine;
+                    $formInput['SongBelEight'] = $this->input->post("songBelEight-".$i+16) ?? $currentPlaylistSong->SongBelEight;
+                    $formInput['SongBelFour'] = $this->input->post("songBelFour-".$i+17) ?? $currentPlaylistSong->SongBelFour;
+                    $formInput['SongDuoTen'] = $this->input->post("songDuoTen-".$i+18) ?? $currentPlaylistSong->SongDuoTen;
+                    $formInput['SongVeto'] = $this->input->post("songVeto-".$i+19) ?? $currentPlaylistSong->SongVeto;
+                    $formInput['SongBelHalfSeven'] = $this->input->post("SongBelHalfSeven-".$i+23) ?? $currentPlaylistSong->SongBelHalfSeven;
+                    $formInput['SongBelHalfEight'] = $this->input->post("SongBelHalfEight-".$i+24) ?? $currentPlaylistSong->SongBelHalfEight;
+                    $formInput['SongBelHalfNine'] = $this->input->post("SongBelHalfNine-".$i+25) ?? $currentPlaylistSong->SongBelHalfNine;
 
-                                        //Ensure the ratings are valid decimal numbers (full or .5) and are in the range <0, 15>
-                                        if (strlen($newAdamRating) > 0 && strlen($newChurchieRating) > 0 && strlen($newOwnerRating) > 0
-                                            && is_numeric($newAdamRating) && is_numeric($newChurchieRating) && is_numeric($newOwnerRating)
-                                            && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15) && $this->UtilityModel->InRange($newOwnerRating, 0, 15)
-                                            && fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0 && fmod($newOwnerRating, 0.5) == 0)
-                                        {
-                                            //Update the ratings and prepare the update message
-                                            $this->PlaylistSongModel->updatePlaylistSongScores($currentPlaylistSong->id, $newAdamRating, $newChurchieRating, $newOwnerRating);
-                                            if ($adamGradeUpdated)
-                                                $localResultMessage .= "\tOcena Adama: " . $currentPlaylistSong->SongGradeAdam . " -> " . $newAdamRating . "<br>";
-                                            if ($churchieGradeUpdated)
-                                                $localResultMessage .= "\tOcena Kościelnego: " . $currentPlaylistSong->SongGradeChurchie . " -> " . $newChurchieRating . "<br>";
-                                            if ($ownerGradeUpdated)
-                                                $localResultMessage .= "\tOcena Właściciela: " . $currentPlaylistSong->SongGradeOwner . " -> " . $newOwnerRating;
+                    //Move and copy song select boxes
+                    $formInput['newPlaylistId'] = $this->input->post("newPlaylistId-".$i+3);
+                    $formInput['copyToPlaylist'] = $this->input->post("copyPlaylistId-".$i+20);
 
-                                            $createUpdateLog = true;
-                                        }
-                                    }
+                    //Song comment textarea
+                    $formInput['SongComment'] = $this->input->post("songComment-".$i+22) ?? $currentPlaylistSong->SongComment;
 
-                                    //Update the song comment
-                                    $commentUpdated = in_array("SongComment", $elementsToUpdate);
-                                    if ($commentUpdated) {
-                                        $this->PlaylistSongModel->updateSongComment($currentPlaylistSong->id, $formInput['SongComment']);
-                                        $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
-                                        $localResultMessage .= "Komentarz: " . $currentPlaylistSong->SongComment . " -> " . $formInput['SongComment'];
-                                        $createUpdateLog = true;
-                                    }
+                    //Get a list properties that need updating by comparing the form input data with the current song data
+                    $elementsToUpdate = $this->flagSongDataToUpdate($currentPlaylistSong, $formInput);
 
-                                    //Update song checkbox properties (buttons)
-                                    foreach ($elementsToUpdate as $prop) {
-                                        if (!in_array($prop, ["SongGradeAdam", "SongGradeChurchie", "SongGradeOwner", "SongComment"])) {
-                                            $propertyDisplayName = $this->getPropertyDisplayName($prop);
-                                            $this->PlaylistSongModel->updateSongCheckboxProperty($currentPlaylistSong->id, $prop, $formInput[$prop]);
-                                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
-                                            $localResultMessage .= ($formInput[$prop] ? "Zaznaczono " : "Odznaczono ") . $propertyDisplayName;
-                                            $createUpdateLog = true;
-                                        }
-                                    }
+                    //Update song grades
+                    $createUpdateLog = false;
+                    $adamGradeUpdated = in_array("SongGradeAdam", $elementsToUpdate);
+                    $churchieGradeUpdated = in_array("SongGradeChurchie", $elementsToUpdate);
+                    $ownerGradeUpdated = in_array("SongGradeOwner", $elementsToUpdate);
+                    if ($adamGradeUpdated || $churchieGradeUpdated || $ownerGradeUpdated) {
+                        //Some countries use comma and not the dot when expressing numbers. Ensure consistency by replacing commas with dots.
+                        $newAdamRating = str_replace(',', '.', $formInput['SongGradeAdam']);
+                        $newChurchieRating = str_replace(',', '.', $formInput['SongGradeChurchie']);
+                        $newOwnerRating = str_replace(',', '.', $formInput['SongGradeOwner']);
 
-                                    //Create a song update log if any changes were made
-                                    if ($createUpdateLog)
-                                        $this->LogModel->createLog('playlist_song', $currentPlaylistSong->id, "Zapisano oceny nuty z " . ($playlistId === "search" ? "wyszukiwarki" : "playlisty"));
+                        //Ensure the ratings are valid decimal numbers (full or .5) and are in the range <0, 15>
+                        if (is_numeric($newAdamRating) && is_numeric($newChurchieRating) && is_numeric($newOwnerRating)
+                            && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15) && $this->UtilityModel->InRange($newOwnerRating, 0, 15)
+                            && fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0 && fmod($newOwnerRating, 0.5) == 0)
+                        {
+                            //Update the ratings and prepare the update message
+                            $this->PlaylistSongModel->updatePlaylistSongScores($currentPlaylistSong->id, $newAdamRating, $newChurchieRating, $newOwnerRating);
+                            if ($adamGradeUpdated)
+                                $localResultMessage .= "\tOcena Adama: " . $currentPlaylistSong->SongGradeAdam . " -> " . $newAdamRating . "<br>";
+                            if ($churchieGradeUpdated)
+                                $localResultMessage .= "\tOcena Kościelnego: " . $currentPlaylistSong->SongGradeChurchie . " -> " . $newChurchieRating . "<br>";
+                            if ($ownerGradeUpdated)
+                                $localResultMessage .= "\tOcena Właściciela: " . $currentPlaylistSong->SongGradeOwner . " -> " . $newOwnerRating;
 
-                                    //Copy songs to local playlists
-                                    $newPlaylistSongId = 0;
-                                    if ($formInput['copyToPlaylist']) {
-                                        //Make sure the user is the owner of the playlist they are copying to
-                                        if ($this->PlaylistModel->getListOwnerById($formInput['copyToPlaylist']) == $userId) {
-                                            $newPlaylistSongId = $this->PlaylistSongModel->copyToAnotherPlaylist($currentPlaylistSong->id, $formInput['copyToPlaylist']);
-                                            $sourceName = $playlistId === "search" ? "wyszukiwarki" : "playlisty " . $playlist->ListName;
-                                            $targetName = $this->PlaylistModel->getPlaylistNameById($formInput['copyToPlaylist']);
-                                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
-                                            $localResultMessage .= "Skopiowano do: ".$targetName;
-                                            $this->LogModel->createLog("playlist_song", $newPlaylistSongId, "Nuta skopiowana z ".$sourceName." do ".$targetName);
-                                        }
-                                    }
-
-                                    //Move songs between integrated playlists
-                                    $moveRequired = $formInput['newPlaylistId'] != $playlistId && $formInput['newPlaylistId'] != 0;
-                                    if ($moveRequired)
-                                        $data['displayErrorMessage'] = $this->InsertSongService->moveSongBetweenIntegratedPlaylists($playlist, $currentPlaylistSong, $formInput['newPlaylistId'], $localResultMessage);
-
-                                    //Copy songs to integrated playlists
-                                    $copyRequired = $formInput['copyToPlaylist'] != $playlistId && $formInput['copyToPlaylist'] != 0;
-                                    $copyToIntegratedRequired = $copyRequired && $this->PlaylistModel->getPlaylistIntegratedById($formInput['copyToPlaylist']);
-                                    if ($copyToIntegratedRequired && $newPlaylistSongId)
-                                        $data['displayErrorMessage'] = ($data['displayErrorMessage'] ?? "")."<br>".$this->InsertSongService->copySongToIntegratedPlaylist($currentPlaylistSong, $formInput['copyToPlaylist'], $newPlaylistSongId, $localResultMessage);
-
-                                    //Save the result message and pass it to the report
-                                    $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór ".$currentSong->SongTitle.":<br><br>".$localResultMessage) : "";
-                                    $resultMessage .= $finalResultMessage;
-                                }
-                                else redirect('logout');
-                            }
-                            else $resultMessage .= "<br><br>\tNie znaleziono utworu o ID " . $formInput['songId'] . "<br><br>";
+                            $createUpdateLog = true;
                         }
                     }
-                    //Finalise the result message
-                    $data['resultMessage'] = $resultMessage . "</pre>";
 
-                    //Submit a report
-                    $newReportId = $this->LogModel->submitReport(htmlspecialchars($data['resultMessage']));
+                    //Update the song comment
+                    $commentUpdated = in_array("SongComment", $elementsToUpdate);
+                    if ($commentUpdated) {
+                        $this->PlaylistSongModel->updateSongComment($currentPlaylistSong->id, $formInput['SongComment']);
+                        $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                        $localResultMessage .= "Komentarz: " . $currentPlaylistSong->SongComment . " -> " . $formInput['SongComment'];
+                        $createUpdateLog = true;
+                    }
 
-                    //Create a log
-                    $where = $playlistId === "search" ? "z wyszukiwarki" : "z playlisty";
-                    $reportSuccessful = $newReportId ? " i dołączono raport." : ", nie udało się zapisać raportu.";
-                    $logMessage = "Zapisano oceny ".$where.$reportSuccessful;
-                    if (is_numeric($playlistId))
-                        $this->LogModel->createLog('playlist', $playlistId, $logMessage, $newReportId);
+                    //Update song checkbox properties (buttons)
+                    foreach ($elementsToUpdate as $prop) {
+                        if (!in_array($prop, ["SongGradeAdam", "SongGradeChurchie", "SongGradeOwner", "SongComment"])) {
+                            $propertyDisplayName = $this->getPropertyDisplayName($prop);
+                            $this->PlaylistSongModel->updateSongCheckboxProperty($currentPlaylistSong->id, $prop, $formInput[$prop]);
+                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                            $localResultMessage .= ($formInput[$prop] ? "Zaznaczono " : "Odznaczono ") . $propertyDisplayName;
+                            $createUpdateLog = true;
+                        }
+                    }
 
-                    $this->load->view('templates/main', $data);
+                    //Create a song update log if any changes were made
+                    if ($createUpdateLog)
+                        $this->LogModel->createLog('playlist_song', $currentPlaylistSong->id, "Zapisano oceny nuty z playlisty");
+
+                    //Copy songs to local playlists
+                    $newPlaylistSongId = 0;
+                    if ($formInput['copyToPlaylist']) {
+                        //Make sure the user is the owner of the playlist they are copying to
+                        if ($this->PlaylistModel->getListOwnerById($formInput['copyToPlaylist']) == $userId) {
+                            $newPlaylistSongId = $this->PlaylistSongModel->copyToAnotherPlaylist($currentPlaylistSong->id, $formInput['copyToPlaylist']);
+                            $targetName = $this->PlaylistModel->getPlaylistNameById($formInput['copyToPlaylist']);
+                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                            $localResultMessage .= "Skopiowano do: ".$targetName;
+                            $this->LogModel->createLog("playlist_song", $newPlaylistSongId, "Nuta skopiowana z playlisty ".$playlist->ListName." do ".$targetName);
+                        }
+                    }
+
+                    //Move songs between integrated playlists
+                    $moveRequired = $formInput['newPlaylistId'] != 0 && $formInput['newPlaylistId'] != $playlistId;
+                    if ($moveRequired)
+                        $data['displayErrorMessage'] = $this->InsertSongService->moveSongBetweenIntegratedPlaylists($playlist, $currentPlaylistSong, $formInput['newPlaylistId'], $localResultMessage);
+
+                    //Copy songs to integrated playlists
+                    $copyRequired = $formInput['copyToPlaylist'] != 0 && $formInput['copyToPlaylist'] != $playlistId;
+                    $copyToIntegratedRequired = $copyRequired && $this->PlaylistModel->getPlaylistIntegratedById($formInput['copyToPlaylist']);
+                    if ($copyToIntegratedRequired && $newPlaylistSongId)
+                        $data['displayErrorMessage'] = ($data['displayErrorMessage'] ?? "")."<br>".$this->InsertSongService->copySongToIntegratedPlaylist($currentPlaylistSong, $formInput['copyToPlaylist'], $newPlaylistSongId, $localResultMessage);
+
+                    //Save the result message and pass it to the report
+                    $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór ".$currentSong->SongTitle.":<br><br>".$localResultMessage) : "";
+                    $resultMessage .= $finalResultMessage;
                 }
-                else redirect('logout');
+                else
+                    $resultMessage .= "<br><br>\tNie znaleziono utworu o ID ".$formInput['playlistSongId']."<br><br>";
             }
-            else redirect('logout');
         }
-        else redirect('logout');
+        //Finalise the result message and submit it as a report
+        $data['resultMessage'] = $resultMessage . "</pre>";
+        $newReportId = $this->LogModel->submitReport(htmlspecialchars($data['resultMessage']));
+
+        //Create a log
+        $reportSuccessful = $newReportId ? " i dołączono raport." : ", ale nie udało się zapisać raportu.";
+        $logMessage = "Zapisano oceny z playlisty".$reportSuccessful;
+        $this->LogModel->createLog('playlist', $playlistId, $logMessage, $newReportId);
+
+        $this->load->view('templates/main', $data);
+    }
+
+    /**
+     * Update playlist_song grades through the search engine.
+     *
+     * @return void
+     */
+    public function updateGradesFromSearch(): void
+    {
+        //Check if the user is logged in
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $reviewerAuthenticated = $this->SecurityModel->authenticateReviewer();
+        $userId = $this->SecurityModel->getCurrentUserId();
+        if ($userId === false || (!$userAuthenticated && !$reviewerAuthenticated))
+            redirect("logout");
+
+        //To update songs through the search engine, the user must own at least one playlist
+        $userOwnedPlaylists = array_map(fn($item) => $item->ListId, $this->PlaylistModel->fetchUserPlaylistsIDs($userId));
+        $updateAuthenticated = count($userOwnedPlaylists) > 0;
+
+        //Reviewers are allowed to update reviewer-specific fields. As long as any of these conditions are met - the update is authorised
+        if (!$updateAuthenticated && !$reviewerAuthenticated)
+            redirect('logout');
+
+        $data = array(
+            'body' => 'playlistSong/updatePlaylistSongRatings',
+            'title' => 'Oceny Zapisane!',
+            'searchQuery' => $this->input->post('searchQuery')
+        );
+        $resultMessage = "<pre>";
+
+        //Process each song separately
+        $i = 0;
+        $data['processedSongsCount'] = 0;
+        $data['processedAndUpdatedSongsCount'] = 0;
+        while (isset($_POST['songUpdated-'.$i+21])) {
+            //Count the number of songs flagged as requiring update
+            $i += ($data['processedSongsCount'] == 0) ? 0 : 28;
+            $data['processedSongsCount'] += 1;
+
+            //Only process songs that were actually updated
+            if ($this->input->post('songUpdated-' . $i + 21)) {
+                //Fetch the received songs and make sure they exist
+                $formInput['playlistSongId'] = $this->input->post('playlistSongId-'.$i);
+                $currentPlaylistSong = $this->PlaylistSongModel->getPlaylistSong($formInput['playlistSongId']);
+                $currentSong = $currentPlaylistSong !== false ? $this->SongModel->getSong($currentPlaylistSong->songId) : false;
+                if ($currentPlaylistSong !== false && $currentSong !== false) {
+                    //Check if the user is allowed to update this playlist song (through search or playlist listing)
+                    $currentSongPlaylistPublicStatus = $this->PlaylistModel->getListPublicProperty($currentPlaylistSong->listId);
+                    $updateAuthorised = in_array($currentPlaylistSong->listId, $userOwnedPlaylists) || ($reviewerAuthenticated && $currentSongPlaylistPublicStatus);
+                    if (!$updateAuthorised)
+                        redirect('logout');
+
+                    //Count the number of updated songs
+                    $data['processedAndUpdatedSongsCount'] += 1;
+                    $localResultMessage = "";
+
+                    //Fetch playlist song grades
+                    $formInput['SongGradeAdam'] = $this->input->post("newGradeAdam-".$i+1) ?? $currentPlaylistSong->SongGradeAdam;
+                    $formInput['SongGradeChurchie'] = $this->input->post("newGradeChurchie-".$i+2) ?? $currentPlaylistSong->SongGradeChurchie;
+                    $formInput['SongGradeOwner'] = $this->input->post("myNewGrade-".$i+27) ?? $currentPlaylistSong->SongGradeOwner;
+
+                    //Fetch playlist song buttons (checkboxes)
+                    $formInput['SongRehearsal'] = $this->input->post("songRehearsal-".$i+4) ?? $currentPlaylistSong->SongRehearsal;
+                    $formInput['SongDistinction'] = $this->input->post("songDistinction-".$i+5) ?? $currentPlaylistSong->SongDistinction;
+                    $formInput['SongMemorial'] = $this->input->post("songMemorial-".$i+6) ?? $currentPlaylistSong->SongMemorial;
+                    $formInput['SongXD'] = $this->input->post("songXD-".$i+7) ?? $currentPlaylistSong->SongXD;
+                    $formInput['SongNotRap'] = $this->input->post("songNotRap-".$i+8) ?? $currentPlaylistSong->SongNotRap;
+                    $formInput['SongDiscomfort'] = $this->input->post("songDiscomfort-".$i+9) ?? $currentPlaylistSong->SongDiscomfort;
+                    $formInput['SongDepA'] = $this->input->post("songDepA-".$i+26) ?? $currentPlaylistSong->SongDepA;
+                    $formInput['SongTop'] = $this->input->post("songTop-".$i+10) ?? $currentPlaylistSong->SongTop;
+                    $formInput['SongNoGrade'] = $this->input->post("songNoGrade-".$i+11) ?? $currentPlaylistSong->SongNoGrade;
+                    $formInput['SongUber'] = $this->input->post("songUber-".$i+12) ?? $currentPlaylistSong->SongUber;
+                    $formInput['SongBelow'] = $this->input->post("songBelow-".$i+13) ?? $currentPlaylistSong->SongBelow;
+                    $formInput['SongBelTen'] = $this->input->post("songBelTen-".$i+14) ?? $currentPlaylistSong->SongBelTen;
+                    $formInput['SongBelNine'] = $this->input->post("songBelNine-".$i+15) ?? $currentPlaylistSong->SongBelNine;
+                    $formInput['SongBelEight'] = $this->input->post("songBelEight-".$i+16) ?? $currentPlaylistSong->SongBelEight;
+                    $formInput['SongBelFour'] = $this->input->post("songBelFour-".$i+17) ?? $currentPlaylistSong->SongBelFour;
+                    $formInput['SongDuoTen'] = $this->input->post("songDuoTen-".$i+18) ?? $currentPlaylistSong->SongDuoTen;
+                    $formInput['SongVeto'] = $this->input->post("songVeto-".$i+19) ?? $currentPlaylistSong->SongVeto;
+                    $formInput['SongBelHalfSeven'] = $this->input->post("SongBelHalfSeven-".$i+23) ?? $currentPlaylistSong->SongBelHalfSeven;
+                    $formInput['SongBelHalfEight'] = $this->input->post("SongBelHalfEight-".$i+24) ?? $currentPlaylistSong->SongBelHalfEight;
+                    $formInput['SongBelHalfNine'] = $this->input->post("SongBelHalfNine-".$i+25) ?? $currentPlaylistSong->SongBelHalfNine;
+
+                    //Move and copy song select boxes
+                    $formInput['newPlaylistId'] = $this->input->post("newPlaylistId-".$i+3);
+                    $formInput['copyToPlaylist'] = $this->input->post("copyPlaylistId-".$i+20);
+
+                    //Song comment textarea
+                    $formInput['SongComment'] = $this->input->post("songComment-".$i+22) ?? $currentPlaylistSong->SongComment;
+
+                    //Get a list properties that need updating by comparing the form input data with the current song data
+                    $elementsToUpdate = $this->flagSongDataToUpdate($currentPlaylistSong, $formInput);
+
+                    //Update song grades
+                    $createUpdateLog = false;
+                    $adamGradeUpdated = in_array("SongGradeAdam", $elementsToUpdate);
+                    $churchieGradeUpdated = in_array("SongGradeChurchie", $elementsToUpdate);
+                    $ownerGradeUpdated = in_array("SongGradeOwner", $elementsToUpdate);
+                    if ($adamGradeUpdated || $churchieGradeUpdated || $ownerGradeUpdated) {
+                        //Some countries use comma and not the dot when expressing numbers. Ensure consistency by replacing commas with dots.
+                        $newAdamRating = str_replace(',', '.', $formInput['SongGradeAdam']);
+                        $newChurchieRating = str_replace(',', '.', $formInput['SongGradeChurchie']);
+                        $newOwnerRating = str_replace(',', '.', $formInput['SongGradeOwner']);
+
+                        //Ensure the ratings are valid decimal numbers (full or .5) and are in the range <0, 15>
+                        if (is_numeric($newAdamRating) && is_numeric($newChurchieRating) && is_numeric($newOwnerRating)
+                            && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15) && $this->UtilityModel->InRange($newOwnerRating, 0, 15)
+                            && fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0 && fmod($newOwnerRating, 0.5) == 0)
+                        {
+                            //Update the ratings and prepare the update message
+                            $this->PlaylistSongModel->updatePlaylistSongScores($currentPlaylistSong->id, $newAdamRating, $newChurchieRating, $newOwnerRating);
+                            if ($adamGradeUpdated)
+                                $localResultMessage .= "\tOcena Adama: " . $currentPlaylistSong->SongGradeAdam . " -> " . $newAdamRating . "<br>";
+                            if ($churchieGradeUpdated)
+                                $localResultMessage .= "\tOcena Kościelnego: " . $currentPlaylistSong->SongGradeChurchie . " -> " . $newChurchieRating . "<br>";
+                            if ($ownerGradeUpdated)
+                                $localResultMessage .= "\tOcena Właściciela: " . $currentPlaylistSong->SongGradeOwner . " -> " . $newOwnerRating;
+
+                            $createUpdateLog = true;
+                        }
+                    }
+
+                    //Update the song comment
+                    $commentUpdated = in_array("SongComment", $elementsToUpdate);
+                    if ($commentUpdated) {
+                        $this->PlaylistSongModel->updateSongComment($currentPlaylistSong->id, $formInput['SongComment']);
+                        $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                        $localResultMessage .= "Komentarz: " . $currentPlaylistSong->SongComment . " -> " . $formInput['SongComment'];
+                        $createUpdateLog = true;
+                    }
+
+                    //Update song checkbox properties (buttons)
+                    foreach ($elementsToUpdate as $prop) {
+                        if (!in_array($prop, ["SongGradeAdam", "SongGradeChurchie", "SongGradeOwner", "SongComment"])) {
+                            $propertyDisplayName = $this->getPropertyDisplayName($prop);
+                            $this->PlaylistSongModel->updateSongCheckboxProperty($currentPlaylistSong->id, $prop, $formInput[$prop]);
+                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                            $localResultMessage .= ($formInput[$prop] ? "Zaznaczono " : "Odznaczono ") . $propertyDisplayName;
+                            $createUpdateLog = true;
+                        }
+                    }
+
+                    //Create a basic song update log if any changes were made
+                    if ($createUpdateLog)
+                        $this->LogModel->createLog('playlist_song', $currentPlaylistSong->id, "Zapisano oceny nuty z wyszukiwarki");
+
+                    //Copy songs to local playlists
+                    $newPlaylistSongId = 0;
+                    if ($formInput['copyToPlaylist']) {
+                        //Make sure the user is the owner of the playlist they are copying to
+                        if ($this->PlaylistModel->getListOwnerById($formInput['copyToPlaylist']) == $userId) {
+                            $newPlaylistSongId = $this->PlaylistSongModel->copyToAnotherPlaylist($currentPlaylistSong->id, $formInput['copyToPlaylist']);
+                            $targetName = $this->PlaylistModel->getPlaylistNameById($formInput['copyToPlaylist']);
+                            $localResultMessage .= ($localResultMessage == "" ? "\t" : "<br>\t");
+                            $localResultMessage .= "Skopiowano do: ".$targetName;
+                            $this->LogModel->createLog("playlist_song", $newPlaylistSongId, "Nuta skopiowana z wyszukiwarki do ".$targetName);
+                        }
+                    }
+
+                    //Move songs between integrated playlists
+                    $moveRequired = $formInput['newPlaylistId'] != 0 && $formInput['newPlaylistId'] != $currentPlaylistSong->listId;
+                    if ($moveRequired)
+                        $data['displayErrorMessage'] = $this->InsertSongService->moveSongBetweenIntegratedPlaylists(false, $currentPlaylistSong, $formInput['newPlaylistId'], $localResultMessage);
+
+                    //Copy songs to integrated playlists
+                    $copyRequired = $formInput['copyToPlaylist'] != 0 && $formInput['copyToPlaylist'] != $currentPlaylistSong->listId;
+                    $copyToIntegratedRequired = $copyRequired && $this->PlaylistModel->getPlaylistIntegratedById($formInput['copyToPlaylist']);
+                    if ($copyToIntegratedRequired && $newPlaylistSongId)
+                        $data['displayErrorMessage'] = ($data['displayErrorMessage'] ?? "")."<br>".$this->InsertSongService->copySongToIntegratedPlaylist($currentPlaylistSong, $formInput['copyToPlaylist'], $newPlaylistSongId, $localResultMessage);
+
+                    //Save the result message and pass it to the report
+                    $finalResultMessage = $localResultMessage != "" ? ("<br><br>Utwór ".$currentSong->SongTitle.":<br><br>".$localResultMessage) : "";
+                    $resultMessage .= $finalResultMessage;
+                }
+                else
+                    $resultMessage .= "<br><br>\tNie znaleziono utworu o ID ".$formInput['playlistSongId']."<br><br>";
+            }
+        }
+
+        //Finalise the result message and submit it as a report
+        $data['resultMessage'] = $resultMessage . "</pre>";
+        $newReportId = $this->LogModel->submitReport(htmlspecialchars($data['resultMessage']));
+
+        //Create a log
+        $reportSuccessful = $newReportId ? " i dołączono raport." : ", ale nie udało się zapisać raportu.";
+        $logMessage = "Zapisano oceny z wyszukiwarki".$reportSuccessful;
+
+        $this->load->view('templates/main', $data);
     }
 
     /**

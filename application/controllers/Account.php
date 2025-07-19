@@ -16,6 +16,7 @@ if (!isset($_SESSION))
  * @property SecurityModel $SecurityModel
  * @property CI_DB_mysqli_driver $db
  * @property CI_Input $input
+ * @property HTMLSanitiser $htmlsanitiser
  */
 class Account extends CI_Controller
 {
@@ -26,6 +27,7 @@ class Account extends CI_Controller
         $this->load->model('PlaylistModel');
         $this->load->model('SecurityModel');
         $this->load->helper('cookie');
+        $this->load->library('htmlsanitiser');
     }
 
     /**
@@ -92,8 +94,9 @@ class Account extends CI_Controller
             $termsOfService	= $this->input->post('register--TOS');
 
             //Username filters
-            $data['usernameTooShort'] = strlen($username) > 0  ? 0 : "Nazwa użytkownika jest wymagana!";
             $data['usernameTooLong']  = strlen($username) > 20 ? "Nazwa użytkownika nie może być dłuższa niż 20 znaków." : 0;
+            $username = $this->htmlsanitiser->purify($username);
+            $data['usernameTooShort'] = strlen($username) > 0  ? 0 : "Nazwa użytkownika jest wymagana!";
 
             //Email filters
             $data['emailFormatInvalid'] = filter_var($email, FILTER_VALIDATE_EMAIL) ? 0 : "Adres email jest wymagany!";

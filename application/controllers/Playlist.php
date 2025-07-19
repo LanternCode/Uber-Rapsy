@@ -20,6 +20,7 @@ if (!isset($_SESSION))
  * @property CI_Input $input
  * @property CI_DB_mysqli_driver $db
  * @property RefreshPlaylistService $RefreshPlaylistService
+ * @property HTMLSanitiser $htmlsanitiser
  */
 class Playlist extends CI_Controller
 {
@@ -30,6 +31,7 @@ class Playlist extends CI_Controller
 		$this->load->model('PlaylistSongModel');
 		$this->load->model('AccountModel');
 		$this->load->library('RefreshPlaylistService');
+        $this->load->library('htmlsanitiser');
         $this->RefreshPlaylistService = new RefreshPlaylistService();
     }
 
@@ -150,6 +152,7 @@ class Playlist extends CI_Controller
                     );
 
                     if ($queryData['ListName'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
+                        $queryData['ListDesc'] = $this->htmlsanitiser->purify($queryData['ListDesc']);
                         $this->PlaylistModel->updatePlaylist($queryData);
                         $data['resultMessage'] = "Pomyślnie zaktualizowano playlistę!";
                     }
@@ -265,7 +268,8 @@ class Playlist extends CI_Controller
 
                     //Validate the form
                     if ($playlistData['ListName'] && in_array($data['ListPrivacyStatus'], ["public", "unlisted", "private"])) {
-                        //Update the entered description's newline character
+                        //Sanitise the description and update the newline character
+                        $playlistData['ListDesc'] = $this->htmlsanitiser->purify($playlistData['ListDesc']);
                         $playlistData['ListDesc'] = trim(str_replace(["\r\n", "\r"], "\n", $playlistData['ListDesc']));
 
                         //Define service object for making API requests.
@@ -353,6 +357,7 @@ class Playlist extends CI_Controller
 
                 if ($queryData['ListName'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
                     //Insert the playlist to the local db
+                    $queryData['ListDesc'] = $this->htmlsanitiser->purify($queryData['ListDesc']);
                     $newListId = $this->PlaylistModel->insertPlaylist($queryData);
                     $data['resultMessage'] = "Pomyślnie dodano playlistę!";
 

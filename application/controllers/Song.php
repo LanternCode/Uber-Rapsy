@@ -305,7 +305,7 @@ class Song extends CI_Controller
             if (count($songItems) > 0) {
                 foreach ($songItems as $song) {
                     //Import each song if it does not exist yet
-                    $songChannelName = $this->input->post("songChannelName-" . $i) != $song['songChannelName'] ? $this->input->post("songChannelName-" . $i) : $song['songChannelName'];
+                    $songChannelName = $this->input->post("songChannelName-" . $i) != $song['songChannelName'] ? $this->htmlsanitiser->purify($this->input->post("songChannelName-" . $i)) : $song['songChannelName'];
                     $existingSongId = $this->SongModel->songExists($song['externalSongId'], $song['songTitle'], $songChannelName);
                     if ($existingSongId == 0) {
                         $songId = $this->SongModel->insertSong($song['externalSongId'], $userId, $song['songThumbnailLink'], $song['songTitle'], $songChannelName, $song['songPublishedAt']);
@@ -684,7 +684,7 @@ class Song extends CI_Controller
                 $data['errorMessage'] .= "Podano niepoprawną datę.<br>";
 
             //Ensure the textual review is at least 120-characters long
-            $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent']);
+            $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent'], 'rich');
             if (strlen($formData['reviewTextContent']) < 120)
                 $data['errorMessage'] .= "Recenzja musi zawierać przynajmniej 120 znaków.<br>";
 
@@ -785,7 +785,7 @@ class Song extends CI_Controller
                 $data['errorMessage'] .= "Podano niepoprawną datę.<br>";
 
             //Ensure the textual review is at least 120-characters long
-            $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent']);
+            $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent'], 'rich');
             if (strlen($formData['reviewTextContent']) < 120)
                 $data['errorMessage'] .= "Recenzja musi zawierać przynajmniej 120 znaków.<br>";
 
@@ -817,11 +817,13 @@ class Song extends CI_Controller
     {
         //Validate the posted song title
         $data['songTitle'] = $this->input->post('songTitle') !== null ? trim($this->input->post('songTitle')) : null;
+        $data['songTitle'] = $this->htmlsanitiser->purify($data['songTitle']);
         if (!strlen($data['songTitle']) > 0)
             $data['titleError'] = "<p class='errorMessage'>Musisz podać tytuł utworu!</p>";
 
         //Validate the posted song author
         $data['songAuthor'] = $this->input->post('songAuthor') !== null ? trim($this->input->post('songAuthor')) : null;
+        $data['songAuthor'] = $this->htmlsanitiser->purify($data['songAuthor']);
         if (!strlen($data['songAuthor']) > 0)
             $data['authorError'] = "<p class='errorMessage'>Musisz podać przynajmniej jednego autora utworu!</p>";
 
@@ -835,6 +837,7 @@ class Song extends CI_Controller
         //Validate the thumbnail link if one was posted
         $linkProvided = false;
         $data['songThumbnailLink'] = $this->input->post('songThumbnailLink') !== null ? trim($this->input->post('songThumbnailLink')) : null;
+        $data['songThumbnailLink'] = $this->htmlsanitiser->purify($data['songThumbnailLink']);
         if (strlen($data['songThumbnailLink']) > 0) {
             $linkProvided = true;
             if (!filter_var($data['songThumbnailLink'], FILTER_VALIDATE_URL))

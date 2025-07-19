@@ -16,9 +16,9 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Returns the user data requires for authentication.
+     * Return the user data required for authentication.
      *
-     * @param string $email user email
+     * @param string $email
      * @return int|object returns 0 if the user was not found, or their data if found
      */
     public function getUserData(string $email): int|object
@@ -26,18 +26,16 @@ class AccountModel extends CI_Model
         $sql = "SELECT id, password, role FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->password) && $query->row()->password) {
+        if (isset($query->row()->password) && $query->row()->password)
             return $query->row();
-        } else {
-            return 0;
-        }
+        else return 0;
     }
 
     /**
      * Insert a new user into the database.
      *
      * @param array $queryData new account details
-     * @return int id of the newly inserted user
+     * @return int new user id
      */
     public function registerNewUser(array $queryData): int
     {
@@ -56,11 +54,10 @@ class AccountModel extends CI_Model
         $sql = "SELECT email FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->email) && $query->row()->email) {
+        if (isset($query->row()->email) && $query->row()->email)
             return false;
-        } else {
+        else
             return true;
-        }
     }
 
     /**
@@ -77,9 +74,8 @@ class AccountModel extends CI_Model
         $codeAlphabet .= "0123456789";
         $codeALength = strlen($codeAlphabet) - 1;
 
-        for ($i = 0; $i < 255; ++$i) {
+        for ($i = 0; $i < 255; ++$i)
             $token .= $codeAlphabet[rand(0, $codeALength)];
-        }
 
         return $token;
     }
@@ -128,24 +124,23 @@ class AccountModel extends CI_Model
      * Check whether the entered password reset key is valid.
      *
      * @param string $key
-     * @return int|object returns the id of the matching user's password reset key, or 0 if no matching user was found
+     * @return int|object id of the matching user's password reset key or 0 if no matching user was found
      */
     public function validatePasswordResetString(string $key): int|object
     {
         $sql = "SELECT id FROM user WHERE passwordResetKey = '$key'";
         $query = $this->db->query($sql);
 
-        if (isset($query->row()->id) && $query->row()->id) {
+        if (isset($query->row()->id) && $query->row()->id)
             return $query->row()->id;
-        } else {
+        else
             return 0;
-        }
     }
 
     /**
-     * Update the user's password.
+     * Update a user password.
      *
-     * @param string $password the new password entered by the user
+     * @param string $password the plaintext password to be hashed
      * @param string $userId
      * @return void
      */
@@ -157,8 +152,8 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Fetch user credentials and compare the inputted password with the actual password.
-     * Set a user session upon a successful sign in is.
+     * Fetch user credentials and compare the input password with the actual password.
+     * Set a user session upon a successful sign in.
      *
      * @param string $email
      * @param string $password
@@ -174,13 +169,12 @@ class AccountModel extends CI_Model
             $_SESSION['userRole'] = $userData->role;
             $_SESSION['userId'] = $userData->id;
             return true;
-        } else {
-            return false;
         }
+        else return false;
     }
 
     /**
-     * Automatically sign the user in upon visiting the homepage if a valid login cookie exists.
+     * Automatically sign the user visiting the homepage if a valid login cookie exists.
      *
      * @return bool true if the sign in was successful, false otherwise
      */
@@ -189,15 +183,14 @@ class AccountModel extends CI_Model
         $data['email'] = json_decode($_COOKIE["login"])->userEmail;
         $data['password'] = json_decode($_COOKIE["login"])->userPassword;
 
-        if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL))
             return $this->signIn($data['email'], $data['password']);
-        } else {
+        else
             return false;
-        }
     }
 
     /**
-     * Fetch the user's username.
+     * Fetch a user username.
      *
      * @param int $userId
      * @return string
@@ -224,7 +217,7 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Add user score.
+     * Add points to the user score.
      *
      * @param int $userId
      * @param string $actionType
@@ -260,7 +253,7 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Subtracts points from the user.
+     * Subtracts points from the user score.
      * This is required so that users do not create and immediately delete content to increase their score.
      *
      * @param int $userId

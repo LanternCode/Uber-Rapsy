@@ -36,23 +36,23 @@
             <div class="videoContainerBox">
                 <img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft" />
                 <div class="dataContainerBox">
-                    <input type="hidden" name="songId-<?=$i?>" value="<?=$song->id?>"/>
+                    <input type="hidden" name="playlistSongId-<?=$i?>" value="<?=$song->id?>"/>
                     <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a></h3>
                     <div class="dataContainerBox--split">
                         <div class="dataContainerBox--split__left">
                             <h4 class="dataContainer--gradeContainer">
                                 <label>Adam: <?=$song->SongGradeAdam ?? 'Nieoceniona'?> -></label>
-                                <input name="nwGradeA-<?=$i+1?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
+                                <input name="newGradeAdam-<?=$i+1?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
                                        value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$isReviewer ? "" : "disabled" ?>/>
                             </h4>
                             <h4 class="dataContainer--gradeContainer">
                                 <label>Kościelny: <?=$song->SongGradeChurchie ?? 'Nieoceniona'?> -></label>
-                                <input name="nwGradeC-<?=$i+2?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
+                                <input name="newGradeChurchie-<?=$i+2?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
                                        value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$isReviewer ? "" : "disabled" ?>/>
                             </h4>
                             <h4 class="dataContainer--gradeContainer">
                                 <label>Moja Ocena: <?=$song->SongGradeOwner ?? 'Nieoceniona'?> -></label>
-                                <input name="nwGradeM-<?=$i+27?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
+                                <input name="myNewGrade-<?=$i+27?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
                                        value="<?=$song->SongGradeOwner ?? 'Nieoceniona'?>" <?=$isOwner ? "" : "disabled" ?>/>
                             </h4>
                             <h5 class="dataContainer--gradeContainer">
@@ -63,7 +63,7 @@
                             if(count($lists) > 1 && $isReviewer): ?>
                                 <h5 class="dataContainer--gradeContainer">
                                     <label>Przenieś do:</label>
-                                    <select name="<?="nwPlistId-".$i+3?>" class="selectBox">
+                                    <select name="<?="newPlaylistId-".$i+3?>" class="selectBox">
                                         <option value="0">Nie przenoś</option>
                                         <?php foreach($lists as $list):
                                             if($list->ListId !== $listId):?>
@@ -74,7 +74,7 @@
                                 </h5>
                                 <h5 class="dataContainer--gradeContainer">
                                     <label>Kopiuj do:</label>
-                                    <select name="<?="copyPlistId-".$i+20?>" class="selectBox">
+                                    <select name="<?="copyPlaylistId-".$i+20?>" class="selectBox">
                                         <option value="0">Nie kopiuj</option>
                                         <?php foreach($lists as $list):
                                             if($list->ListId !== $listId):?>
@@ -84,10 +84,10 @@
                                     </select>
                                 </h5>
                             <?php else: ?>
-                                <select style="display:none;" name="<?="nwPlistId-".$i+3?>">
+                                <select style="display:none;" name="<?="newPlaylistId-".$i+3?>">
                                     <option value="0">Nie przenoś</option>
                                 </select>
-                                <select style="display:none;" name="<?="copyPlistId-".$i+20?>">
+                                <select style="display:none;" name="<?="copyPlaylistId-".$i+20?>">
                                     <option value="0">Nie kopiuj</option>
                                 </select>
                             <?php endif;?>

@@ -72,13 +72,13 @@ class InsertSongService
     /**
      * Move a playlist song from one playlist to another where at least one of them is integrated with YT
      *
-     * @param $playlist object source playlist object
+     * @param $playlist object|false source playlist object or false if one was not available and must be fetched
      * @param $currentPlaylistSong object the playlist_song object being moved
      * @param $newPlaylistId int target playlist id
      * @param $localResultMessage string a string holding the song update display text
      * @return string an error message (or empty string if all went well)
      */
-    public function moveSongBetweenIntegratedPlaylists(object $playlist, object $currentPlaylistSong, int $newPlaylistId, string &$localResultMessage): string
+    public function moveSongBetweenIntegratedPlaylists(object|false $playlist, object $currentPlaylistSong, int $newPlaylistId, string &$localResultMessage): string
     {
         //Check whether the API was loaded correctly
         $newPlaylistDetails = $this->CI->PlaylistModel->fetchPlaylistById($newPlaylistId);

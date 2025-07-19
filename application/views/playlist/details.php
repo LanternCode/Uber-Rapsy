@@ -23,6 +23,7 @@
 <p>Nazwa użytkownika właściciela playlisty: <?=$playlistOwnerUsername?></p><br><br>
 
 <h3>Zarządzaj playlistą</h3><br>
+<a href="<?=base_url("downloadSongs?playlistId=".$playlist->ListId)?>">Załaduj nowe nuty</a><br><br>
 <a href="<?=base_url('playlist/edit?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Edytuj Playlistę</a><br><br>
 <a href="<?=base_url('playlist/hidePlaylist?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>"><?=$playlist->ListPublic === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br><br>
 <a href="<?=base_url('playlist/deleteLocal?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Usuń Playlistę</a><br><br>

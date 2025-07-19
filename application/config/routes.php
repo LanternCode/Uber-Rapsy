@@ -5,6 +5,7 @@ $route['playlist'] = 'PlaylistItems/loadPlaylist';
 $route['search'] = 'PlaylistItems/globalSearch';
 $route['tierlist'] = 'PlaylistItems/tierlist';
 $route['updateSongRatings'] = 'PlaylistItems/updateSongRatingsInPlaylist';
+$route['updateGradesFromSearch'] = 'PlaylistItems/updateGradesFromSearch';
 $route['downloadSongs'] = 'PlaylistItems/downloadSongs';
 $route['playlist/delSong'] = 'PlaylistItems/deletePlaylistSong';
 
