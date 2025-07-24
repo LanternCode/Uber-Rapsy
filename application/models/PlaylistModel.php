@@ -36,21 +36,24 @@ class PlaylistModel extends CI_Model
      *
      * @return array
      */
-    public function getAllLists(): array
+    public function getAllPlaylists(): array
     {
-        $sql = "SELECT * FROM list";
-        return $this->db->query($sql)->result();
+        $this->db->select('list.*, user.username');
+        $this->db->from('list');
+        $this->db->join('user', 'list.ListOwnerId = user.id');
+        $query = $this->db->get();
+        return $query->result();
     }
 
     /**
-     * Fetch IDs and names of all playlists for display in search results
-     *  and moving songs between playlists.
+     * Fetch IDs and names of all user playlists to allow
+     *  for moving and copying songs between playlists.
      *
      * @return array
      */
-    public function getListsIdsAndNames(): array
+    public function getUserPlayistsIdsAndNames(int $userId): array
     {
-        $sql = "SELECT ListId, ListName FROM list";
+        $sql = "SELECT ListId, ListName FROM list WHERE ListOwnerId = $userId";
         return $this->db->query($sql)->result();
     }
 
@@ -182,7 +185,7 @@ class PlaylistModel extends CI_Model
     }
 
     /**
-     * Fetch all user's playlists.
+     * Fetch user playlists.
      *
      * @param $userId int
      * @return array

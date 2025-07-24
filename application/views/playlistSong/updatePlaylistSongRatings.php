@@ -1,12 +1,12 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <h1>Zapisywanie ocen</h1>
 <br><br>
-<?php if($searchQuery): ?>
+<?php if ($searchQuery): ?>
     <a href="<?=base_url('search?SearchQuery='.$searchQuery)?>">Powrót do wyników wyszukiwania</a>
-<?php elseif (isset($playlistId) && is_numeric($playlistId)): ?>
-    <a href="<?=base_url('playlist?playlistId='.$playlistId)?>">Powrót do playlisty</a>
+<?php elseif ($saveSource == "tierlist"): ?>
+    <a href="<?=base_url('tierlist?playlistId='.$playlistId.'&filter='.$filter)?>">Powrót do tierlisty</a>
 <?php else: ?>
-    <a href="<?=base_url()?>">Powrót do strony głównej</a>
+    <a href="<?=base_url('playlist?playlistId='.$playlistId)?>">Powrót do playlisty</a>
 <?php endif; ?>
 <br><br><br>
 <h2>Wynik Zapisu:</h2>
@@ -24,7 +24,7 @@
             )
     )
     ?>, z czego zaktualizowano <?=$processedAndUpdatedSongsCount?>.</h3>
-<?php if(isset($displayErrorMessage) && $displayErrorMessage !== ''): ?>
+<?php if (!empty($displayErrorMessage)): ?>
     <br><br>
     <h3>Wystąpił błąd w zapisywaniu ocen :/</h3>
     <h4><?=$displayErrorMessage?></h4>

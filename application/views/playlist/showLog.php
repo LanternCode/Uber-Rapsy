@@ -7,9 +7,9 @@
 <p>Nazwa playlisty: <?=$playlist->ListName?></p><br>
 <p>Data dodania playlisty: <?=$playlist->ListCreatedAt?></p><br>
 
-<?php if(count($playlistLog) > 0): ?>
+<?php if (count($playlistLog) > 0): ?>
     <h3>Historia Playlisty</h3>
-        <?php foreach($playlistLog as $log): ?>
+        <?php foreach ($playlistLog as $log): ?>
             <?=$log->Timestamp?> <?=$log->Description?> <?=$log->reportId > 0 ? "(<a target='_blank' href='".base_url('displayReport?repId='.$log->reportId)."'>Wyświetl Raport</a>)" : ''?><br>
         <?php endforeach; ?>
 <?php else: ?>

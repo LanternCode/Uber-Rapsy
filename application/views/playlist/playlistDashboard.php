@@ -11,6 +11,7 @@
     <tr>
         <th>Przejdź</th>
         <th>Nazwa Playlisty</th>
+        <th>Właściciel</th>
         <th>Edycja</th>
         <th>Widoczność</th>
         <th>Szczegóły</th>
@@ -20,6 +21,7 @@
         <tr>
             <td><a target="_blank" href="<?=base_url('playlist?playlistId='.$playlist->ListId)?>">--></a></td>
             <td><?=$playlist->ListName?></td>
+            <td><a href="<?=base_url('user/details?uid='.$playlist->ListOwnerId)?>"><?=$playlist->username?></a></td>
             <td><a href="<?=base_url('playlist/edit?playlistId='.$playlist->ListId.'&src=pd')?>">Edytuj</a></td>
             <td><?=$playlist->ListPublic === "1" ? "Publiczna" : "Prywatna"?></td>
             <td><a href="<?=base_url('playlist/details?playlistId='.$playlist->ListId.'&src=pd')?>">Szczegóły</a></td>

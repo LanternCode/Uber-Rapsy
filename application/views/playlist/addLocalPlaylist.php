@@ -35,5 +35,5 @@
         <option value="0">Prywatna - widoczna tylko dla właściciela</option>
     </select><br /><br />
 
-    <input type="submit" name="playlistFormSubmitted" value="Utwórz lokalną playlistę" />
+    <input type="submit" value="Utwórz lokalną playlistę" />
 </form>

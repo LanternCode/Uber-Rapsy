@@ -1,8 +1,10 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <?php if ($redirectSource == 'pd'): ?>
     <a href="<?=base_url('playlistDashboard')?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
-<?php else: ?>
+<?php elseif ($redirectSource == 'mp'): ?>
     <a href="<?=base_url('myPlaylists')?>"><-- Wróć do moich playlist</a><br><br>
+<?php else: ?>
+    <a href='<?=base_url('playlist?playlistId='.$playlist->ListId)?>'><-- Wróć do playlisty</a>
 <?php endif; ?>
 
 <h3>Informacje o playliście</h3><br>
@@ -29,34 +31,44 @@
 <a href="<?=base_url('playlist/deleteLocal?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Usuń Playlistę</a><br><br>
 <a href="<?=base_url('playlist/showLog?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Pokaż ostatnie zmiany</a><br><br>
 
-<?php if(count($songs) > 0): ?>
+<?php if (count($songs) > 0): ?>
     <h3>Tracklista</h3>
     <table>
         <tr>
             <th>Track</th>
             <th>Status na YT</th>
-            <th>Ocena Adama</th>
-            <th>Ocena Kościelnego</th>
-            <th>Ocena Właściciela</th>
+            <?php if ($isRapparManaged): ?>
+                <th>Ocena Adama</th>
+                <th>Ocena Kościelnego</th>
+            <?php else: ?>
+                <th>Ocena Właściciela</th>
+            <?php endif; ?>
             <th>Ukryj Utwór</th>
             <th>Usuń z listy</th>
             <th>Sprawdź Historię</th>
         </tr>
         <?php foreach($songs as $song): ?>
             <tr>
-                <?php if($song->SongDeleted): ?>
+                <?php if ($song->SongDeleted): ?>
                     <td><i><b><?=$song->SongTitle?></b></i></td>
                     <td>-</td>
-                    <td>-</td>
-                    <td>-</td>
+                    <?php if ($isRapparManaged): ?>
+                        <td>-</td>
+                        <td>-</td>
+                    <?php else: ?>
+                        <td>-</td>
+                    <?php endif; ?>
                     <td>-</td>
                     <td>-</td>
                 <?php else: ?>
                     <td><?=$song->SongTitle?></td>
                     <td>-</td>
-                    <td><?=$song->SongGradeAdam?></td>
-                    <td><?=$song->SongGradeChurchie?></td>
-                    <td><?=$song->SongGradeOwner?></td>
+                    <?php if ($isRapparManaged): ?>
+                        <td><?=$song->SongGradeAdam?></td>
+                        <td><?=$song->SongGradeChurchie?></td>
+                    <?php else: ?>
+                        <td><?=$song->SongGradeOwner?></td>
+                    <?php endif; ?>
                     <td><a href="<?=base_url('playlistItems/updatePlaylistSongVisibility?songId='.$song->id.'&src='.$redirectSource)?>"><?=$song->SongVisible ? "Ukryj" : "Upublicznij"?></a></td>
                     <td><a href="<?=base_url('playlist/delSong?songId='.$song->id.'&src='.$redirectSource)?>">Usuń</a></td>
                 <?php endif; ?>

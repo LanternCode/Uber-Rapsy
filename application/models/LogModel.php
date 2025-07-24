@@ -95,7 +95,7 @@ class LogModel extends CI_Model
      * Submit a report and return its id.
      *
      * @param string $reportText
-     * @return int new report id
+     * @return int
      */
     public function submitReport(string $reportText): int
     {

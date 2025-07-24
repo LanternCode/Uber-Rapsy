@@ -88,14 +88,15 @@ class PlaylistSongModel extends CI_Model
      *
      * @param int $listId
      * @param string $filter reviewer's name (Adam/Churchie/Owner)
+     * @param bool $rapparManagedPlaylist true if the playlist is operated by rappar
      * @return array
      */
-    public function getTopPlaylistSongs(int $listId, string $filter): array
+    public function getTopPlaylistSongs(int $listId, string $filter, bool $rapparManagedPlaylist): array
     {
-        $cond = $filter === "Adam" ? "ps.SongGradeAdam" : ($filter === "Churchie" ? "ps.SongGradeChurchie" : ($filter === "Owner" ? "ps.SongGradeOwner" : "(ps.SongGradeAdam+ps.SongGradeChurchie+ps.SongGradeOwner)/3"));
+        $cond = $filter === "Adam" ? "ps.SongGradeAdam" : ($filter === "Churchie" ? "ps.SongGradeChurchie" : ($rapparManagedPlaylist ? "(ps.SongGradeAdam+ps.SongGradeChurchie)/2" : "ps.SongGradeOwner"));
         $sql = "SELECT ps.*, s.SongURL, s.SongThumbnailURL, s.SongTitle 
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
-                WHERE ps.SongVisible = 1 AND ps.SongDeleted = 0 AND ps.listId = $listId AND " . $cond . " > 0 ORDER BY $cond DESC";
+                WHERE ps.SongVisible = 1 AND ps.SongDeleted = 0 AND ps.listId = $listId AND ".$cond." > 0 ORDER BY $cond DESC";
 
         return $this->db->query($sql)->result();
     }

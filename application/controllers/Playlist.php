@@ -42,16 +42,17 @@ class Playlist extends CI_Controller
      */
     public function playlistDashboard(): void
     {
+        //Ensure a rappar staff member is logged in
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
-        if ($userAuthenticated) {
-            $data = array(
-                'body' => 'playlist/playlistDashboard',
-                'title' => 'Uber Rapsy | Zarządzaj playlistami!',
-                'playlists' => $this->PlaylistModel->getAllLists()
-            );
-            $this->load->view('templates/main', $data);
-        }
-        else redirect('logout');
+        if (!$userAuthenticated)
+            redirect('logout');
+
+        $data = array(
+            'body' => 'playlist/playlistDashboard',
+            'title' => 'Uber Rapsy | Zarządzaj playlistami!',
+            'playlists' => $this->PlaylistModel->getAllPlaylists()
+        );
+        $this->load->view('templates/main', $data);
     }
 
     /**
@@ -80,26 +81,32 @@ class Playlist extends CI_Controller
      */
     public function playlistDetails(): void
     {
+        //Validate the provided playlist id
         $listId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
-        if ($listId) {
-            $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($listId) == $_SESSION['userId'];
-            if ($userAuthorised) {
-                $data = array(
-                    'body' => 'playlist/details',
-                    'title' => 'Uber Rapsy | Zarządzaj playlistą!',
-                    'songs' => $this->PlaylistSongModel->getPlaylistSongs($listId, "", true),
-                    'playlist' => $this->PlaylistModel->fetchPlaylistById($listId),
-                    'isReviewer' => $this->SecurityModel->authenticateReviewer(),
-                    'redirectSource' => $this->input->get('src')
-                );
-                $data['playlistOwnerUsername'] = $this->AccountModel->fetchUsernameById($data['playlist']->ListOwnerId);
+        if (!$listId)
+            redirect('logout');
 
-                $this->load->view('templates/main', $data);
-            }
-            else redirect('logout');
-        }
-        else redirect('logout');
+        //Validate user permissions
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userId = $this->SecurityModel->getCurrentUserId();
+        $playlistOwnerId = $this->PlaylistModel->getListOwnerById($listId);
+        $userAuthorised = $userAuthenticated && $playlistOwnerId == $userId;
+        if ($userAuthorised)
+            redirect('logout');
+
+        //Fetch playlist details
+        $data = array(
+            'body' => 'playlist/details',
+            'title' => 'Uber Rapsy | Zarządzaj playlistą!',
+            'songs' => $this->PlaylistSongModel->getPlaylistSongs($listId, "", true),
+            'playlist' => $this->PlaylistModel->fetchPlaylistById($listId),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer(),
+            'redirectSource' => $this->input->get('src'),
+            'isRapparManaged' => $playlistOwnerId == 1
+        );
+        $data['playlistOwnerUsername'] = $this->AccountModel->fetchUsernameById($data['playlist']->ListOwnerId);
+
+        $this->load->view('templates/main', $data);
     }
 
     /**
@@ -332,54 +339,54 @@ class Playlist extends CI_Controller
     public function addLocalPlaylist(): void
     {
         //Make sure the user is logged in to continue
-        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
         $userId = $this->SecurityModel->getCurrentUserId();
         $userAuthorised = $userAuthenticated && $userId !== false;
-        if ($userAuthorised) {
-            $data = array(
-                'body' => 'playlist/addLocalPlaylist',
-                'title' => 'Uber Rapsy | Dodaj lokalnie playlistę!',
-                'redirectSource' => $this->input->get('src')
+        if (!$userAuthorised)
+            redirect('logout');
+
+        $data = array(
+            'body' => 'playlist/addLocalPlaylist',
+            'title' => 'Uber Rapsy | Dodaj lokalną playlistę!',
+            'redirectSource' => $this->input->get('src')
+        );
+
+        if ($this->input->post()) {
+            $queryData = array(
+                'ListUrl' => $this->input->post('playlistUrl'),
+                'ListName' => $this->input->post('playlistName'),
+                'ListDesc' => $this->input->post('playlistDesc'),
+                'ListCreatedAt' => $this->input->post('playlistDate'),
+                'ListPublic' => $this->input->post('playlistVisibility'),
+                'ListOwnerId' => $userId
             );
 
-            if ($this->input->post('playlistFormSubmitted')) {
-                $queryData = array(
-                    'ListUrl' => $this->input->post('playlistUrl'),
-                    'ListName' => $this->input->post('playlistName'),
-                    'ListDesc' => $this->input->post('playlistDesc'),
-                    'ListCreatedAt' => $this->input->post('playlistDate'),
-                    'ListPublic' => $this->input->post('playlistVisibility'),
-                    'ListOwnerId' => $_SESSION['userId'],
-                );
+            //Obtain the unique playlist ID from the url given
+            $queryData['ListUrl'] = $this->UtilityModel->extractPlaylistIdFromLink($queryData['ListUrl']);
 
-                //Obtain the unique playlist ID from the url given
-                $queryData['ListUrl'] = $this->UtilityModel->extractPlaylistIdFromLink($queryData['ListUrl']);
+            if ($queryData['ListName'] && $queryData['ListCreatedAt'] && !empty($queryData['ListPublic'])) {
+                //Insert the playlist to the local db
+                $queryData['ListDesc'] = $this->htmlsanitiser->purify($queryData['ListDesc']);
+                $newListId = $this->PlaylistModel->insertPlaylist($queryData);
 
-                if ($queryData['ListName'] && $queryData['ListCreatedAt'] && $queryData['ListPublic'] != "") {
-                    //Insert the playlist to the local db
-                    $queryData['ListDesc'] = $this->htmlsanitiser->purify($queryData['ListDesc']);
-                    $newListId = $this->PlaylistModel->insertPlaylist($queryData);
-                    $data['resultMessage'] = "Pomyślnie dodano playlistę!";
+                //Create a log
+                $data['resultMessage'] = "Pomyślnie dodano playlistę!";
+                $this->LogModel->createLog('playlist', $newListId, "Stworzono lokalną playlistę");
 
-                    //If a YT URL was provided, fetch the songs and refresh the playlist
-                    if (!empty($queryData['ListUrl'])) {
-                        //Refresh the playlist - if everything went well, the message will be empty
-                        $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($newListId, $userId);
-                    }
-
-                    //Create a log
-                    $this->LogModel->createLog('playlist', $newListId, "Stworzono lokalną playlistę");
-                }
-                else {
-                    $data['resultMessage'] = $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
-                    $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
-                    $data['resultMessage'] .= $queryData['ListPublic'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
+                //If a YT URL was provided, fetch the songs and refresh the playlist
+                if (!empty($queryData['ListUrl'])) {
+                    //Refresh the playlist - if everything went well, the message will be empty
+                    $data['displayErrorMessage'] = $this->RefreshPlaylistService->refreshPlaylist($newListId, $userId);
                 }
             }
-
-            $this->load->view('templates/main', $data);
+            else {
+                $data['resultMessage'] = $queryData['ListName'] == "" ? "Nazwa Playlisty jest wymagana!</br>" : '';
+                $data['resultMessage'] .= $queryData['ListCreatedAt'] == "" ? "Data Stworzenia Playlisty jest wymagana!</br>" : '';
+                $data['resultMessage'] .= $queryData['ListPublic'] == "" ? "Status Playlisty jest wymagany!</br>" : '';
+            }
         }
-        else redirect('logout');
+
+        $this->load->view('templates/main', $data);
     }
 
     /**
@@ -405,7 +412,10 @@ class Playlist extends CI_Controller
                 $deleteLocal = $this->input->get('del');
                 if ($deleteLocal) {
                     $this->PlaylistModel->deleteLocalPlaylist($playlistId);
-                    redirect('myPlaylists');
+                    if ($data['redirectSource'] == "pd")
+                        redirect('playlistDashboard');
+                    else
+                        redirect('myPlaylists');
                 }
 
                 $this->load->view('templates/main', $data);

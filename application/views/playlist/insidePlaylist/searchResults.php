@@ -3,7 +3,7 @@
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#songsForm">Góra Listy</a>
-    <?php if(($isReviewer || (isset($userOwnedPlaylists) && count($userOwnedPlaylists)) > 0) && count($songs) > 0): ?>
+    <?php if (count($songs) > 0 && count($userOwnedPlaylistIDs) > 0): ?>
         <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
     <?php endif; ?>
     <form class="optionsURL optionsRight" method="get" action="<?=base_url("search")?>">
@@ -21,42 +21,46 @@
             <?php
             $i = 0;
             foreach($songs as $key => $song):
-                $isOwner = in_array($song->listId, $userOwnedPlaylists); ?>
+                $isPlaylistOwner = in_array($song->listId, $userOwnedPlaylistIDs);
+                $rapparManagedPlaylist = (int) $playlist[$key]->ListOwnerId === 1; ?>
                 <div class="videoContainerBox">
-                    <img src="<?=$song->SongThumbnailURL?>" width="" height="" alt="thumbnail" class="songThumbnailLeft" />
+                    <img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft" />
                     <div class="dataContainerBox">
                         <input type="hidden" name="playlistSongId-<?=$i?>" value="<?=$song->id?>"/>
                         <h4>Z playlisty: <?=$playlist[$key]->ListName?></h4>
                         <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=$song->SongTitle?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
                         <div class="dataContainerBox--split">
                             <div class="dataContainerBox--split__left">
-                                <h4 class="dataContainer--gradeContainer">
-                                    <label>Adam: <?=$song->SongGradeAdam ?? 'Nieoceniona'?> -></label>
-                                    <input name="newGradeAdam-<?=$i+1?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                                           value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$isReviewer ? "" : "disabled" ?>/>
-                                </h4>
-                                <h4 class="dataContainer--gradeContainer">
-                                    <label>Kościelny: <?=$song->SongGradeChurchie ?? 'Nieoceniona'?> -></label>
-                                    <input name="newGradeChurchie-<?=$i+2?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                                           value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$isReviewer ? "" : "disabled" ?>/>
-                                </h4>
-                                <h4 class="dataContainer--gradeContainer">
-                                    <label>Moja Ocena: <?=$song->SongGradeOwner ?? 'Nieoceniona'?> -></label>
-                                    <input name="myNewGrade-<?=$i+27?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
-                                           value="<?=$song->SongGradeOwner ?? 'Nieoceniona'?>" <?=$isOwner ? "" : "disabled" ?>/>
-                                </h4>
-                                <h5 class="dataContainer--gradeContainer">
-                                    <label>Średnia:</label>
-                                    <input class="gradeInput" type="text" value="<?=$song->Average ?? "Nieoceniona"?>" disabled />
-                                </h5>
-                                <?php  //only 1 list means there is nowhere to move or copy the song to
-                                if(count($lists) > 1 && $isReviewer): ?>
+                                <?php if ($rapparManagedPlaylist): ?>
+                                    <h4 class="dataContainer--gradeContainer">
+                                        <label>Adam: <?=$song->SongGradeAdam ?? 'Nieoceniona'?> -></label>
+                                        <input name="newGradeAdam-<?=$i+1?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
+                                               value="<?=$song->SongGradeAdam ?? 'Nieoceniona'?>" <?=$isReviewer ? "" : "disabled" ?>/>
+                                    </h4>
+                                    <h4 class="dataContainer--gradeContainer">
+                                        <label>Kościelny: <?=$song->SongGradeChurchie ?? 'Nieoceniona'?> -></label>
+                                        <input name="newGradeChurchie-<?=$i+2?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
+                                               value="<?=$song->SongGradeChurchie ?? 'Nieoceniona'?>" <?=$isReviewer ? "" : "disabled" ?>/>
+                                    </h4>
+                                    <h5 class="dataContainer--gradeContainer">
+                                        <label>Średnia:</label>
+                                        <input class="gradeInput" type="text" value="<?=$song->Average ?? "Nieoceniona"?>" disabled />
+                                    </h5>
+                                <?php else: ?>
+                                    <h4 class="dataContainer--gradeContainer">
+                                        <label>Ocena Właściciela Playlisty: <?=$song->SongGradeOwner ?? 'Nieoceniona'?> -></label>
+                                        <input name="myNewGrade-<?=$i+27?>" class="gradeInput" type="number" step="0.5" min="0" max="15"
+                                               value="<?=$song->SongGradeOwner ?? 'Nieoceniona'?>" <?=$isPlaylistOwner ? "" : "disabled" ?>/>
+                                    </h4>
+                                <?php endif;
+                                //only 1 list means there is nowhere to move or copy the song to
+                                if (count($userOwnedPlaylists) > 1 && $isPlaylistOwner): ?>
                                     <h5 class="dataContainer--gradeContainer">
                                         <label>Przenieś do:</label>
                                         <select name="<?="newPlaylistId-".$i+3?>" class="selectBox">
                                             <option value="0">Nie przenoś</option>
-                                            <?php foreach($lists as $list):
-                                                if($list->ListId !== $playlist[$key]->ListId):?>
+                                            <?php foreach ($userOwnedPlaylists as $list):
+                                                if ($list->ListId !== $playlist[$key]->ListId):?>
                                                     <option value="<?=$list->ListId?>"><?=$list->ListName?></option>
                                                 <?php endif;
                                             endforeach; ?>
@@ -66,8 +70,8 @@
                                         <label>Kopiuj do:</label>
                                         <select name="<?="copyPlaylistId-".$i+20?>" class="selectBox">
                                             <option value="0">Nie kopiuj</option>
-                                            <?php foreach($lists as $list):
-                                                if($list->ListId !== $playlist[$key]->ListId):?>
+                                            <?php foreach ($userOwnedPlaylists as $list):
+                                                if ($list->ListId !== $playlist[$key]->ListId):?>
                                                     <option value="<?=$list->ListId?>"><?=$list->ListName?></option>
                                                 <?php endif;
                                             endforeach; ?>
@@ -83,29 +87,29 @@
                                 <?php endif;?>
                             </div>
                             <div class="dataContainerBox--split__right">
-                                <textarea rows="8" cols="40" class="commentBox" name="songComment-<?=$i+22?>" <?=$isOwner ? "" : "disabled" ?>><?=$song->SongComment?></textarea>
+                                <textarea rows="8" cols="40" class="commentBox" name="songComment-<?=$i+22?>" <?=$isPlaylistOwner ? "" : "disabled" ?>><?=$song->SongComment?></textarea>
                             </div>
                         </div>
-                        <label <?=$playlist[$key]->btnRehearsal ? '' : 'hidden'?>><input type="checkbox" name="<?="songRehearsal-".$i+4?>" class="buttonBox" <?=$song->SongRehearsal ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> Do ponownego odsłuchu</label>
-                        <label <?=$playlist[$key]->btnBelowFour ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelFour-".$i+17?>" class="buttonBox" <?=$song->SongBelFour ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> < 4</label>
-                        <label <?=$playlist[$key]->btnBelowSeven ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelow-".$i+13?>" class="buttonBox" <?=$song->SongBelow ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> < 7</label>
-                        <label <?=$playlist[$key]->btnBelowHalfSeven ? '' : 'hidden'?>><input type="checkbox" name="<?="SongBelHalfSeven-".$i+23?>" class="buttonBox" <?=$song->SongBelHalfSeven ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> < 7.5</label>
-                        <label <?=$playlist[$key]->btnBelowEight ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelEight-".$i+16?>" class="buttonBox" <?=$song->SongBelEight ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> < 8</label>
-                        <label <?=$playlist[$key]->btnBelowHalfEight ? '' : 'hidden'?>><input type="checkbox" name="<?="SongBelHalfEight-".$i+24?>" class="buttonBox" <?=$song->SongBelHalfEight ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> < 8.5</label>
-                        <label <?=$playlist[$key]->btnBelowNine ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelNine-".$i+15?>" class="buttonBox" <?=$song->SongBelNine ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> < 9</label>
-                        <label <?=$playlist[$key]->btnBelowHalfNine ? '' : 'hidden'?>><input type="checkbox" name="<?="SongBelHalfNine-".$i+25?>" class="buttonBox" <?=$song->SongBelHalfNine ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> < 9.5</label>
-                        <label <?=$playlist[$key]->btnBelowTen ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelTen-".$i+14?>" class="buttonBox" <?=$song->SongBelTen ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> < 10</label>
-                        <label <?=$playlist[$key]->btnDistinction ? '' : 'hidden'?>><input type="checkbox" name="<?="songDistinction-".$i+5?>" class="buttonBox" <?=$song->SongDistinction ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> Wyróżnienie</label>
-                        <label <?=$playlist[$key]->btnDuoTen ? '' : 'hidden'?>><input type="checkbox" name="<?="songDuoTen-".$i+18?>" class="buttonBox" <?=$song->SongDuoTen ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> "10"</label>
-                        <label <?=$playlist[$key]->btnMemorial ? '' : 'hidden'?>><input type="checkbox" name="<?="songMemorial-".$i+6?>" class="buttonBox" <?=$song->SongMemorial ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> 10*</label>
-                        <label <?=$playlist[$key]->btnUber ? '' : 'hidden'?>><input type="checkbox" name="<?="songUber-".$i+12?>" class="buttonBox" <?=$song->SongUber ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> Uber</label>
-                        <label <?=$playlist[$key]->btnTop ? '' : 'hidden'?>><input type="checkbox" name="<?="songTop-".$i+10?>" class="buttonBox" <?=$song->SongTop ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> X15</label>
-                        <label <?=$playlist[$key]->btnXD ? '' : 'hidden'?>><input type="checkbox" name="<?="songXD-".$i+7?>" class="buttonBox" <?=$song->SongXD ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> XD</label>
-                        <label <?=$playlist[$key]->btnDiscomfort ? '' : 'hidden'?>><input type="checkbox" name="<?="songDiscomfort-".$i+9?>" class="buttonBox" <?=$song->SongDiscomfort ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> Strefa Dyskomfortu</label>
-                        <label <?=$playlist[$key]->btnDepA ? '' : 'hidden'?>><input type="checkbox" name="<?="songDepA-".$i+26?>" class="buttonBox" <?=$song->SongDepA ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> Dep. Abroad</label>
-                        <label <?=$playlist[$key]->btnNotRap ? '' : 'hidden'?>><input type="checkbox" name="<?="songNotRap-".$i+8?>" class="buttonBox" <?=$song->SongNotRap ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> To nie rapsik</label>
-                        <label <?=$playlist[$key]->btnNoGrade ? '' : 'hidden'?>><input type="checkbox" name="<?="songNoGrade-".$i+11?>" class="buttonBox" <?=$song->SongNoGrade ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> Nie oceniam</label>
-                        <label <?=$playlist[$key]->btnVeto ? '' : 'hidden'?>><input type="checkbox" name="<?="songVeto-".$i+19?>" class="buttonBox" <?=$song->SongVeto ? "checked" : ""?> <?=$isOwner ? "" : "disabled" ?>> VETO</label>
+                        <label <?=$playlist[$key]->btnRehearsal ? '' : 'hidden'?>><input type="checkbox" name="<?="songRehearsal-".$i+4?>" class="buttonBox" <?=$song->SongRehearsal ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> Do ponownego odsłuchu</label>
+                        <label <?=$playlist[$key]->btnBelowFour ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelFour-".$i+17?>" class="buttonBox" <?=$song->SongBelFour ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> < 4</label>
+                        <label <?=$playlist[$key]->btnBelowSeven ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelow-".$i+13?>" class="buttonBox" <?=$song->SongBelow ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> < 7</label>
+                        <label <?=$playlist[$key]->btnBelowHalfSeven ? '' : 'hidden'?>><input type="checkbox" name="<?="SongBelHalfSeven-".$i+23?>" class="buttonBox" <?=$song->SongBelHalfSeven ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> < 7.5</label>
+                        <label <?=$playlist[$key]->btnBelowEight ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelEight-".$i+16?>" class="buttonBox" <?=$song->SongBelEight ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> < 8</label>
+                        <label <?=$playlist[$key]->btnBelowHalfEight ? '' : 'hidden'?>><input type="checkbox" name="<?="SongBelHalfEight-".$i+24?>" class="buttonBox" <?=$song->SongBelHalfEight ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> < 8.5</label>
+                        <label <?=$playlist[$key]->btnBelowNine ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelNine-".$i+15?>" class="buttonBox" <?=$song->SongBelNine ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> < 9</label>
+                        <label <?=$playlist[$key]->btnBelowHalfNine ? '' : 'hidden'?>><input type="checkbox" name="<?="SongBelHalfNine-".$i+25?>" class="buttonBox" <?=$song->SongBelHalfNine ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> < 9.5</label>
+                        <label <?=$playlist[$key]->btnBelowTen ? '' : 'hidden'?>><input type="checkbox" name="<?="songBelTen-".$i+14?>" class="buttonBox" <?=$song->SongBelTen ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> < 10</label>
+                        <label <?=$playlist[$key]->btnDistinction ? '' : 'hidden'?>><input type="checkbox" name="<?="songDistinction-".$i+5?>" class="buttonBox" <?=$song->SongDistinction ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> Wyróżnienie</label>
+                        <label <?=$playlist[$key]->btnDuoTen ? '' : 'hidden'?>><input type="checkbox" name="<?="songDuoTen-".$i+18?>" class="buttonBox" <?=$song->SongDuoTen ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> "10"</label>
+                        <label <?=$playlist[$key]->btnMemorial ? '' : 'hidden'?>><input type="checkbox" name="<?="songMemorial-".$i+6?>" class="buttonBox" <?=$song->SongMemorial ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> 10*</label>
+                        <label <?=$playlist[$key]->btnUber ? '' : 'hidden'?>><input type="checkbox" name="<?="songUber-".$i+12?>" class="buttonBox" <?=$song->SongUber ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> Uber</label>
+                        <label <?=$playlist[$key]->btnTop ? '' : 'hidden'?>><input type="checkbox" name="<?="songTop-".$i+10?>" class="buttonBox" <?=$song->SongTop ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> X15</label>
+                        <label <?=$playlist[$key]->btnXD ? '' : 'hidden'?>><input type="checkbox" name="<?="songXD-".$i+7?>" class="buttonBox" <?=$song->SongXD ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> XD</label>
+                        <label <?=$playlist[$key]->btnDiscomfort ? '' : 'hidden'?>><input type="checkbox" name="<?="songDiscomfort-".$i+9?>" class="buttonBox" <?=$song->SongDiscomfort ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> Strefa Dyskomfortu</label>
+                        <label <?=$playlist[$key]->btnDepA ? '' : 'hidden'?>><input type="checkbox" name="<?="songDepA-".$i+26?>" class="buttonBox" <?=$song->SongDepA ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> Dep. Abroad</label>
+                        <label <?=$playlist[$key]->btnNotRap ? '' : 'hidden'?>><input type="checkbox" name="<?="songNotRap-".$i+8?>" class="buttonBox" <?=$song->SongNotRap ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> To nie rapsik</label>
+                        <label <?=$playlist[$key]->btnNoGrade ? '' : 'hidden'?>><input type="checkbox" name="<?="songNoGrade-".$i+11?>" class="buttonBox" <?=$song->SongNoGrade ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> Nie oceniam</label>
+                        <label <?=$playlist[$key]->btnVeto ? '' : 'hidden'?>><input type="checkbox" name="<?="songVeto-".$i+19?>" class="buttonBox" <?=$song->SongVeto ? "checked" : ""?> <?=$isPlaylistOwner ? "" : "disabled" ?>> VETO</label>
                         <input type="hidden" name="songUpdated-<?=$i+21?>" value="0">
                     </div>
                 </div>
