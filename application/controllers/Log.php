@@ -51,9 +51,9 @@ class Log extends CI_Controller
                 );
                 $this->load->view('templates/customNav', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -79,9 +79,9 @@ class Log extends CI_Controller
 
                 $this->load->view('templates/main', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -108,9 +108,9 @@ class Log extends CI_Controller
 
                 $this->load->view('templates/main', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -133,8 +133,8 @@ class Log extends CI_Controller
 
                 $this->load->view('templates/main', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 }

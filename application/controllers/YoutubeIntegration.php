@@ -38,7 +38,7 @@ class YoutubeIntegration extends CI_Controller
 
             $this->load->view('templates/main', $data);
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
 	}
 
     /**
@@ -75,7 +75,7 @@ class YoutubeIntegration extends CI_Controller
 
             $this->load->view('templates/main', $data);
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**

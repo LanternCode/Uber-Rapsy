@@ -45,7 +45,7 @@ class Playlist extends CI_Controller
         //Ensure a rappar staff member is logged in
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
         if (!$userAuthenticated)
-            redirect('logout');
+            redirect('errors/403-404');
 
         $data = array(
             'body' => 'playlist/playlistDashboard',
@@ -71,7 +71,7 @@ class Playlist extends CI_Controller
             );
             $this->load->view('templates/main', $data);
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -84,7 +84,7 @@ class Playlist extends CI_Controller
         //Validate the provided playlist id
         $listId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if (!$listId)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Validate user permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
@@ -92,7 +92,7 @@ class Playlist extends CI_Controller
         $playlistOwnerId = $this->PlaylistModel->getListOwnerById($listId);
         $userAuthorised = $userAuthenticated && $playlistOwnerId == $userId;
         if (!$userAuthorised)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Fetch playlist details
         $data = array(
@@ -174,9 +174,9 @@ class Playlist extends CI_Controller
                 $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($listId);
                 $this->load->view('templates/main', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -211,9 +211,9 @@ class Playlist extends CI_Controller
 
                 $this->load->view('templates/main', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
     
     /**
@@ -232,7 +232,7 @@ class Playlist extends CI_Controller
             );
             $this->load->view('templates/main', $data);
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
 	}
 
     /**
@@ -328,7 +328,7 @@ class Playlist extends CI_Controller
 
             $this->load->view('templates/main', $data);
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -343,7 +343,7 @@ class Playlist extends CI_Controller
         $userId = $this->SecurityModel->getCurrentUserId();
         $userAuthorised = $userAuthenticated && $userId !== false;
         if (!$userAuthorised)
-            redirect('logout');
+            redirect('errors/403-404');
 
         $data = array(
             'body' => 'playlist/addLocalPlaylist',
@@ -420,9 +420,9 @@ class Playlist extends CI_Controller
 
                 $this->load->view('templates/main', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -469,10 +469,10 @@ class Playlist extends CI_Controller
 
                     $this->load->view('templates/main', $data);
                 }
-                else redirect('logout');
+                else redirect('errors/403-404');
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 }

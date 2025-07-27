@@ -57,12 +57,12 @@ class PlaylistItems extends CI_Controller
         //Validate the provided playlist id
         $data['listId'] = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if (!$data['listId'])
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Confirm a playlist with this id exists
         $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['listId']);
         if ($data['playlist'] === false)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Define user permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
@@ -74,7 +74,7 @@ class PlaylistItems extends CI_Controller
         //Unless the playlist is public, it can only be accessed by its owner
         $userAuthorised = ($userAuthenticated && $data['isPlaylistOwner']) || $data['playlist']->ListPublic;
         if (!$userAuthorised)
-            redirect('logout');
+            redirect('errors/403-404');
 
         $data['searchQuery'] = $this->input->get('searchQuery') ?? '';
         $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
@@ -224,12 +224,12 @@ class PlaylistItems extends CI_Controller
         //Verify whether a valid playlist id was submitted
         $data['listId'] = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
         if (!$data['listId'])
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Confirm a playlist with this id exists
         $data['playlist'] = $this->PlaylistModel->fetchPlaylistById($data['listId']);
         if ($data['playlist'] === false)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Define user permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
@@ -241,7 +241,7 @@ class PlaylistItems extends CI_Controller
         //Unless the playlist is public, it can only be accessed by its owner
         $userAuthorised = ($userAuthenticated && $data['isPlaylistOwner']) || $data['playlist']->ListPublic;
         if (!$userAuthorised)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Fetch other relevant data to complete the tierlist
         $data['filter'] = $this->input->get('filter');
@@ -291,7 +291,7 @@ class PlaylistItems extends CI_Controller
         $data['playlistId'] = filter_var($this->input->post('playlistId'), FILTER_VALIDATE_INT);
         $playlist = $data['playlistId'] !== false ? $this->PlaylistModel->fetchPlaylistById($data['playlistId']) : false;
         if (!$data['playlistId'] || !$playlist)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Check if a user is logged in
         $userAuthenticated = $this->SecurityModel->authenticateUser();
@@ -303,7 +303,7 @@ class PlaylistItems extends CI_Controller
         $playlistOwnerId = $this->PlaylistModel->getListOwnerById($data['playlistId']);
         $userAuthorised = $playlistOwnerId == $userId;
         if (!$userAuthorised)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Process each song separately
         $i = 0;
@@ -371,7 +371,7 @@ class PlaylistItems extends CI_Controller
         $userOwnedPlaylists = array_map(fn($item) => $item->ListId, $this->PlaylistModel->fetchUserPlaylistsIDs($userId));
         $updateAuthenticated = count($userOwnedPlaylists) > 0;
         if (!$updateAuthenticated)
-            redirect('logout');
+            redirect('errors/403-404');
 
         $data = array(
             'body' => 'playlistSong/updatePlaylistSongRatings',
@@ -399,7 +399,7 @@ class PlaylistItems extends CI_Controller
                     //Check if the user is allowed to update this playlist song (through search or playlist listing)
                     $updateAuthorised = in_array($currentPlaylistSong->listId, $userOwnedPlaylists);
                     if (!$updateAuthorised)
-                        redirect('logout');
+                        redirect('errors/403-404');
 
                     //Update song grades, buttons and the song comment
                     $localResultMessage = $this->updateBasicPlaylistSongDetails($formInput, $currentPlaylistSong, $i);
@@ -460,7 +460,7 @@ class PlaylistItems extends CI_Controller
 
             $this->load->view('templates/main', $data);
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -491,9 +491,9 @@ class PlaylistItems extends CI_Controller
                     redirect('playlist/details?playlistId='.$playlistSong->listId.'&src=pd');
                 else redirect('playlist/details?playlistId='.$playlistSong->listId.'&src=mp');
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -533,9 +533,9 @@ class PlaylistItems extends CI_Controller
 
                 $this->load->view('templates/main', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**

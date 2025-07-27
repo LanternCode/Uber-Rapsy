@@ -74,7 +74,7 @@ class Song extends CI_Controller
         //Validate the provided song ig
         $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
         if ($songId === false)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Fetch song data
         $data = array(
@@ -338,7 +338,7 @@ class Song extends CI_Controller
             $data['title'] = 'RAPPAR | Importuj utwór';
             $this->load->view('templates/song', $data);
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     public function manualImport(): void
@@ -389,7 +389,7 @@ class Song extends CI_Controller
 
             $this->load->view('templates/song', $data);
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -461,9 +461,9 @@ class Song extends CI_Controller
 
                 $this->load->view('templates/song', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -512,9 +512,9 @@ class Song extends CI_Controller
 
                 $this->load->view('templates/song', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -562,9 +562,9 @@ class Song extends CI_Controller
 
                 $this->load->view('templates/song', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -611,9 +611,9 @@ class Song extends CI_Controller
 
                 $this->load->view('templates/song', $data);
             }
-            else redirect('logout');
+            else redirect('errors/403-404');
         }
-        else redirect('logout');
+        else redirect('errors/403-404');
     }
 
     /**
@@ -626,13 +626,13 @@ class Song extends CI_Controller
         //Make sure the user is logged in
         $userId = $this->SecurityModel->getCurrentUserId();
         if ($userId === false)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Validate the provided song id
         $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
         $songActive = $songId !== false && $this->SongModel->isSongActive($songId);
         if (!$songActive)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Ensure the user has not already reviewed the song - if so, redirect them to their review
         $uniqueReview = $this->SongModel->checkIfUserReviewedSong($songId, $userId);
@@ -719,7 +719,7 @@ class Song extends CI_Controller
         $reviewId = filter_var($this->input->get('reviewId'), FILTER_VALIDATE_INT);
         $data['review'] = $reviewId !== false ? $this->SongModel->getSongReview($reviewId) : false;
         if ($data['review'] === false)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Check if the current user owns the review
         $currentUserId = $this->SecurityModel->getCurrentUserId();
@@ -728,7 +728,7 @@ class Song extends CI_Controller
         //Users can only access reviews which are public or written by them
         $userAuthorised = $data['isReviewOwner'] || $data['review']->reviewActive;
         if (!$userAuthorised)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Process the review update form if the user is the review author
         if ($this->input->post()) {
@@ -813,13 +813,13 @@ class Song extends CI_Controller
         //Make sure the user is logged in
         $userId = $this->SecurityModel->getCurrentUserId();
         if ($userId === false)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Validate the provided song id
         $data['songId'] = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
         $songActive = $data['songId'] !== false && $this->SongModel->isSongActive($data['songId']);
         if (!$songActive)
-            redirect('logout');
+            redirect('errors/403-404');
 
         //Proceed if the form was submitted
         $data['song'] = $this->SongModel->getSong($data['songId']);
@@ -832,7 +832,7 @@ class Song extends CI_Controller
             //Make sure the user owns the selected playlist
             $additionAuthorised = in_array($listId, array_column($data['userOwnedPlaylists'], 'ListId'), true);
             if (!$additionAuthorised)
-                redirect('logout');
+                redirect('errors/403-404');
 
             //Check if the playlist is local. Integrated playlists cannot be changed at the time.
             $playlistIntegrated = $this->PlaylistModel->getPlaylistIntegratedById($listId);
