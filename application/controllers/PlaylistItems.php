@@ -653,7 +653,7 @@ class PlaylistItems extends CI_Controller
      * @param bool $rapparManagedPlaylist true if the playlist is managed by rappar
      * @return void the updated playlist song object
      */
-    public function setSongGrades(object $song, bool $rapparManagedPlaylist): void
+    public function setSongGrades(object $song, bool $rapparManagedPlaylist = false): void
     {
         $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
         $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);

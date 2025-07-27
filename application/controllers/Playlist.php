@@ -91,7 +91,7 @@ class Playlist extends CI_Controller
         $userId = $this->SecurityModel->getCurrentUserId();
         $playlistOwnerId = $this->PlaylistModel->getListOwnerById($listId);
         $userAuthorised = $userAuthenticated && $playlistOwnerId == $userId;
-        if ($userAuthorised)
+        if (!$userAuthorised)
             redirect('logout');
 
         //Fetch playlist details

@@ -41,7 +41,7 @@ class PlaylistSongModel extends CI_Model
      */
     public function getPlaylistSongs(int $listId, string $search = "", bool $includeHidden = false, bool $includeDeleted = false): array
     {
-        $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle  
+        $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle, s.SongDeleted AS SongTemplateActive  
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
                 WHERE ps.listId = $listId";
         $sql .= $includeHidden ? "" : " AND ps.SongVisible = 1";
@@ -109,7 +109,7 @@ class PlaylistSongModel extends CI_Model
      * @param string $songPlaylistItemsId unique YT PlaylistItemsId (For API calls)
      * @return int id of the inserted playlist_song
      */
-    public function insertPlaylistSong(int $listId, int $songId, string $songPlaylistItemsId): int
+    public function insertPlaylistSong(int $listId, int $songId, string $songPlaylistItemsId = ''): int
     {
         $queryData = array(
             'listId' => $listId,

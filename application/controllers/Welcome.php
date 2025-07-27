@@ -71,7 +71,7 @@ class Welcome extends CI_Controller
     public function testfunc(): void
     {
         $data = array(
-            'body' => 'test',
+            'body' => 'errors/403-404',
             'title' => "Uber Rapsy | Test!"
         );
 
@@ -79,7 +79,7 @@ class Welcome extends CI_Controller
         //print_r($newReportId);
         //die();
 
-        $this->load->view( 'templates/main', $data );
+        $this->load->view('templates/main', $data);
     }
 
     /**

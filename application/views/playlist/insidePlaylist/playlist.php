@@ -31,9 +31,13 @@
 <br id="topoftherap"><br><br>
 <div class="averagesBar">
     <div class="averagesBar--left">
-        <h2 class="blackBar">Przeglądasz playlistę <?=$playlist->ListName ?? "o nieznanej nazwie"?>!</h2>
+        <h2 class="blackBar">Przeglądasz playlistę <?=$playlist->ListName?>!</h2>
         <h3 class="blackBar">Liczba nut: <?=count($songs)?></h3>
-        <h3 class="blackBar" title="Średnia ocen jest obliczana tylko gdy obu recenzentów oceniło utwór. Utwory na których zaznaczono przycisk ''10'' i wpisano tylko oceny 10, nie są brane pod uwagę.">Średnie ocen (?):</h3>
+        <?php if ($rapparManagedPlaylist): ?>
+            <h3 class="blackBar" title="Średnia ocen jest obliczana tylko, gdy obu recenzentów oceniło utwór. Utwory, na których zaznaczono przycisk '10' i wpisano tylko oceny 10, nie są brane pod uwagę.">Średnie ocen (?)</h3>
+        <?php else: ?>
+            <h3 class="blackBar" title="Utwory, na których zaznaczono przycisk '10' i wpisano tylko oceny 10, nie są brane pod uwagę.">Średnia ocen (?)</h3>
+        <?php endif; ?>
         <h4 class="blackBar">Średnia Ocen Playlisty: <?=number_format($avgOverall, 2)?> (<?=$ratedOverall?>)</h4>
         <?php if ($rapparManagedPlaylist): ?>
             <h4 title="Średnia ocen na podstawie ocenionych utworów Kościelnego" class="blackBar">Średnia Ocen (Kościelny): <?=number_format($avgChurchie, 2)?> (<?=$ratedChurchie?>)</h4>
@@ -59,12 +63,16 @@
 	<?php endif; ?>
     <?php if (count($songs) > 0):
         $i = 0; ?>
-		<?php foreach($songs as $song): ?>
+		<?php foreach ($songs as $song): ?>
             <div class="videoContainerBox">
 				<img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft">
 				<div class="dataContainerBox">
                     <input type="hidden" name="playlistSongId-<?=$i?>" value="<?=$song->id?>"/>
-                    <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=htmlspecialchars($song->SongTitle, ENT_QUOTES, 'UTF-8')?></a> (<a target='_blank' href="<?=base_url('song/rev?id='.$song->SongId)?>">+</a>)</h3>
+                    <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=htmlspecialchars($song->SongTitle, ENT_QUOTES, 'UTF-8')?></a>
+                        <?php if ($song->SongTemplateActive): ?>
+                             (<a target='_blank' href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>">+</a>)
+                        <?php endif; ?>
+                    </h3>
                     <div class="dataContainerBox--split">
                         <div class="dataContainerBox--split__left">
                             <?php if ($rapparManagedPlaylist): ?>
@@ -154,7 +162,7 @@
 		<?php
         $i += 28;
         endforeach;?>
-	<?php elseif(strlen($searchQuery) > 0 && count($songs) == 0): ?>
+	<?php elseif (strlen($searchQuery) > 0 && count($songs) == 0): ?>
         <h3>Nie znaleziono żadnych wyników wyszukiwania!</h3>
 	<?php else: ?>
 		<h3>Ta playlista jest pusta mordo, nowy sezon już wkrótce!</h3>

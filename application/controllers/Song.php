@@ -14,6 +14,7 @@ if (!isset($_SESSION))
  * @property SongModel $SongModel
  * @property SecurityModel $SecurityModel
  * @property PlaylistModel $PlaylistModel
+ * @property PlaylistSongModel $PlaylistSongModel
  * @property UtilityModel $UtilityModel
  * @property LogModel $LogModel
  * @property AccountModel $AccountModel
@@ -32,6 +33,7 @@ class Song extends CI_Controller
         $this->load->model('SongModel');
         $this->load->model('SecurityModel');
         $this->load->model('PlaylistModel');
+        $this->load->model('PlaylistSongModel');
         $this->load->model('UtilityModel');
         $this->load->model('LogModel');
         $this->load->model('AccountModel');
@@ -803,6 +805,51 @@ class Song extends CI_Controller
 
         $data['song'] = $this->SongModel->getSong($data['review']->reviewSongId);
         $data['body'] = "song/songReview";
+        $this->load->view('templates/song', $data);
+    }
+
+    public function addSongToPlaylist()
+    {
+        //Make sure the user is logged in
+        $userId = $this->SecurityModel->getCurrentUserId();
+        if ($userId === false)
+            redirect('logout');
+
+        //Validate the provided song id
+        $data['songId'] = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        $songActive = $data['songId'] !== false && $this->SongModel->isSongActive($data['songId']);
+        if (!$songActive)
+            redirect('logout');
+
+        //Proceed if the form was submitted
+        $data['song'] = $this->SongModel->getSong($data['songId']);
+        $data['userOwnedPlaylists'] = $this->PlaylistModel->getUserPlayistsIdsAndNames($userId);
+        $data['searchQuery'] = $this->input->get('query');
+        if ($this->input->post()) {
+            //Fetch the selected list id
+            $listId = $this->input->post('listId');
+
+            //Make sure the user owns the selected playlist
+            $additionAuthorised = in_array($listId, array_column($data['userOwnedPlaylists'], 'ListId'), true);
+            if (!$additionAuthorised)
+                redirect('logout');
+
+            //Check if the playlist is local. Integrated playlists cannot be changed at the time.
+            $playlistIntegrated = $this->PlaylistModel->getPlaylistIntegratedById($listId);
+            if ($playlistIntegrated) {
+                $data['playlistIntegratedError'] = true;
+            }
+            elseif ($this->PlaylistSongModel->playlistSongExists($listId, $data['songId'])) {
+                //The song already exists in this playlist
+                $data['songNotUniqueError'] = true;
+            }
+            else {
+                $this->PlaylistSongModel->insertPlaylistSong($listId, $data['songId']);
+                $data['success'] = true;
+            }
+        }
+
+        $data['body'] = "song/addToPlaylist";
         $this->load->view('templates/song', $data);
     }
 

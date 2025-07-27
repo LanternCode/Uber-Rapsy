@@ -231,7 +231,7 @@ html {
 .reviewSuccess {
     color: #009900;
     margin: 15px;
-    font-size: 2em;
+    font-size: 1.5em;
 }
 
 .reviewError {
@@ -355,6 +355,12 @@ html {
         padding-top: 8vh;
     }
 
+.successMessage {
+    color: #009900;
+    margin: 15px;
+    font-size: 2em;
+}
+
 /* Main container: 70% width, border, subtle background, shadow */
 .song-container {
     width: 700px;
@@ -446,7 +452,7 @@ html {
 
 .errorMessage {
     color: red;
-    font-size: 15px;
+    font-size: 1.5em;
     margin: 5px;
     font-weight: bold;
 }
@@ -458,6 +464,13 @@ html {
     padding: 20px;
     font-family: Arial, sans-serif;
     font-size: 18px;
+}
+
+.redirectError {
+    font-size: 2em;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 7vh;
 }
 
 /* ==========================
