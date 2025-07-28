@@ -30,7 +30,7 @@
         <div class="song-container">
             <div class="song-header">
                 <div class="">
-                    <h2 class="song-title"><?=$song->SongURL != '' ? '<a href="https://youtu.be/<?=$song->SongURL?>">' : ''?><?=$song->SongTitle?><?=$song->SongURL != '' ? '</a>' : ''?></h2>
+                    <h2 class="song-title"><?=$song->SongURL != '' ? '<a href="https://youtu.be/'.$song->SongURL.'">' : ''?><?=$song->SongTitle?><?=$song->SongURL != '' ? '</a>' : ''?></h2>
                     <p class="song-authors"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
                 </div>
                 <div class="song-awards">

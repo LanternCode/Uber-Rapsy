@@ -59,6 +59,7 @@ class RefreshPlaylistService
         else {
             //Perform the reloading process - The main array is composed of parsed song arrays
             $refreshReport = "<pre>";
+            $refreshReport .= "<h3>Legenda:</h3>❌ - nie znaleziono utworu<br>⏸ - ocena nie uległa zmianie<br>✔ - pomyślnie zapisano!<br><br><h3>Utwory:</h3>";
 
             //Save only the relevant information from the retrieved object for easy processing
             $songItems = [];

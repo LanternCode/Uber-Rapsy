@@ -106,6 +106,13 @@ class Playlist extends CI_Controller
         );
         $data['playlistOwnerUsername'] = $this->AccountModel->fetchUsernameById($data['playlist']->ListOwnerId);
 
+        //Display values without decimals at the end if the decimals are zeros
+        foreach ($data['songs'] as $song) {
+            $song->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($song->SongGradeAdam);
+            $song->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($song->SongGradeChurchie);
+            $song->SongGradeOwner = $this->UtilityModel->trimTrailingZeroes($song->SongGradeOwner);
+        }
+
         $this->load->view('templates/main', $data);
     }
 

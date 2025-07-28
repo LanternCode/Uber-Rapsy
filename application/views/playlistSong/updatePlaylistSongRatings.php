@@ -9,7 +9,7 @@
     <a href="<?=base_url('playlist?playlistId='.$playlistId)?>">Powrót do playlisty</a>
 <?php endif; ?>
 <br><br><br>
-<h2>Wynik Zapisu:</h2>
+<h2>Wynik Zapisu</h2>
 <h3>Na playliście odnaleziono <?=
     ($c = $processedSongsCount - 1).' '.(
         // singular when last digit = 1 *and* not 11
@@ -28,7 +28,7 @@
     <br><br>
     <h3>Wystąpił błąd w zapisywaniu ocen :/</h3>
     <h4><?=$displayErrorMessage?></h4>
-    <h4>Jeśli po wykonaniu instrukcji, ponowne podjęcie tej samej akcji nie zadziała, niezwłocznie skontaktuj się z administracją.</h4>
+    <h4>Jeśli po wykonaniu instrukcji ponowne podjęcie tej samej akcji nie zadziała, niezwłocznie skontaktuj się z administracją.</h4>
     <br><br>
 <?php endif; ?>
 <?=$resultMessage?>

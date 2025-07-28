@@ -641,54 +641,9 @@ class Song extends CI_Controller
 
         //Process the new review form if one was submitted
         if ($this->input->post()) {
-            //Get the numeric data
-            $formData['reviewText'] = $this->input->post('reviewText') ?? 0;
-            $formData['reviewMusic'] = $this->input->post('reviewMusic') ?? 0;
-            $formData['reviewImpact'] = $this->input->post('reviewImpact') ?? 0;
-            $formData['reviewRh'] = $this->input->post('reviewRh') ?? 0;
-            $formData['reviewComp'] = $this->input->post('reviewComp') ?? 0;
-            $formData['reviewReflection'] = $this->input->post('reviewReflection') ?? 0;
-            $formData['reviewUber'] = $this->input->post('reviewUber') ?? 0;
-            $formData['reviewPartner'] = $this->input->post('reviewPartner') ?? 0;
-
-            //Validate the numeric data - each piece must be rated at least 1 and has a maximum grade. Halves are allowed.
-            $data['errorMessage'] = "";
-            foreach ($formData as $key => $reviewSection) {
-                $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 : (($key == "reviewUber" || $key == "reviewPartner") ? 15 : (($key == "reviewImpact" || $key == "reviewRh") ? 5 : 10));
-                $optName = ($key == "reviewText" ? "Tekst" : ($key == "reviewMusic" ? "Muzyka" : (($key == "reviewUber" ? "Ocena Uber"
-                    : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewImpact" ? "Popularność" : (($key == "reviewRh" ? "Słuchalność"
-                        : (($key == "reviewComp" ? "Kompozycja" : "Refleksyjność"))))))))))));
-
-                if (!is_numeric($reviewSection))
-                    $data['errorMessage'] .= "Podano niepoprawną wartość dla ".$optName."!<br>";
-                elseif ($reviewSection < 1)
-                    $data['errorMessage'] .= "Podano niepoprawną wartość minimalną dla ".$optName.". Ocena musi być większa lub równa 1!<br>";
-                elseif ($reviewSection > $maxAllowed)
-                    $data['errorMessage'] .= "Podano niepoprawną wartość maksymalną dla ".$optName.". Ocena musi być mniejsza lub równa ".$maxAllowed."!<br>";
-                elseif (fmod($reviewSection, 0.5) != 0)
-                    $data['errorMessage'] .= "Podano niepoprawną ocenę dla ".$optName.". Ocena musi być liczbą pełną lub zakończoną połówką, np. 5.5!<br>";
-            }
-
-            //Get the categorical data
-            $formData['reviewTitle'] = $this->input->post('reviewTitle');
-            $formData['reviewDate'] = $this->input->post('reviewDate');
-            $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
-            $formData['reviewActive'] = !is_null($this->input->post('reviewActive'));
-
-            //Ensure the review title is at least 1-character long
-            $formData['reviewTitle'] = $this->htmlsanitiser->purify($formData['reviewTitle']);
-            if (strlen($formData['reviewTitle']) < 1)
-                $data['errorMessage'] .= "Tytuł recenzji musi zawierać przynajmniej 1 znak.<br>";
-
-            //Verify that a correct review date was provided and format the date to match the DB formatting
-            $formData['reviewDate'] = $this->validateReviewDate($formData['reviewDate']);
-            if (empty($formData['reviewDate']))
-                $data['errorMessage'] .= "Podano niepoprawną datę.<br>";
-
-            //Ensure the textual review is at least 120-characters long
-            $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent'], 'rich');
-            if (strlen($formData['reviewTextContent']) < 120)
-                $data['errorMessage'] .= "Recenzja musi zawierać przynajmniej 120 znaków.<br>";
+            //Fetch and validate user form data
+            $formData = [];
+            $data['errorMessage'] = $this->validateSongReview($formData, true);
 
             //Submit and show the review if no errors were found
             if ($data['errorMessage'] == "") {
@@ -742,54 +697,9 @@ class Song extends CI_Controller
                 redirect('songPage?songId='.$data['review']->reviewSongId);
             }
 
-            //Get the numeric data
-            $formData['reviewText'] = $this->input->post('reviewText');
-            $formData['reviewMusic'] = $this->input->post('reviewMusic');
-            $formData['reviewImpact'] = $this->input->post('reviewImpact');
-            $formData['reviewRh'] = $this->input->post('reviewRh');
-            $formData['reviewComp'] = $this->input->post('reviewComp');
-            $formData['reviewReflection'] = $this->input->post('reviewReflection');
-            $formData['reviewUber'] = $this->input->post('reviewUber');
-            $formData['reviewPartner'] = $this->input->post('reviewPartner');
-
-            //Validate the numeric data - each piece must be rated at least 1 and has a maximum grade. Halves are allowed.
-            $data['errorMessage'] = "";
-            foreach ($formData as $key => $reviewSection) {
-                $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 : (($key == "reviewUber" || $key == "reviewPartner") ? 15 : (($key == "reviewImpact" || $key == "reviewRh") ? 5 : 10));
-                $optName = ($key == "reviewText" ? "Tekst" : ($key == "reviewMusic" ? "Muzyka" : (($key == "reviewUber" ? "Ocena Uber"
-                    : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewImpact" ? "Popularność" : (($key == "reviewRh" ? "Słuchalność"
-                        : (($key == "reviewComp" ? "Kompozycja" : "Refleksyjność"))))))))))));
-
-                if (!is_numeric($reviewSection))
-                    $data['errorMessage'] .= "Podano niepoprawną wartość dla ".$optName."!<br>";
-                elseif ($reviewSection < 1)
-                    $data['errorMessage'] .= "Podano niepoprawną wartość minimalną dla ".$optName.". Ocena musi być większa lub równa 1!<br>";
-                elseif ($reviewSection > $maxAllowed)
-                    $data['errorMessage'] .= "Podano niepoprawną wartość maksymalną dla ".$optName.". Ocena musi być mniejsza lub równa ".$maxAllowed."!<br>";
-                elseif (fmod($reviewSection, 0.5) != 0)
-                    $data['errorMessage'] .= "Podano niepoprawną ocenę dla ".$optName.". Ocena musi być liczbą pełną lub zakończoną połówką, np. 5.5!<br>";
-            }
-
-            //Get the categorical data
-            $formData['reviewTitle'] = $this->input->post('reviewTitle');
-            $formData['reviewDate'] = $this->input->post('reviewDate');
-            $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
-            $formData['reviewActive'] = !is_null($this->input->post('reviewActive'));
-
-            //Ensure the review title is at least 1-character long
-            $formData['reviewTitle'] = $this->htmlsanitiser->purify($formData['reviewTitle']);
-            if (strlen($formData['reviewTitle']) < 1)
-                $data['errorMessage'] .= "Tytuł recenzji musi zawierać przynajmniej 1 znak.<br>";
-
-            //Verify that a correct review date was provided and format the date to match the DB formatting
-            $formData['reviewDate'] = $this->validateReviewDate($formData['reviewDate']);
-            if (empty($formData['reviewDate']))
-                $data['errorMessage'] .= "Podano niepoprawną datę.<br>";
-
-            //Ensure the textual review is at least 120-characters long
-            $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent'], 'rich');
-            if (strlen($formData['reviewTextContent']) < 120)
-                $data['errorMessage'] .= "Recenzja musi zawierać przynajmniej 120 znaków.<br>";
+            //Fetch and validate user form data
+            $formData = [];
+            $data['errorMessage'] = $this->validateSongReview($formData, false);
 
             //Submit and show the review if no errors were found
             if ($data['errorMessage'] == "") {
@@ -808,7 +718,12 @@ class Song extends CI_Controller
         $this->load->view('templates/song', $data);
     }
 
-    public function addSongToPlaylist()
+    /**
+     * Create a song instance to add to a playlist, inserting a new playlist_song.
+     *
+     * @return void
+     */
+    public function addSongToPlaylist(): void
     {
         //Make sure the user is logged in
         $userId = $this->SecurityModel->getCurrentUserId();
@@ -973,5 +888,63 @@ class Song extends CI_Controller
 
         //The entered date did not match any accepted format
         return null;
+    }
+
+    /**
+     * Fetch and validate user review inputs.
+     *
+     * @param array $formData empty array to store user inputs
+     * @param bool $newReview true if inserting a new review
+     * @return string error message after validation (empty string if no errors were found)
+     */
+    private function validateSongReview(array &$formData, bool $newReview): string
+    {
+        //Get the numeric data
+        $formFields = ['reviewText', 'reviewMusic', 'reviewImpact', 'reviewRh', 'reviewComp', 'reviewReflection', 'reviewUber', 'reviewPartner'];
+        foreach ($formFields as $field => $default) {
+            $value = $this->input->post($field);
+            $formData[$field] = $newReview ? ($value ?? $default) : $value;
+        }
+
+        //Validate the numeric data - each piece must be rated at least 1 and has a maximum grade. Halves are allowed.
+        $errorMessage = "";
+        foreach ($formData as $key => $reviewSection) {
+            $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 : (($key == "reviewUber" || $key == "reviewPartner") ? 15 : (($key == "reviewImpact" || $key == "reviewRh") ? 5 : 10));
+            $optName = ($key == "reviewText" ? "Tekst" : ($key == "reviewMusic" ? "Muzyka" : (($key == "reviewUber" ? "Ocena Uber"
+                : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewImpact" ? "Popularność" : (($key == "reviewRh" ? "Słuchalność"
+                    : (($key == "reviewComp" ? "Kompozycja" : "Refleksyjność"))))))))))));
+
+            if (!is_numeric($reviewSection))
+                $errorMessage .= "Podano niepoprawną wartość dla ".$optName."!<br>";
+            elseif ($reviewSection < 1)
+                $errorMessage .= "Podano niepoprawną wartość minimalną dla ".$optName.". Ocena musi być większa lub równa 1!<br>";
+            elseif ($reviewSection > $maxAllowed)
+                $errorMessage .= "Podano niepoprawną wartość maksymalną dla ".$optName.". Ocena musi być mniejsza lub równa ".$maxAllowed."!<br>";
+            elseif (fmod($reviewSection, 0.5) != 0)
+                $errorMessage .= "Podano niepoprawną ocenę dla ".$optName.". Ocena musi być liczbą pełną lub zakończoną połówką, np. 5.5!<br>";
+        }
+
+        //Get the categorical data
+        $formData['reviewTitle'] = $this->input->post('reviewTitle');
+        $formData['reviewDate'] = $this->input->post('reviewDate');
+        $formData['reviewTextContent'] = $this->input->post('reviewTextContent');
+        $formData['reviewActive'] = !is_null($this->input->post('reviewActive'));
+
+        //Ensure the review title is at least 1-character long
+        $formData['reviewTitle'] = $this->htmlsanitiser->purify($formData['reviewTitle']);
+        if (strlen($formData['reviewTitle']) < 1)
+            $errorMessage .= "Tytuł recenzji musi zawierać przynajmniej 1 znak.<br>";
+
+        //Verify that a correct review date was provided and format the date to match the DB formatting
+        $formData['reviewDate'] = $this->validateReviewDate($formData['reviewDate']);
+        if (empty($formData['reviewDate']))
+            $errorMessage .= "Podano niepoprawną datę.<br>";
+
+        //Ensure the textual review is at least 120-characters long
+        $formData['reviewTextContent'] = $this->htmlsanitiser->purify($formData['reviewTextContent'], 'rich');
+        if (strlen($formData['reviewTextContent']) < 120)
+            $errorMessage .= "Recenzja musi zawierać przynajmniej 120 znaków.<br>";
+
+        return $errorMessage;
     }
 }

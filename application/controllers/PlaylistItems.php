@@ -441,7 +441,8 @@ class PlaylistItems extends CI_Controller
         $data = array(
             'body' => 'playlistSong/downloadPlaylistSongs',
             'title' => 'Aktualizacja playlisty!',
-            'listId' => $listId
+            'listId' => $listId,
+            'src' => $this->input->get('src')
         );
 
         //Check if the user is logged in and has the required permissions

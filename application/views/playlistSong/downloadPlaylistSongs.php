@@ -1,12 +1,16 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<br /><br />
-<?php if($displayErrorMessage !== ''): ?>
+<br><br>
+<?php if ($displayErrorMessage !== ''): ?>
     <h3>Wystąpił błąd w pobieraniu utworów z playlisty na YT :/</h3>
     <h4><?=$displayErrorMessage?></h4>
     <h4>Jeśli po wykonaniu instrukcji, ponowne podjęcie tej samej akcji nie zadziała, niezwłocznie skontaktuj się z administracją.</h4>
 <?php else: ?>
     <h3>Pomyślnie załadowano utwory z playlisty na YT!</h3>
 <?php endif; ?>
-<br /><br />
-<a href="<?=base_url('/playlist?playlistId='.$listId)?>">Wróć do playlisty</a>
-<br />
+<br><br>
+<?php if (!empty($src)): ?>
+    <a href="<?=base_url('playlist/details?playlistId='.$listId.'&src='.$src)?>">Wróć do szczegółów playlisty</a>
+<?php else: ?>
+    <a href="<?=base_url('/playlist?playlistId='.$listId)?>">Wróć do playlisty</a>
+<?php endif; ?>
+<br>

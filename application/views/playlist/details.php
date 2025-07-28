@@ -25,7 +25,7 @@
 <p>Nazwa użytkownika właściciela playlisty: <?=$playlistOwnerUsername?></p><br><br>
 
 <h3>Zarządzaj playlistą</h3><br>
-<a href="<?=base_url("downloadSongs?playlistId=".$playlist->ListId)?>">Załaduj nowe nuty</a><br><br>
+<a href="<?=base_url('downloadSongs?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Załaduj nowe nuty</a><br><br>
 <a href="<?=base_url('playlist/edit?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Edytuj Playlistę</a><br><br>
 <a href="<?=base_url('playlist/hidePlaylist?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>"><?=$playlist->ListPublic === "1" ? "Ukryj" : "Upublicznij"?> Playlistę</a><br><br>
 <a href="<?=base_url('playlist/deleteLocal?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Usuń Playlistę</a><br><br>
@@ -35,8 +35,8 @@
     <h3>Tracklista</h3>
     <table>
         <tr>
-            <th>Track</th>
-            <th>Status na YT</th>
+            <th>Track w RAPPAR</th>
+            <th>Track na YT</th>
             <?php if ($isRapparManaged): ?>
                 <th>Ocena Adama</th>
                 <th>Ocena Kościelnego</th>
@@ -61,13 +61,13 @@
                     <td>-</td>
                     <td>-</td>
                 <?php else: ?>
-                    <td><?=$song->SongTitle?></td>
-                    <td>-</td>
+                    <td><a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a></td>
+                    <td><?=$song->SongURL != '' ? '<a href="https://youtu.be/'.$song->SongURL.'">Link</a>' : '-'?></td>
                     <?php if ($isRapparManaged): ?>
-                        <td><?=$song->SongGradeAdam?></td>
-                        <td><?=$song->SongGradeChurchie?></td>
+                        <td><?=$song->SongGradeAdam ?: "Nieoceniona"?></td>
+                        <td><?=$song->SongGradeChurchie ?: "Nieoceniona"?></td>
                     <?php else: ?>
-                        <td><?=$song->SongGradeOwner?></td>
+                        <td><?=$song->SongGradeOwner ?: "Nieoceniona"?></td>
                     <?php endif; ?>
                     <td><a href="<?=base_url('playlistItems/updatePlaylistSongVisibility?songId='.$song->id.'&src='.$redirectSource)?>"><?=$song->SongVisible ? "Ukryj" : "Upublicznij"?></a></td>
                     <td><a href="<?=base_url('playlist/delSong?songId='.$song->id.'&src='.$redirectSource)?>">Usuń</a></td>
