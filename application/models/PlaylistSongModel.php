@@ -29,7 +29,7 @@ class PlaylistSongModel extends CI_Model
 
     /**
      * Fetch songs from a playlist, filtering by the song title.
-     * By default only visible songs, that is, not manually hidden by the user, are returned.
+     * By default, only visible songs, that is, not manually hidden by the user, are returned.
      * When including deleted songs, since they've been deleted, only the title is returned
      *  so that the song is not added again. They cannot be shown in playlists.
      *
@@ -229,13 +229,13 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * This function updates the reviewers' song comment
+     * Updates the playlist_song comment.
      *
      * @param int $playlistSongId
      * @param string $songComment
      * @return void
      */
-    function updateSongComment(int $playlistSongId, string $songComment): void
+    public function updateSongComment(int $playlistSongId, string $songComment): void
     {
         $sql = "UPDATE playlist_song SET SongComment = '$songComment' WHERE id = $playlistSongId";
         $this->db->simple_query($sql);
@@ -245,7 +245,7 @@ class PlaylistSongModel extends CI_Model
      * Update a playlist_song with the new PlaylistId after moving.
      * A local song is in a playlist not integrated with a YT playlist.
      *
-     * @param int $playlistSongId id of the playlist_song to update
+     * @param int $playlistSongId
      * @param int $newPlaylistId id of the playlist the playlist_song was moved to
      * @return bool true if query worked, false otherwise
      */
@@ -258,44 +258,44 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * Flags a playlist song as deleted.
+     * Flag a playlist_song as deleted.
      * Original song details are retained to ensure it is not added back.
-     * These are not visible to anyone. Only the playlist owner sees the title.
+     * These are not visible to anyone - only the playlist owner sees the title.
      *
-     * @param int $playlistSongId id of the song to delete
+     * @param int $playlistSongId
      * @return void
      */
-    function deletePlaylistSong(int $playlistSongId)
+    public function deletePlaylistSong(int $playlistSongId): void
     {
         $sql = "UPDATE playlist_song SET SongDeleted = 1, SongVisible = 0 WHERE id = $playlistSongId";
         $this->db->query($sql);
     }
 
     /**
-     * Updates the playlist song's visibility status.
+     * Update a playlist_song's visibility status.
      *
-     * @param int $playlistSongId id of the playlist song to hide
+     * @param int $playlistSongId
      * @param bool $newVisibility 1 to make the song visible, 0 to hide it
      * @return void
      */
-    function updatePlaylistSongVisibility(int $playlistSongId, bool $newVisibility)
+    public function updatePlaylistSongVisibility(int $playlistSongId, bool $newVisibility): void
     {
         $sql = "UPDATE playlist_song SET SongVisible = '$newVisibility' WHERE id = $playlistSongId";
         $this->db->simple_query($sql);
     }
 
     /**
-     * Fetches playlist songs that are not yet rated
+     * Fetch unrated playlist_songs from one playlist.
      *
-     * @param int $listId Current playlist id
-     * @return Array songs returned
+     * @param int $playlistId
+     * @return Array
      */
-    function filterUnrated(int $listId): array
+    public function filterUnrated(int $playlistId): array
     {
         $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle 
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
                 WHERE ps.SongGradeAdam = 0 AND ps.SongGradeChurchie = 0 AND ps.SongGradeOwner = 0
-                     AND ps.listId = $listId AND ps.SongVisible = 1 AND ps.SongDeleted = 0
+                     AND ps.listId = $playlistId AND ps.SongVisible = 1 AND ps.SongDeleted = 0
                      AND ps.SongRehearsal = 0 AND ps.SongDistinction = 0 AND ps.SongMemorial = 0 AND ps.SongXD = 0 AND ps.SongNotRap = 0
                      AND ps.SongDiscomfort = 0 AND ps.SongTop = 0 AND ps.SongNoGrade = 0 AND ps.SongUber = 0 AND ps.SongBelow = 0
                      AND ps.SongBelTen = 0 AND ps.SongBelNine = 0 AND ps.SongBelEight = 0 AND ps.SongBelFour = 0
@@ -306,18 +306,18 @@ class PlaylistSongModel extends CI_Model
     }
 
     /**
-     * There are lots of checkboxes for each song entry. This method allows the user
-     *  to filter songs in playlist by specifying the required checkboxes.
+     * There are lots of checkboxes for each playlist_song.
+     * Filter playlist_songs in one playlist by specifying the required checkboxes.
      *
-     * @param $listId int playlist id
+     * @param $playlistId int
      * @param $propertyName string the database name of the checkbox property to filter by
-     * @return array songs found
+     * @return array
      */
-    function filterSongsByCheckboxProperty(int $listId, string $propertyName): array
+    public function filterSongsByCheckboxProperty(int $playlistId, string $propertyName): array
     {
         $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle 
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
-                WHERE ps.$propertyName = 1 AND ps.listId = $listId AND ps.SongVisible = 1 AND ps.SongDeleted = 0";
+                WHERE ps.$propertyName = 1 AND ps.listId = $playlistId AND ps.SongVisible = 1 AND ps.SongDeleted = 0";
 
         return $this->db->query($sql)->result();
     }

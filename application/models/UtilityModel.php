@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Class which holds utility methods.
+ * Model responsible for providing utility methods.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -10,19 +10,18 @@
  */
 class UtilityModel extends CI_Model
 {
-
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->load->helper('cookie');
     }
 
     /**
-     * Trims trailing zeroes from a given number.
+     * Trim trailing zeroes from a given number.
      * If a non-number is passed, return 0.
      *
-     * @param mixed $number the number to trim
-     * @return float trimmed number
+     * @param mixed $number
+     * @return float
      */
     public function trimTrailingZeroes(mixed $number): float
     {
@@ -32,23 +31,23 @@ class UtilityModel extends CI_Model
     }
 
     /**
-     * Returns whether a number is in a given range or not
+     * Check whether a number is in the given range.
      *
-     * @param float $value number to check
+     * @param float $value the number to check
      * @param float $min lower boundary of the range
      * @param float $max upper boundary of the range
-     * @return bool true if number is in range, false if not
+     * @return bool
      */
-    function InRange(float $value, float $min, float $max): bool
+    public function inRange(float $value, float $min, float $max): bool
     {
         return ($value >= $min && $value <= $max);
     }
 
     /**
-     * YT playlist link usually has two get parameters 'list' and 'index'
-     * The list parameter is the actual playlist id
-     * Index refers to an item currently being watched and always occurs after list
-     * If index is found, mark its position in the string and fetch the id before it
+     * Playlist links on YouTube usually have two GET parameters: 'list' and 'index'.
+     * The 'list' parameter is the actual playlist id.
+     * Index refers to the currently watched video and always occurs after 'list'.
+     * If index is found, mark its position in the string and fetch the list id in front of it.
      *
      * @param string $link link to a playlist on YT
      * @return string playlist id on YT
@@ -68,22 +67,21 @@ class UtilityModel extends CI_Model
     }
 
     /**
-     * YouTube videos can be accessed in multiple link variants:
-     * //https://www.youtube.com/watch?v=ID
-     * //https://youtu.be/ID
-     * //https://youtu.be/ID?si=...
-     * //https://www.youtube.com/watch?v=ID&index=...
+     * YouTube video link can take one of many forms:
+     * https://www.youtube.com/watch?v=ID
+     * https://youtu.be/ID
+     * https://youtu.be/ID?si=...
+     * https://www.youtube.com/watch?v=ID&index=...
      *
-     * This function matches the link variant and returns the video id.
+     * Match the link variant and returns the video id.
      *
      * @param string $link a YT video link
      * @return string YT video ID
      */
     public function extractVideoIdFromLink(string $link): string
     {
-        if (preg_match('/(?:youtu\.be\/|youtube\.com.*[?&]v=)([a-zA-Z0-9_-]{11})/', $link, $matches)) {
+        if (preg_match('/(?:youtu\.be\/|youtube\.com.*[?&]v=)([a-zA-Z0-9_-]{11})/', $link, $matches))
             return $matches[1];
-        }
         else
             return $link;
     }

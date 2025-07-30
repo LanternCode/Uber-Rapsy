@@ -1,11 +1,10 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
-if (!isset($_SESSION)){
+if (!isset($_SESSION))
     session_start();
-}
 
 /**
- * Class responsible for the security of the application.
+ * Model responsible for managing the application's security, mostly user authentication and authorisation.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -14,8 +13,7 @@ if (!isset($_SESSION)){
  */
 class SecurityModel extends CI_Model
 {
-
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->load->helper('cookie');
@@ -23,17 +21,16 @@ class SecurityModel extends CI_Model
     }
 
     /**
-     * Checks whether the user is logged in.
+     * Check if the user is logged in.
      *
-     * @return boolean     true if authenticated, false otherwise
+     * @return bool
      */
-    function authenticateUser(): bool
+    public function authenticateUser(): bool
     {
         //Automatic sign-in
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
-        if (isset($_COOKIE["login"]) && !$userLoggedIn) {
+        if (isset($_COOKIE["login"]) && !$userLoggedIn)
             $this->AccountModel->automaticSignIn();
-        }
 
         //Fetch user credentials
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
@@ -43,11 +40,11 @@ class SecurityModel extends CI_Model
     }
 
     /**
-     * Checks whether a reviewer is logged in
+     * Check if a reviewer is logged in.
      *
-     * @return boolean     true if authenticated, otherwise false
+     * @return bool
      */
-    function authenticateReviewer(): bool
+    public function authenticateReviewer(): bool
     {
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
         $userRole = $_SESSION['userRole'] ?? 0;
@@ -58,11 +55,12 @@ class SecurityModel extends CI_Model
     }
 
     /**
-     * Check if the user is in the debugging mode
+     * Check if the user is in the debugging mode.
+     * Debugging mode can be enabled by RAPPAR staff in the account settings.
      *
      * @return bool
      */
-    function debuggingEnabled(): bool
+    public function debuggingEnabled(): bool
     {
         $userCanDebug = $this->authenticateReviewer();
         if ($userCanDebug) {
@@ -72,66 +70,73 @@ class SecurityModel extends CI_Model
     }
 
     /**
-     * The function tries to load the Google library and initialise the client.
-     * If successful, the client is returned. Otherwise - false.
+     * Import the Google library and initialise the client.
      *
-     * @return false|\Google\Client
+     * @return false|\Google\Client false if the client could not be initialised
      */
-    function initialiseLibrary(): \Google\Client|bool
+    public function initialiseLibrary(): \Google\Client|bool
     {
         try {
-            $myPath = $_SERVER['DOCUMENT_ROOT'] . (ENVIRONMENT !== 'production' ? '/Dev' : '') . '/Uber-Rapsy/';
+            //Import the library
+            $myPath = $_SERVER['DOCUMENT_ROOT'].(ENVIRONMENT !== 'production' ? '/Dev' : '').'/Uber-Rapsy/';
             require_once $myPath . 'vendor/autoload.php';
+
+            //Initialise the client
             $client = new Google\Client();
-            $client->setAuthConfig($myPath . 'application/api/client_secret.json');
+
+            //Supply the client with the required API credentials
+            $client->setAuthConfig($myPath.'application/api/client_secret.json');
             return $client;
-        } catch(Exception $e) {
+        }
+        catch (Exception $e) {
             //The library or the client could not be initiated
             return false;
         }
     }
 
     /**
-     * Validates the google oauth2 token.
+     * Validate the Google OAuth2 token.
+     * If the token is invalid or expired, attempt a refresh.
      *
-     * @return bool true if token is valid, false if expired.
+     * @param object $client the Google client obtained from the initialiseLibrary method.
+     * @return bool true if the token is valid, false if it expired and could not be refreshed.
      */
-    function validateAuthToken($client): bool
+    public function validateAuthToken(object $client): bool
     {
-        //Get the currently saved token from the cookie
+        //Get the token cookie
         $accessToken = get_cookie("UberRapsyToken");
-        //Check if the cookie contained the token
+
+        //Check if the cookie contains the token
         $token_expired = false;
         if (!is_null($accessToken)) {
             try {
-                //If yes, check if it is valid and not expired
+                //If the cookie contains the token, check if it is valid (not expired)
                 $client->setAccessToken($accessToken);
                 $token_expired = $client->isAccessTokenExpired();
-            } catch (Exception $e) {
-                //Exception raised means the format is invalid
+            }
+            catch (Exception $e) {
+                //Exception raised - the token is invalid
                 $token_expired = true;
             }
-        } else {
-            //Cookie did not exist or returned null
+        }
+        else {
+            //Cookie does not exist
             $token_expired = true;
         }
 
-        //If the token expired, fetch the refresh token and attempt a refresh
-        if($token_expired)
-        {
-            //First fetch the refresh token from api/refresh_token.txt
-            if($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
-                //Get a new token
+        //If the user token expired, fetch the refresh token and get a new user token
+        if ($token_expired) {
+            //Fetch the refresh token from api/refresh_token.txt
+            if ($refresh_token = file_get_contents("application/api/refresh_token.txt")) {
+                //Get a new user token
                 $client->refreshToken($refresh_token);
-                //Save the new token
                 $accessToken = $client->getAccessToken();
-                //Run JSON encode to store the token in a cookie
-                $accessToken = json_encode($accessToken);
-                //Delete the old cookie with the expired token
+                //Delete the old cookie
                 delete_cookie("UberRapsyToken");
-                //Set a new cookie with the new token
+                //Encode the user token to store it as a cookie
+                $accessToken = json_encode($accessToken);
+                //Set a cookie with the new user token valid for one day
                 set_cookie("UberRapsyToken", $accessToken, 86400);
-                //Set token_expired to false and proceed
                 $token_expired = false;
             }
         }
@@ -140,9 +145,9 @@ class SecurityModel extends CI_Model
     }
 
     /**
-     * Fetch the current user's id. If no user is logged in, return false.
+     * Fetch the current user's id.
      *
-     * @return int|bool
+     * @return int|bool If no user is logged in, return false.
      */
     public function getCurrentUserId(): int|bool
     {

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * Class responsible for the Song table.
+ * Model responsible for managing the Song database table.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -17,10 +17,10 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Returns a single song item.
+     * Return a single song item.
      *
      * @param string $songId
-     * @return object|false
+     * @return object|false false if the item with the provided id does not exist
      */
     public function getSong(string $songId): object|false
     {
@@ -30,14 +30,12 @@ class SongModel extends CI_Model
 
     /**
      * Insert a song into the local database.
-     *
-     * Every song fetched from our YT playlist is next fetched using YT API
-     * and saved into the database, so it is never lost
+     * Every song fetched from a YT playlist is saved into the local database, so it is never lost.
      *
      * @param string $songURL YT url of the song (without youtu.be/). Can be left empty for manual importing.
      * @param string $userId current user inserting the song
      * @param string $songThumbnailURL YT URL of the song's thumbnail
-     * @param string $songTitle title of the song on YT
+     * @param string $songTitle song title on YT
      * @param string $songChannelName the name of the YT channel that uploaded the song
      * @param string $songReleaseYear song release year
      * @return int id of the inserted song
@@ -69,11 +67,11 @@ class SongModel extends CI_Model
     }
 
     /**
-     * The method checks if the song with the selected URL, title and coming from the same channel
-     *  already exists in the database. If it does, it returns its id.
+     * Check if the song with the selected URL, title, and coming from the same channel
+     *  already exists in the database. If it does, return its id.
      *
      * @param string $songExternalId YT url of the song (without youtu.be/)
-     * @param string $songTitle YT title of the song
+     * @param string $songTitle song title on YT
      * @param string $songChannelName YT channel name that uploaded the song
      * @return int song id (or 0 if not found)
      */
@@ -84,56 +82,54 @@ class SongModel extends CI_Model
             ->where('SongURL', $songExternalId)
             ->get();
 
-        if (isset($query->row()->SongId) && $query->row()->SongId > 0) {
+        if (!empty($query->row()->SongId))
             return $query->row()->SongId;
-        }
 
         $query = $this->db->select('SongId')
             ->from('song')
             ->where('SongTitle', $songTitle)
             ->get();
 
-        if (isset($query->row()->SongTitle) && isset($query->row()->SongChannelName)) {
-            if ($query->row()->SongChannelName == $songChannelName) {
+        if (isset($query->row()->SongChannelName)) {
+            if ($query->row()->SongChannelName == $songChannelName)
                 return $query->row()->SongId;
-            } else {
-                return 0;
-            }
-        } else {
-            return 0;
+            else return 0;
         }
+        else return 0;
     }
 
     /**
-     * Adds a song rating (who and how rated what song).
+     * Add a song rating.
+     * One song can be rated by any number of users.
+     * A user may only rate the same song once.
      *
      * @param array $queryData
      * @return void
      */
-    function addSongRating(array $queryData)
+    public function addSongRating(array $queryData): void
     {
         $this->db->insert('song_rating', $queryData);
     }
 
     /**
-     * Updates an existing song rating.
+     * Update an existing song rating.
      *
      * @param array $queryData
      * @return void
      */
-    function updateSongRating(array $queryData)
+    public function updateSongRating(array $queryData): void
     {
         $this->db->replace('song_rating', $queryData);
     }
 
     /**
-     * Checks if the user already rated a song.
+     * Check if the user already rated the song.
      *
      * @param string $songId
      * @param string $userId
      * @return bool true if rated, false otherwise
      */
-    function checkSongRatingExists(string $songId, string $userId): bool
+    public function checkSongRatingExists(string $songId, string $userId): bool
     {
         $query = $this->db->get_where('song_rating', [
             'songId' => $songId,
@@ -144,7 +140,7 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Retrieves the logged user's song rating
+     * Retrieve the current user's song rating.
      *
      * @param string $songId
      * @param string $userId
@@ -160,7 +156,7 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Retrieves the average of song's scores
+     * Retrieve the average song rating.
      *
      * @param string $songId
      * @return float
@@ -176,12 +172,12 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Retrieves all song's awards (award labels).
+     * Retrieve all song's awards.
      *
      * @param string $songId
      * @return array
      */
-    function fetchSongAwards(string $songId): array
+    public function fetchSongAwards(string $songId): array
     {
         $query = $this->db->get_where('song_award', [
             'songId' => $songId
@@ -217,11 +213,11 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Fetch songs, filtering by the song title.
-     * Only visible songs, that is, not hidden by staff, are visible
+     * Fetch songs filtered by the song title.
      *
      * @param string $search title filter
-     * @return array returns an array containing the songs found
+     * @param bool $isReviewer staff can see hidden and deleted songs
+     * @return array
      */
     public function searchSongs(string $search = "", bool $isReviewer = false): array
     {
@@ -231,15 +227,17 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Fetch the top 100 songs for the Top100 Rappar Hits toplist
+     * Fetch the 100 highest-rated public songs.
      *
      * @return array
      */
-    function fetchTopRapparHits()
+    public function fetchTopRapparHits(): array
     {
         $this->db->select('song.SongId, song.SongTitle, AVG(song_rating.songGrade) as avg_rating');
         $this->db->from('song_rating');
         $this->db->join('song', 'song.SongId = song_rating.songId');
+        $this->db->where('song.SongVisible', 1);
+        $this->db->where('song.SongDeleted', 0);
         $this->db->group_by('song_rating.songId');
         $this->db->order_by('avg_rating', 'DESC');
         $this->db->limit(100);
@@ -260,9 +258,7 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Check whether the user already reviewed the song.
-     * A user should only have one review active for the same song.
-     * They can update their review whenever needed.
+     * Check if the user already reviewed a particular song.
      *
      * @param int $songId
      * @param int $userId
@@ -276,7 +272,7 @@ class SongModel extends CI_Model
 
     /**
      * Return the number of public song reviews.
-     * Exclude reviews made by the current user if required.
+     * Exclude reviews made by the current user if one is logged in.
      *
      * @param int $songId
      * @param int $userId 0 means no user is logged in
@@ -294,7 +290,7 @@ class SongModel extends CI_Model
 
     /**
      * Fetch ten most recent public song reviews.
-     * Exclude reviews made by the current user if required.
+     * Exclude reviews made by the current user if one is logged in.
      *
      * @param int $songId
      * @param int $userId 0 means no user is logged in
@@ -316,7 +312,8 @@ class SongModel extends CI_Model
 
     /**
      * Fetch a song review.
-     * Also attach the reviewer's username if required.
+     * Also attach the reviewer's username if one is required.
+     * Usernames are required for some review listings.
      *
      * @param int $reviewId
      * @param bool $includeUsername
@@ -359,9 +356,7 @@ class SongModel extends CI_Model
     /**
      * Check if the song with the selected title, made by the same authors and released the same year
      *  already exists in the database. If it does, return its id.
-     *
-     * This method is used when inserting songs manually. Because such songs do not have YouTube IDs,
-     *  their originality must be separately checked against the database.
+     * This is done when inserting songs manually, because such songs do not have YouTube IDs.
      *
      * @param string $songTitle
      * @param string $songAuthors
@@ -381,7 +376,7 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Update the song's visibility status.
+     * Update the song's visibility.
      *
      * @param int $songId
      * @param bool $newVisibility 1 to make the song visible, 0 to hide it
@@ -394,9 +389,8 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Delete a song.
-     * A deleted song is marked as deleted and cannot be viewed by the users.
-     * The reviewers see the entry as deleted and its data is retained so it is not added again.
+     * Delete a song. A deleted song is marked as deleted and cannot be viewed by the users.
+     * The reviewers see the entry as deleted and some of its data is retained so it is not added again.
      *
      * @param int $songId
      * @return void
@@ -408,8 +402,7 @@ class SongModel extends CI_Model
     }
 
     /**
-     * Check whether a song is active on RAPPAR.
-     * Deleted songs are considered inactive.
+     * Check whether a song is active on RAPPAR. Deleted songs are considered inactive.
      *
      * @param int $songId
      * @return bool

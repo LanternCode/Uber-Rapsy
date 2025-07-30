@@ -723,7 +723,7 @@ class PlaylistItems extends CI_Controller
 
             //Ensure the ratings are valid decimal numbers (full or .5) and are in the range <0, 15>
             if (is_numeric($newAdamRating) && is_numeric($newChurchieRating) && is_numeric($newOwnerRating)
-                && $this->UtilityModel->InRange($newAdamRating, 0, 15) && $this->UtilityModel->InRange($newChurchieRating, 0, 15) && $this->UtilityModel->InRange($newOwnerRating, 0, 15)
+                && $this->UtilityModel->inRange($newAdamRating, 0, 15) && $this->UtilityModel->inRange($newChurchieRating, 0, 15) && $this->UtilityModel->inRange($newOwnerRating, 0, 15)
                 && fmod($newAdamRating, 0.5) == 0 && fmod($newChurchieRating, 0.5) == 0 && fmod($newOwnerRating, 0.5) == 0)
             {
                 //Update the ratings and prepare the update message

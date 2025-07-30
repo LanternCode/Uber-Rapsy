@@ -58,20 +58,7 @@ class PlaylistModel extends CI_Model
     }
 
     /**
-     * Fetch the playlist's ListPublic property.
-     * A playlist is public if its ListPublic is set to true.
-     *
-     * @param int $listId
-     * @return string
-     */
-    public function getListPublicProperty(int $listId): string
-    {
-        $sql = "SELECT ListPublic FROM list WHERE ListId = '$listId'";
-        return $this->db->query($sql)->row()->ListPublic;
-    }
-
-    /**
-     * Return a playlist URL.
+     * Return a playlist YouTube URL. This is not a full link, but the playlist id on YT.
      *
      * @param string $listId
      * @return string
@@ -168,7 +155,7 @@ class PlaylistModel extends CI_Model
     }
 
     /**
-     * Update the playlist's ListIntegrated property.
+     * Update the ListIntegrated property.
      *
      * @param int $playlistId
      * @param int $updatedIntegrationStatus true if integrated, false otherwise

@@ -190,7 +190,7 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Fetch a user username.
+     * Fetch a user's username.
      *
      * @param int $userId
      * @return string
