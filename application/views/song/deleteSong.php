@@ -22,7 +22,7 @@ Ta opcja istnieje by blokować materiały nie będące utworami muzycznymi (paro
             <p class="song-authors songBackground"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
         </div>
         <div class="song-awards songBackground">
-            <?php foreach($songAwards as $award): ?>
+            <?php foreach ($songAwards as $award): ?>
                 <p class="songBackground"><?=$award->award?></p>
             <?php endforeach; ?>
         </div>

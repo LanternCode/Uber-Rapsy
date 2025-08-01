@@ -70,13 +70,13 @@ class PlaylistSongModel extends CI_Model
                     JOIN list AS l ON ps.listId = l.ListId 
                     WHERE s.SongTitle LIKE '%$search%'";
 
-        //If logged in, search both in your playlists and in public playlists
+        //If logged in, search both in RAPPAR playlists and in public playlists, otherwise search only in RAPPAR playlists
         if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']) {
-            $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId IN (1, " . $_SESSION['userId'] . "))";
+            $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId IN (1, ".$_SESSION['userId']."))";
         }
         else $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId = 1)";
 
-        //Admin staff can scan through private playlists for compliance and to provide CS
+        //Admin staff can scan through private playlists to provide customer support
         if (!$this->SecurityModel->debuggingEnabled())
             $sql .= $ownerCondition;
 

@@ -10,7 +10,7 @@
     <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
 </header>
 <br><br><br><br>
-<h2><?= $song->SongVisible === "1" ? "Ukrywasz" : "Upubliczniasz" ?> następujący utwór:</h2><br><br>
+<h2><?=$song->SongVisible === "1" ? "Ukrywasz" : "Upubliczniasz"?> następujący utwór:</h2><br><br>
 <div class="song-container songBackground">
     <div class="song-header songBackground">
         <div class="songBackground">
@@ -18,7 +18,7 @@
             <p class="song-authors songBackground"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
         </div>
         <div class="song-awards songBackground">
-            <?php foreach($songAwards as $award): ?>
+            <?php foreach ($songAwards as $award): ?>
                 <p class="songBackground"><?=$award->award?></p>
             <?php endforeach; ?>
         </div>

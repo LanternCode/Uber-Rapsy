@@ -12,7 +12,7 @@
 <br><br><br><br>
 <h3>Obecne nagrody utworu <?=$song->SongTitle?>:</h3><br>
 <div>
-    <?php foreach($songAwards as $award): ?>
+    <?php foreach ($songAwards as $award): ?>
         <p class="song-awards centered"><?=$award->award?> <a href="<?=base_url('song/awards?songId='.$song->SongId.'&delAward='.$award->id)?>" title="Usuń Nagrodę">❌</a></p><br>
     <?php endforeach; ?>
 </div>

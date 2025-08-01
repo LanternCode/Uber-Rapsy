@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * A service dedicated to sanitising user input.
+ * A service sanitising user inputs.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -16,25 +16,23 @@ class HtmlSanitiser
     public function __construct()
     {
         $this->ci =& get_instance();
-
         require_once APPPATH . 'third_party/htmlsanitiser/HTMLPurifier.auto.php';
     }
 
     /**
-     * Get a purifier by type. Creates and caches it if not already created.
+     * Get a purifier by type. Create and cache it if not already created.
      *
      * @param string $type 'rich' or 'text'
      * @return HTMLPurifier
      */
     protected function getPurifier(string $type = 'rich'): HTMLPurifier
     {
-        if (isset($this->purifiers[$type])) {
+        if (isset($this->purifiers[$type]))
             return $this->purifiers[$type];
-        }
 
         $config = HTMLPurifier_Config::createDefault();
-
-        switch ($type) {
+        switch ($type)
+        {
             case 'text':
                 $config->set('HTML.Allowed', '');
                 break;

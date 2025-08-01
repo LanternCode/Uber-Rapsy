@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * A service dedicated to retrieving songs from YouTube
+ * A service retrieving songs from YouTube.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -21,9 +21,9 @@ class FetchSongsService
     }
 
     /**
-     * Sets up the service object required for YouTube API requests
+     * Set up the service object required for YouTube API requests.
      *
-     * @return array|Google_Service_YouTube the service object or an error array
+     * @return array|Google_Service_YouTube the service object or an array describing the error
      */
     public function setupGoogleService(): array|Google_Service_YouTube
     {
@@ -58,10 +58,10 @@ class FetchSongsService
     }
 
     /**
-     * Fetches all requested videos
+     * Fetch all requested videos from YouTube.
      *
-     * @param array $songIds an array of youtube video IDs to fetch
-     * @return array|bool the videos found, or false if the request failed
+     * @param array $songIds an array of YouTube video IDs
+     * @return array|bool the videos found or false if the request failed
      */
     public function fetchVideoItemsFromYT(array $songIds): array|bool
     {
@@ -85,9 +85,8 @@ class FetchSongsService
                 return false;
             }
 
-            if (isset($response['items'])) {
+            if (isset($response['items']))
                 $videosFetched[] = $response['items'];
-            }
             else return false;
         }
 
@@ -97,7 +96,7 @@ class FetchSongsService
     }
 
     /**
-     * Fetches all songs from a youtube playlist
+     * Fetch all songs from a YouTube playlist.
      *
      * @param string $playlistId the remote playlist id
      * @return array|bool|Google_Service_YouTube the items found, the error code and message array, or a bool

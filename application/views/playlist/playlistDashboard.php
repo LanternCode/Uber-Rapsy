@@ -17,7 +17,7 @@
         <th>Szczegóły</th>
         <th>Status</th>
     </tr>
-    <?php foreach($playlists as $playlist): ?>
+    <?php foreach ($playlists as $playlist): ?>
         <tr>
             <td><a target="_blank" href="<?=base_url('playlist?playlistId='.$playlist->ListId)?>">--></a></td>
             <td><?=$playlist->ListName?></td>

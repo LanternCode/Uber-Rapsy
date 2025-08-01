@@ -34,7 +34,7 @@
                     <p class="song-authors"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
                 </div>
                 <div class="song-awards">
-                    <?php foreach($songAwards as $award): ?>
+                    <?php foreach ($songAwards as $award): ?>
                         <p class=""><?=$award->award?></p>
                     <?php endforeach; ?>
                 </div>

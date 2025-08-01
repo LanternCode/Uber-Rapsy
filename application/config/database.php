@@ -1,5 +1,4 @@
-<?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /*
 | -------------------------------------------------------------------
@@ -92,14 +91,12 @@ $db['default'] = array(
     'save_queries' => TRUE
 );
 
-if(ENVIRONMENT !== 'production')
-{
+if (ENVIRONMENT !== 'production') {
     $db['default']['username'] = 'root';
     $db['default']['password'] = '';
     $db['default']['hostname'] = 'localhost';
 }
-else
-{
+else {
     //load the db credentials from a file
     $i = 0;
     $myPath = $_SERVER['DOCUMENT_ROOT'] . '/Uber-Rapsy/application/api/database_credentials.txt';
@@ -130,9 +127,5 @@ else
             }
         }
         fclose($handle);
-    } else {
-        // error opening the file.
     }
 }
-
-

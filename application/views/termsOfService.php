@@ -66,8 +66,8 @@
 
 <h3>12. Contact Information</h3>
 <p class="ToSParagraph">📧 <strong>Email:</strong> rappar (at) lanterncode (dot) com</p>
-<p class="ToSParagraph">🌍 <strong>Website:</strong> rappar.pl</p><br />
+<p class="ToSParagraph">🌍 <strong>Website:</strong> rappar.pl</p><br>
 
 <div class="tos--button">
     <button role="button" class="btn btn-info tos--button" onclick="window.open('', '_self', ''); window.close();">Close</button>
-</div><?php
+</div>

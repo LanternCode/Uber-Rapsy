@@ -33,7 +33,7 @@
                 </tr>
             </thead>
             <tbody>
-            <?php foreach($songs as $song): ?>
+            <?php foreach ($songs as $song): ?>
                 <tr>
                     <td><a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a></td>
                     <td><?=$song->communityAverage != 0 ? $song->communityAverage : '❌'?></td>

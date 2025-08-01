@@ -43,7 +43,7 @@
                 </tr>
             </thead>
             <tbody>
-            <?php foreach($songs as $song): ?>
+            <?php foreach ($songs as $song): ?>
                 <tr>
                     <td>
                         <?php if ($song->SongDeleted): ?>

@@ -5,7 +5,7 @@
 <br/><br/>
 <h2>Moje Playlisty</h2>
 <br/><br/>
-<?php if(count($playlists) == 0): ?>
+<?php if (count($playlists) == 0): ?>
     <h3>Nie posiadasz żadnych playlist!</h3>
 <?php else: ?>
     <table>
@@ -17,7 +17,7 @@
             <th>Szczegóły</th>
             <th>Status</th>
         </tr>
-        <?php foreach($playlists as $playlist): ?>
+        <?php foreach ($playlists as $playlist): ?>
             <tr>
                 <td><a target="_blank" href="<?=base_url('playlist?playlistId='.$playlist->ListId)?>">--></a></td>
                 <td><?=$playlist->ListName?></td>

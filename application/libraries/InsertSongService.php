@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * A service dedicated to inserting songs to YT playlists
+ * A service inserting songs to YT playlists.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -29,52 +29,52 @@ class InsertSongService
     }
 
     /**
-     * Load the YT API library and validate the auth token
+     * Load the YT API library and validate the provided auth token.
      *
-     * @param $newPlaylistDetails object target playlist for moving or copying
-     * @param $currentPlaylistSong object a playlist_song object being moved or copied
-     * @return array [false, error message] or objects required to make YT api requests
+     * @param $newPlaylistDetails object target playlist for moving or copying songs
+     * @param $currentPlaylistSong object the playlist_song object being moved or copied
+     * @return array [false, error message] or two objects required to make YT api requests
      */
     private function preliminaryChecks(object $newPlaylistDetails, object $currentPlaylistSong): array
     {
         //Include google library
         $client = $this->CI->SecurityModel->initialiseLibrary();
 
-        //Only proceed when the library was successfully included
-        if ($client !== false) {
-            //Validate the access token required for the api call
-            $tokenExpired = $this->CI->SecurityModel->validateAuthToken($client);
-            if (!$tokenExpired) {
-                //Define service object for making API requests
-                $service = new Google_Service_YouTube($client);
+        //Only proceed if the library was successfully included
+        if ($client === false)
+            return [false, "Nie znaleziono biblioteki Youtube API!"];
 
-                //Define the $playlistItem object, which will be uploaded as the request body
-                $playlistItem = new Google_Service_YouTube_PlaylistItem();
+        //Validate the access token required for the api call
+        $tokenExpired = $this->CI->SecurityModel->validateAuthToken($client);
+        if ($tokenExpired)
+            return [false, "Odświeżenie tokenu autoryzującego nie powiodło się.</br>Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki."];
 
-                //Add 'snippet' object to the $playlistItem object
-                $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
-                $playlistItemSnippet->setPlaylistId($newPlaylistDetails->ListUrl);
+        //Define service object for making API requests
+        $service = new Google_Service_YouTube($client);
 
-                //Set the resources
-                $resourceId = new Google_Service_YouTube_ResourceId();
-                $resourceId->setKind('youtube#video');
-                $resourceId->setVideoId($currentPlaylistSong->SongURL);
-                $playlistItemSnippet->setResourceId($resourceId);
-                $playlistItem->setSnippet($playlistItemSnippet);
+        //Define the $playlistItem object, which will be uploaded as the request body
+        $playlistItem = new Google_Service_YouTube_PlaylistItem();
 
-                return [$service, $playlistItem];
-            }
-            else return [false, "Odświeżenie tokenu autoryzującego nie powiodło się.</br>Zapisano wszystkie oceny, nie przeniesiono żadnej piosenki."];
-        }
-        else return [false, "Nie znaleziono biblioteki Youtube API!"];
+        //Add 'snippet' object to the $playlistItem object
+        $playlistItemSnippet = new Google_Service_YouTube_PlaylistItemSnippet();
+        $playlistItemSnippet->setPlaylistId($newPlaylistDetails->ListUrl);
+
+        //Set the resources
+        $resourceId = new Google_Service_YouTube_ResourceId();
+        $resourceId->setKind('youtube#video');
+        $resourceId->setVideoId($currentPlaylistSong->SongURL);
+        $playlistItemSnippet->setResourceId($resourceId);
+        $playlistItem->setSnippet($playlistItemSnippet);
+
+        return [$service, $playlistItem];
     }
 
     /**
-     * Move a playlist song from one playlist to another where at least one of them is integrated with YT
+     * Move a playlist_song from one playlist to another, where at least one of them is integrated with YT.
      *
-     * @param $playlist object|false source playlist object or false if one was not available and must be fetched
+     * @param $playlist object|false source playlist object or false, if one was not available and must be fetched
      * @param $currentPlaylistSong object the playlist_song object being moved
-     * @param $newPlaylistId int target playlist id
+     * @param $newPlaylistId int target playlist id (on RAPPAR)
      * @param $localResultMessage string a string holding the song update display text
      * @return string an error message (or empty string if all went well)
      */
@@ -84,9 +84,8 @@ class InsertSongService
         $newPlaylistDetails = $this->CI->PlaylistModel->fetchPlaylistById($newPlaylistId);
         $currentSong = $this->CI->SongModel->getSong($currentPlaylistSong->songId);
         [$service, $playlistItem] = $this->preliminaryChecks($newPlaylistDetails, $currentSong);
-        if ($service === false) {
+        if ($service === false)
             return $playlistItem;
-        }
 
         //Establish the source playlist details
         $newSongPlaylistItemsId = '';
@@ -145,10 +144,10 @@ class InsertSongService
     }
 
     /**
-     * Copy a playlist song to a playlist integrated with YT
+     * Copy a playlist_song to a playlist integrated with YT.
      *
      * @param $currentPlaylistSong object the playlist_song object being moved
-     * @param $newPlaylistId int target playlist id
+     * @param $newPlaylistId int target playlist id (on RAPPAR)
      * @param $newSongId int copied playlist_song's id
      * @param $localResultMessage string a string holding the song update display text
      * @return string an error message (or empty string if all went well)
@@ -159,9 +158,8 @@ class InsertSongService
         $newPlaylistDetails = $this->CI->PlaylistModel->fetchPlaylistById($newPlaylistId);
         $currentSong = $this->CI->SongModel->getSong($currentPlaylistSong->songId);
         [$service, $playlistItem] = $this->preliminaryChecks($newPlaylistDetails, $currentSong);
-        if ($service === false) {
+        if ($service === false)
             return $playlistItem;
-        }
 
         //Add the song to the integrated playlist
         $response = $service->playlistItems->insert('snippet', $playlistItem);

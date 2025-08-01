@@ -47,7 +47,7 @@
             <th>Usuń z listy</th>
             <th>Sprawdź Historię</th>
         </tr>
-        <?php foreach($songs as $song): ?>
+        <?php foreach ($songs as $song): ?>
             <tr>
                 <?php if ($song->SongDeleted): ?>
                     <td><i><b><?=$song->SongTitle?></b></i></td>

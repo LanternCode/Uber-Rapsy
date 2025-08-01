@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * A service dedicated to refreshing playlist contents
+ * A service refreshing playlists.
  *
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
@@ -17,7 +17,8 @@ class RefreshPlaylistService
 {
     protected $CI;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->CI =& get_instance();
         $this->CI->load->model('PlaylistSongModel');
         $this->CI->load->model('SongModel');
@@ -28,9 +29,9 @@ class RefreshPlaylistService
     }
 
     /**
-     * Fetches all songs contained in the YouTube playlist
-     * Then compares them with the locally saved copy and adds what is missing
-     * A report is generated and attached if everything went well
+     * Fetch all songs in a YouTube playlist, compares them with the locally saved copy
+     *  of that playlist and add what's missing. If everything goes well,
+     *  generate and attach a report.
      *
      * @param $listId int the RAPPAR playlist id
      * @return string An error message ("" means no errors)
@@ -103,9 +104,7 @@ class RefreshPlaylistService
                     }
                 }
             }
-            else {
-                return "Udało się pobrać playlistę, ale nie udało się pobrać piosenek z YouTube. Spróbuj ponownie za jakiś czas.";
-            }
+            else return "Udało się pobrać playlistę, ale nie udało się pobrać piosenek z YouTube. Spróbuj ponownie za jakiś czas.";
 
             //Insert every new song into the database
             foreach ($newSongItems as &$songToInsert) {

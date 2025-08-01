@@ -8,7 +8,7 @@
 <p>Nuta publiczna: <?=$song->SongVisible == 1 ? 'Publiczna' : 'Ukryta'?></p><br>
 <p>Status nuty: <?=$song->SongDeleted == 0 ? 'Aktywna' : 'Na stałe usunięta z RAPPAR'?></p><br>
 
-<?php if(count($songLog) > 0): ?>
+<?php if (count($songLog) > 0): ?>
     <h3>Historia Utworu</h3>
         <?php foreach($songLog as $log): ?>
             <?=$log->Description?> <?=$log->Timestamp?> <br>

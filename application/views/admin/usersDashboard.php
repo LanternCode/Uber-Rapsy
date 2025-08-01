@@ -10,7 +10,7 @@
         <th>Status Konta</th>
         <th>Szczegóły</th>
     </tr>
-    <?php foreach($users as $user): ?>
+    <?php foreach ($users as $user): ?>
         <tr>
             <td><?=$user->username?></td>
             <td><?=$user->role == 'user' ? "Użytkownik" : "Recenzent"?></td>

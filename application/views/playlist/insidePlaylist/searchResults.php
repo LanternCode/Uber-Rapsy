@@ -15,12 +15,12 @@
 </nav>
 <br><br><br>
 <h2>Wyniki wyszukiwania!</h2>
-	<?php if(count($songs) > 0 && count($songs) < 301): ?>
+	<?php if (count($songs) > 0 && count($songs) < 301): ?>
         <h3>Liczba nut: <?=count($songs)?></h3>
         <form id="songsForm" method="post" action="<?=base_url('updateGradesFromSearch')?>">
             <?php
             $i = 0;
-            foreach($songs as $key => $song):
+            foreach ($songs as $key => $song):
                 $isPlaylistOwner = in_array($song->listId, $userOwnedPlaylistIDs);
                 $rapparManagedPlaylist = (int) $playlist[$key]->ListOwnerId === 1; ?>
                 <div class="videoContainerBox">
