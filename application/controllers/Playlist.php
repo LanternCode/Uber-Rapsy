@@ -398,38 +398,68 @@ class Playlist extends CI_Controller
 
     /**
      * Allows the user to delete a local playlist.
+     * If terminating an integrated playlist, only its local (RAPPAR)
+     *  version is deleted.
      *
      * @return void
      */
     public function deleteLocalPlaylist(): void
     {
+        //Validate the provided playlist id
         $playlistId = filter_var($this->input->get('playlistId'), FILTER_VALIDATE_INT);
-        if ($playlistId) {
-            $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $_SESSION['userId'];
-            if ($userAuthorised) {
-                $data = array(
-                    'body' => 'playlist/deleteLocal',
-                    'title' => 'Uber Rapsy | Usuń playlistę',
-                    'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
-                    'redirectSource' => $this->input->get('src')
-                );
-
-                //Delete the local playlist if confirmed by the user
-                $deleteLocal = $this->input->get('del');
-                if ($deleteLocal) {
-                    $this->PlaylistModel->deleteLocalPlaylist($playlistId);
-                    if ($data['redirectSource'] == "pd")
-                        redirect('playlistDashboard');
-                    else
-                        redirect('myPlaylists');
-                }
-
-                $this->load->view('templates/main', $data);
-            }
-            else redirect('errors/403-404');
+        if (!$playlistId) {
+            redirect('errors/403-404');
         }
-        else redirect('errors/403-404');
+
+        //Validate user permissions
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userId = $this->SecurityModel->getCurrentUserId();
+        $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $userId;
+        if (!$userAuthorised) {
+            redirect('errors/403-404');
+        }
+
+        //Define view parameters
+        $data = array(
+            'body' => 'playlist/deleteLocal',
+            'title' => 'Uber Rapsy | Usuń playlistę',
+            'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
+            'redirectSource' => $this->input->get('src')
+        );
+
+        //Delete playlist if approved by the user
+        $deleteLocal = $this->input->get('del');
+        if ($deleteLocal) {
+            //Fetch every song to make a report of its deletion
+            $reportData = $this->PlaylistSongModel->getPlaylistSongsNamesAndStatus($playlistId);
+
+            //Delete every playlist_song that is on this playlist
+            $this->PlaylistSongModel->deleteAllSongsInPlaylist($playlistId);
+
+            //Delete the playlist
+            $this->PlaylistModel->deleteLocalPlaylist($playlistId);
+
+            //Generate the deletion report
+            $report = "<pre><strong>Tytuł Utworu | Status</strong><br>";
+            foreach ($reportData as $deletedRecord) {
+                $report .= $deletedRecord->SongTitle." | ".($deletedRecord->SongDeleted ? 'Usunięta' : 'Aktywna').'<br>';
+            }
+            $report .= "</pre>";
+
+            //Insert the report
+            $reportId = $this->LogModel->submitReport($report);
+
+            //Log the deletion
+            $this->LogModel->createLog('user',$userId, "Usunięto playlistę ".$data['playlist']->ListName, $reportId);
+
+            //Take the user to the right dashboard
+            if ($data['redirectSource'] == "pd")
+                redirect('playlistDashboard');
+            else
+                redirect('myPlaylists');
+        }
+
+        $this->load->view('templates/main', $data);
     }
 
     /**

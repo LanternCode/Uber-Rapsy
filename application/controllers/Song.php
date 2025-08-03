@@ -85,7 +85,8 @@ class Song extends CI_Controller
             'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
             'songAwards' => $this->SongModel->fetchSongAwards($songId),
             'userAuthenticated' => $this->SecurityModel->authenticateUser(),
-            'userId' => $this->SecurityModel->getCurrentUserId()
+            'userId' => $this->SecurityModel->getCurrentUserId(),
+            'searchQuery' => $this->input->get('query')
         );
         $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
         $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);

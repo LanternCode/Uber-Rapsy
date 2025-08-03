@@ -31,7 +31,7 @@
 
     <label>Widoczność Playlisty:</label><br />
     <select name="playlistVisibility">
-        <option value="1">Publiczna - widoczna dla ogółu</option>
+        <option value="1">Publiczna - osoby z linkiem mogą ją przejrzeć</option>
         <option value="0">Prywatna - widoczna tylko dla właściciela</option>
     </select><br /><br />
 

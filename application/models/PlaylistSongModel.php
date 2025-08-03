@@ -321,4 +321,120 @@ class PlaylistSongModel extends CI_Model
 
         return $this->db->query($sql)->result();
     }
+
+    /**
+     * Delete all playlist_songs in a playlist.
+     * Each playlist_song may have logs associated with it. Delete them too.
+     * If said logs had unique reports attached to them, delete these too.
+     * The playlist itself also has logs and reports associated with it, which
+     *  must be deleted.
+     *
+     * @param int $playlistId
+     * @return void
+     */
+    public function deleteAllSongsInPlaylist(int $playlistId): void
+    {
+        $this->db->trans_start();
+
+        //Get all logs for this playlist
+        $this->db->where_in('EntityId', $playlistId);
+        $listLogs = $this->db->get('log')->result();
+
+        //Save these logs' IDs
+        $listLogIds = array_map(function($log) {
+            return $log->LogId;
+        }, $listLogs);
+
+        //Proceed if any playlist logs were found
+        if (!empty($listLogIds)) {
+            //Fetch the reports associated with those logs
+            $reportIds = array_filter(array_unique(array_map(function($log) {
+                return $log->reportId ?? null;
+            }, $listLogs)));
+
+            //Delete the reports
+            if (!empty($reportIds)) {
+                $this->db->where_in('reportId', $reportIds);
+                $this->db->delete('report');
+            }
+
+            //Delete the logs
+            $this->db->where_in('LogId', $listLogIds);
+            $this->db->delete('log');
+        }
+
+        //Get all songs in playlist
+        $query = $this->db->get_where('playlist_song', ['listId' => $playlistId]);
+        $result = $query->result();
+
+        //Extract playlist_song IDs from the result array
+        $idsToDelete = array_map(function($item) {
+            return $item->id;
+        }, $result);
+
+        //Proceed if any items were found
+        if (!empty($idsToDelete)) {
+            //Get all logs for these playlist songs
+            $this->db->where_in('EntityId', $idsToDelete);
+            $logs = $this->db->get('log')->result();
+
+            //Save these logs' IDs
+            $logIds = array_map(function($log) {
+                return $log->LogId;
+            }, $logs);
+
+            //Proceed if any logs were found
+            if (!empty($logIds)) {
+                //Fetch the reports associated with those logs
+                $reportIds = array_filter(array_unique(array_map(function($log) {
+                    return $log->reportId ?? null;
+                }, $logs)));
+
+                //Delete reports only if not referenced elsewhere
+                $reportsToDelete = [];
+                foreach ($reportIds as $reportId) {
+                    if ($reportId === null) continue;
+
+                    // Check if any logs (not being deleted) still use this report
+                    $this->db->where('reportId', $reportId);
+                    $this->db->where_not_in('LogId', $logIds);
+                    $remaining = $this->db->get('log')->num_rows();
+
+                    if ($remaining === 0) {
+                        $reportsToDelete[] = $reportId;
+                    }
+                }
+
+                if (!empty($reportsToDelete)) {
+                    $this->db->where_in('reportId', $reportsToDelete);
+                    $this->db->delete('report');
+                }
+
+                //Delete the logs
+                $this->db->where_in('LogId', $logIds);
+                $this->db->delete('log');
+            }
+
+            $this->db->where_in('id', $idsToDelete);
+            $this->db->delete('playlist_song');
+        }
+
+        $this->db->trans_complete();
+    }
+
+    /**
+     * Fetch name and status for every item inside a playlist.
+     * Used for generating the deletion log when deleting a playlist.
+     *
+     * @param int $listId
+     * @return array
+     */
+    public function getPlaylistSongsNamesAndStatus(int $listId): array
+    {
+        $sql = "SELECT ps.SongDeleted, s.SongTitle 
+                FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
+                WHERE ps.listId = $listId";
+
+        return $this->db->query($sql)->result();
+    }
 }

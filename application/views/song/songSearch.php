@@ -51,7 +51,7 @@
                             <a target="_blank" href="<?=base_url('song/showLog?songId='.$song->SongId)?>" title="Wyświetl logi utworu">📄️</a>
                             <a href="<?=base_url('user/details?uid='.$song->SongAddedBy)?>" title="Pokaż profil autora utworu">👤</a>
                         <?php else: ?>
-                            <a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a> <?=$song->SongVisible ? '' : '(ukryta)'?>
+                            <a href="<?=base_url('songPage?songId='.$song->SongId.'&query='.$searchQuery)?>"><?=$song->SongTitle?></a> <?=$song->SongVisible ? '' : '(ukryta)'?>
                             <a href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>" title="Recenzuj utwór">📝</a>
                             <a href="<?=base_url('song/addToPlaylist?songId='.$song->SongId.'&query='.$searchQuery)?>" title="Dodaj utwór do playlisty">➕</a>
                             <?php if ($isReviewer): ?>

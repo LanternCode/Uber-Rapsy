@@ -12,6 +12,7 @@
  * @property SongModel $SongModel
  * @property PlaylistSongModel $PlaylistSongModel
  * @property LogModel $LogModel
+ * @property AccountModel $AccountModel
  */
 class RefreshPlaylistService
 {
@@ -24,6 +25,7 @@ class RefreshPlaylistService
         $this->CI->load->model('SongModel');
         $this->CI->load->model('LogModel');
         $this->CI->load->model('PlaylistModel');
+        $this->CI->load->model('AccountModel');
         $this->CI->load->library('FetchSongsService');
         $this->FetchSongsService = new FetchSongsService();
     }
@@ -48,19 +50,19 @@ class RefreshPlaylistService
         if ($songsJsonArray === false) {
             return "Wskazana na YT playlista jest pusta! Sprawdź w ustawieniach czy podano poprawny link!";
         }
-        elseif (isset($err['code'])) {
-            if (in_array($err['code'], ["LNF", "TNF"])) {
-                return $err['displayMessage'];
+        elseif (isset($songsJsonArray['code'])) {
+            if (in_array($songsJsonArray['code'], ["LNF", "TNF"])) {
+                return $songsJsonArray['displayMessage'];
             }
-            elseif ($err['code'] === "RF") {
-                return $err['displayMessage'];
+            elseif ($songsJsonArray['code'] === "RF") {
+                return $songsJsonArray['displayMessage'];
             }
-            else return "Nieznany błąd: ".$err['code']." - " .($err['displayMessage'] ?? '').".";
+            else return "Nieznany błąd: ".$songsJsonArray['code']." - " .($songsJsonArray['displayMessage'] ?? '').".";
         }
         else {
             //Perform the reloading process - The main array is composed of parsed song arrays
             $refreshReport = "<pre>";
-            $refreshReport .= "<h3>Legenda:</h3>❌ - nie znaleziono utworu<br>⏸ - ocena nie uległa zmianie<br>✔ - pomyślnie zapisano!<br><br><h3>Utwory:</h3>";
+            $refreshReport .= "<h3>Legenda:</h3>❌ - nie znaleziono utworu<br>⏸ - utwór jest już na playliście<br>✔ - pobrano i dodano utwór na playlistę!<br><br><h3>Utwory:</h3>";
 
             //Save only the relevant information from the retrieved object for easy processing
             $songItems = [];
@@ -110,6 +112,7 @@ class RefreshPlaylistService
             foreach ($newSongItems as &$songToInsert) {
                 $songId = $this->CI->SongModel->insertSong($songToInsert['externalSongId'], $userId, $songToInsert['songThumbnailLink'], $songToInsert['songTitle'], $songToInsert['songChannelName'], $songToInsert['songPublishedAt']);
                 $songToInsert['existingSongId'] = $songId;
+                $this->CI->AccountModel->addUserScore($userId, 'song');
             }
             unset($songToInsert);
 

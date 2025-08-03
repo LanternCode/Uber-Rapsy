@@ -2,6 +2,9 @@
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
+    <?php if (!empty($searchQuery)): ?>
+        <a class="optionsURL" href="<?=base_url("songSearch?searchQuery=".$searchQuery)?>">Wróć do wyszukiwarki</a>
+    <?php endif; ?>
     <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
         <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <a class="optionsURL" href="<?=base_url("song/edit?songId=".$song->SongId)?>">Edytuj Utwór</a>
