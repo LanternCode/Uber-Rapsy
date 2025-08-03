@@ -37,36 +37,45 @@ class Account extends CI_Controller
      */
     public function login(): void
     {
-        //If the user is already logged in, reset the session
+        //If the user is already logged in, restart their session
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
         if ($userLoggedIn)
             redirect('logout');
 
         //Fetch the credentials from the form or the pre-set cookie
-        $email = isset($_COOKIE["login"]) ? json_decode($_COOKIE["login"])->userEmail : $this->input->post('userEmail');
-        $password = isset($_COOKIE["login"]) ? json_decode($_COOKIE["login"])->userPassword : $this->input->post('userPassword');
+        $enteredEmail = isset($_COOKIE["login"]) ? json_decode($_COOKIE["login"])->userEmail : $this->input->post('userEmail');
+        $enteredPassword = isset($_COOKIE["login"]) ? json_decode($_COOKIE["login"])->userPassword : $this->input->post('userPassword');
 
         //Only attempt the login if the form was submitted or the cookie is set
-        if (filter_var($email ?? '', FILTER_VALIDATE_EMAIL)) {
-            $loginSuccess = $this->AccountModel->signIn($email, $password);
-            if ($loginSuccess) {
-                //Save the session if the user pressed the 'do not logout' button
-                $doNotLogout = $this->input->post('doNotLogout');
-                if ($doNotLogout) {
-                    $loginSessionDetails = array(
-                        'userEmail' => $email,
-                        'userPassword' => $password
-                    );
-                    setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 14), "/");
-                }
+        $data['body'] = 'login';
+        if (filter_var($enteredEmail, FILTER_VALIDATE_EMAIL)) {
+            $accountData = $this->AccountModel->getUserData($enteredEmail);
+            $loginSuccessful = $this->AccountModel->signIn($enteredPassword, $accountData->password);
+            if ($loginSuccessful) {
+                //Check if the user is banned
+                if ($accountData->accountLocked)
+                    $data['body'] = 'account/accountLocked';
+                else {
+                    //Establish a new user session
+                    $this->AccountModel->establishUserSession($accountData);
 
-                redirect(base_url());
+                    //Save the session if the user pressed the 'do not logout' button
+                    $doNotLogout = $this->input->post('doNotLogout');
+                    if ($doNotLogout) {
+                        $loginSessionDetails = array(
+                            'userEmail' => $enteredEmail,
+                            'userPassword' => $enteredPassword
+                        );
+                        setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 14), "/");
+                    }
+
+                    redirect(base_url());
+                }
             }
             else
                 $data['invalidCredentials'] = 1;
         }
 
-        $data['body'] = 'login';
         $this->load->view('templates/main', $data);
     }
 

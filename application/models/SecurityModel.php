@@ -34,8 +34,15 @@ class SecurityModel extends CI_Model
 
         //Fetch user credentials
         $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
-        if ($userLoggedIn)
-            return true;
+        if ($userLoggedIn) {
+            $userId = $this->getCurrentUserId();
+            $accountLocked = $this->AccountModel->getUserAccountStatus($userId);
+            if ($accountLocked) {
+                redirect('logout');
+                return false;
+            }
+            else return true;
+        }
         else return false;
     }
 
@@ -152,5 +159,15 @@ class SecurityModel extends CI_Model
     public function getCurrentUserId(): int|bool
     {
         return $_SESSION['userId'] ?? false;
+    }
+
+    /**
+     * Fetch the current user's username.
+     *
+     * @return int|bool Return false if no user is logged in.
+     */
+    public function getCurrentUserName(): int|bool
+    {
+        return $_SESSION['username'] ?? false;
     }
 }

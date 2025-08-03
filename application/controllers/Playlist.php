@@ -63,15 +63,18 @@ class Playlist extends CI_Controller
     public function myPlaylists(): void
     {
         $userAuthenticated = $this->SecurityModel->authenticateUser();
-        if ($userAuthenticated) {
-            $data = array(
-                'body' => 'playlist/myPlaylists',
-                'title' => 'Uber Rapsy | Moje playlisty',
-                'playlists' => $this->PlaylistModel->fetchUserPlaylists($_SESSION['userId'])
-            );
-            $this->load->view('templates/main', $data);
-        }
-        else redirect('errors/403-404');
+        $userId = $this->SecurityModel->getCurrentUserId();
+        if (!$userAuthenticated)
+            redirect('errors/403-404');
+
+        $data = array(
+            'body' => 'playlist/myPlaylists',
+            'title' => 'Uber Rapsy | Moje playlisty',
+            'playlists' => $this->PlaylistModel->fetchUserPlaylists($userId),
+            'profile' => $this->AccountModel->getUserProfile($userId),
+            'scores' => $this->AccountModel->getUserPositionInRanking($userId)
+        );
+        $this->load->view('templates/main', $data);
     }
 
     /**

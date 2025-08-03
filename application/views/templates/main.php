@@ -13,7 +13,7 @@
         <header class="optionsHeader">
             <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
             <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-                <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Playlisty</a>
+                <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
             <?php endif; ?>
             <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
             <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>

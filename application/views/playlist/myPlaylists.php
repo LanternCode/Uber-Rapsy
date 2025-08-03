@@ -1,9 +1,20 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<h2>Witaj w panelu zarządzania playlistami!</h2>
-<br/><br/>
-<a href="<?=base_url('playlist/addLocal?src=mp')?>">Dodaj nową, lokalną playlistę</a>
-<br/><br/>
-<h2>Moje Playlisty</h2>
+<h2>Moje Konto</h2>
+<br>
+Nazwa Użytkownika: <?=$profile->username?><br><br>
+Ilość punktów RAPPAR: <?=$profile->userScore?><br><br>
+Miejsce w rankingu punktowym:
+<?=
+    empty($scores->user_rank)
+        ? 'Nie posiadasz jeszcze żadnych punktów. Gdy już jakieś zdobędziesz, tutaj zobaczysz swoje miejsce w rankingu!'
+        : $scores->user_rank.' '.
+            ($scores->user_rank == 1
+                ? '(Zajmujesz pierwsze miejsce w rankingu!!! Różnica punktów między pierwszym a drugim miejscem to '.$scores->to_next.'.)'
+                : '(Różnica punktów między tobą a wyższym miejscem to '.-$scores->to_next.'!)')
+?>
+<br><br>
+<h2>Moje Playlisty</h2><br>
+<a class="big-button" href="<?=base_url('playlist/addLocal?src=mp')?>">Dodaj nową, lokalną playlistę</a>
 <br/><br/>
 <?php if (count($playlists) == 0): ?>
     <h3>Nie posiadasz żadnych playlist!</h3>

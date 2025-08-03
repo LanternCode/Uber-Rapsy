@@ -23,12 +23,25 @@ class AccountModel extends CI_Model
      */
     public function getUserData(string $email): int|object
     {
-        $sql = "SELECT id, password, role FROM user WHERE email = '$email'";
+        $sql = "SELECT id, username, password, role, accountLocked FROM user WHERE email = '$email'";
         $query = $this->db->query($sql);
 
         if (isset($query->row()->password) && $query->row()->password)
             return $query->row();
         else return 0;
+    }
+
+    /**
+     * Fetch the user account status.
+     *
+     * @param $userId
+     * @return bool
+     */
+    public function getUserAccountStatus($userId): bool
+    {
+        $sql = "SELECT accountLocked FROM user WHERE id = $userId";
+        $query = $this->db->query($sql);
+        return $query->row()->accountLocked;
     }
 
     /**
@@ -155,22 +168,29 @@ class AccountModel extends CI_Model
      * Fetch user credentials and compare the input password with the actual password.
      * Set a user session upon a successful sign in.
      *
-     * @param string $email
-     * @param string $password
+     * @param string $enteredPassword
+     * @param string $actualPassword
      * @return bool true if the sign in was successful, false otherwise
      */
-    public function signIn(string $email, string $password): bool
+    public function signIn(string $enteredPassword, string $actualPassword): bool
     {
-        $userData = $this->getUserData($email);
-        $passwordToCompare = $userData->password ?? 0;
-
-        if ($passwordToCompare && password_verify($password, $passwordToCompare)) {
-            $_SESSION['userLoggedIn'] = 1;
-            $_SESSION['userRole'] = $userData->role;
-            $_SESSION['userId'] = $userData->id;
+        if ($actualPassword && password_verify($enteredPassword, $actualPassword))
             return true;
-        }
         else return false;
+    }
+
+    /**
+     * Once a user signed in, establish them a session.
+     *
+     * @param $userData
+     * @return void
+     */
+    public function establishUserSession($userData): void
+    {
+        $_SESSION['userLoggedIn'] = 1;
+        $_SESSION['userRole'] = $userData->role;
+        $_SESSION['userId'] = $userData->id;
+        $_SESSION['username'] = $userData->username;
     }
 
     /**
@@ -180,13 +200,21 @@ class AccountModel extends CI_Model
      */
     public function automaticSignIn(): bool
     {
-        $data['email'] = json_decode($_COOKIE["login"])->userEmail;
-        $data['password'] = json_decode($_COOKIE["login"])->userPassword;
-
-        if (isset($data['email']) && $data['email'] && filter_var($data['email'], FILTER_VALIDATE_EMAIL))
-            return $this->signIn($data['email'], $data['password']);
-        else
+        if (empty($_COOKIE["login"]))
             return false;
+
+        $email = json_decode($_COOKIE["login"])->userEmail;
+        $password = json_decode($_COOKIE["login"])->userPassword;
+
+        if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $accountData = $this->getUserData($email);
+            if (password_verify($password, $accountData->password)) {
+                $this->establishUserSession();
+                return true;
+            }
+            else return false;
+        }
+        else return false;
     }
 
     /**
@@ -210,7 +238,7 @@ class AccountModel extends CI_Model
      */
     public function fetchAllSafeUserdata(): array
     {
-        $sql = "SELECT id, username, role, accountLocked FROM user";
+        $sql = "SELECT id, username, role, accountLocked, userScore FROM user";
         $query = $this->db->query($sql);
 
         return $query->result();
@@ -286,5 +314,50 @@ class AccountModel extends CI_Model
 
         $this->db->where('id', $userId);
         $this->db->update('user');
+    }
+
+    /**
+     * Get a user profile.
+     *
+     * @param $userId
+     * @return object
+     */
+    public function getUserProfile($userId): object
+    {
+        $sql = "SELECT username, email, role, userScore FROM user WHERE id = $userId";
+        return $this->db->query($sql)->row();
+    }
+
+    /**
+     * Get the user's position in the points table.
+     * Compute the difference in scores between this and the next user.
+     *
+     * @param $userId
+     * @return object|false the user position, points to the next position, or false if
+     *  the user had no score
+     */
+    public function getUserPositionInRanking($userId): object|false
+    {
+        $sql = "WITH ranked_users AS (
+                SELECT
+                    id, userScore, RANK() OVER (ORDER BY userScore DESC) AS user_rank
+                FROM user
+                WHERE userScore >= 1
+            ) SELECT
+                r1.user_rank,
+                r1.userScore AS my_score,
+                r2.userScore AS next_score,
+                r1.userScore - r2.userScore AS to_next
+            FROM ranked_users r1
+            LEFT JOIN ranked_users r2
+              ON (
+                  (r1.user_rank = 1 AND r2.user_rank = 2) OR
+                  (r1.user_rank > 1 AND r2.user_rank = r1.user_rank - 1)
+              )
+            WHERE r1.id = ?";
+
+        $query = $this->db->query($sql, [$userId]);
+        $result = $query->row() ?? false;
+        return $result;
     }
 }
