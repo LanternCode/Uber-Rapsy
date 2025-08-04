@@ -79,5 +79,10 @@
         <h3>Znaleziono ponad 300 piosenek! Musisz zawęzić kryteria wyszukiwania!</h3>
     <?php else: ?>
         <h3>Nie znaleziono żadnych utworów o podanej nazwie!</h3>
+        <?php if (!empty($_SESSION['userLoggedIn'])): ?>
+            <h4>Upewnij się, że wpisana nazwa utworu jest poprawna. Jeśli tak, możesz <a href="<?=base_url('importSongs')?>">kliknąć tutaj</a> i dodać utwór do RAPPAR!</h4>
+        <?php else: ?>
+            <h4>Upewnij się, że wpisana nazwa utworu jest poprawna. Jeśli tak, <a href="<?=base_url('login?src=songSearch')?>">zaloguj się</a> i dodaj utwór do RAPPAR!</h4>
+        <?php endif; ?>
     <?php endif; ?>
 </main>

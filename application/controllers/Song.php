@@ -213,6 +213,10 @@ class Song extends CI_Controller
             'songLink' => $this->input->post('songLink')
         );
 
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        if (!$userAuthenticated)
+            redirect('errors/403-404');
+
         //The form is submitted when a link to a playlist or a song is supplied
         if ($data['playlistLink'] || $data['songLink']) {
             //First process the playlist link

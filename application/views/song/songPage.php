@@ -97,7 +97,7 @@
             <?php elseif ($userAuthenticated): ?>
                 <a href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>">+ Zrecenzuj utwór</a>
             <?php else: ?>
-                <p><a href="<?=base_url('login')?>">Zaloguj</a> lub <a href="<?=base_url('newAccount')?>">zarejestruj się</a> i zacznij recenzować z RAPPAR!</p>
+                <p><a href="<?=base_url('login?src=songPage')?>">Zaloguj</a> lub <a href="<?=base_url('newAccount?src=songPage')?>">zarejestruj się</a> i zacznij recenzować z RAPPAR!</p>
             <?php endif; ?>
         </div><br>
         <div class="user-reviews-section">

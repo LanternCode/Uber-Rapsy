@@ -13,7 +13,7 @@
 
 <div class="homepage--body">
     <div class="homepage--login__form">
-        <form method="POST" action="<?=base_url('login')?>">
+        <form method="POST" action="<?=base_url('login?src='.$redirectSource)?>">
             <label>Adres Email:</label><br>
             <input type="email" name="userEmail" required><br><br>
 

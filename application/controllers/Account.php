@@ -45,6 +45,7 @@ class Account extends CI_Controller
         //Fetch the credentials from the form or the pre-set cookie
         $enteredEmail = isset($_COOKIE["login"]) ? json_decode($_COOKIE["login"])->userEmail : $this->input->post('userEmail');
         $enteredPassword = isset($_COOKIE["login"]) ? json_decode($_COOKIE["login"])->userPassword : $this->input->post('userPassword');
+        $data['redirectSource'] = $this->input->get('src') ?? '';
 
         //Only attempt the login if the form was submitted or the cookie is set
         $data['body'] = 'login';
@@ -69,7 +70,7 @@ class Account extends CI_Controller
                         setcookie("login", json_encode($loginSessionDetails), time() + (86400 * 14), "/");
                     }
 
-                    redirect(base_url());
+                    redirect(base_url($data['redirectSource']));
                 }
             }
             else
@@ -94,6 +95,7 @@ class Account extends CI_Controller
         //Process the form if it was submitted, otherwise just show the form
         $data['body'] = 'register';
         $formSubmitted = $this->input->post('formSubmitted');
+        $data['redirectSource'] = $this->input->get('src') ?? '';
         if ($formSubmitted) {
             //Fetch form data
             $username		= $this->input->post('register--username');

@@ -1,4 +1,5 @@
-<form action="<?=base_url('newAccount')?>" class="register--form" method="post">
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<form action="<?=base_url('newAccount?src='.$redirectSource)?>" class="register--form" method="post">
     <h1>Witaj w Uber Rapsach! Cieszymy się że chcesz dołączyć do naszej społeczności!</h1>
     <h2>Teraz wystarczy, że wypełnisz poniższy formularz i wciśniesz przycisk!</h2>
 
