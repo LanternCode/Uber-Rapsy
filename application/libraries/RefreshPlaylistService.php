@@ -23,7 +23,6 @@ class RefreshPlaylistService
         $this->CI =& get_instance();
         $this->CI->load->model('PlaylistSongModel');
         $this->CI->load->model('SongModel');
-        $this->CI->load->model('LogModel');
         $this->CI->load->model('PlaylistModel');
         $this->CI->load->model('AccountModel');
         $this->CI->load->library('FetchSongsService');

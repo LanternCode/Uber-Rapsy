@@ -23,8 +23,6 @@ class Log extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('SecurityModel');
-        $this->load->model('LogModel');
         $this->load->model('PlaylistModel');
         $this->load->model('PlaylistSongModel');
         $this->load->model('SongModel');

@@ -31,7 +31,6 @@ class Playlist extends CI_Controller
 		$this->load->model('PlaylistSongModel');
 		$this->load->model('AccountModel');
 		$this->load->library('RefreshPlaylistService');
-        $this->load->library('htmlsanitiser');
         $this->RefreshPlaylistService = new RefreshPlaylistService();
     }
 

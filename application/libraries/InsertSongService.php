@@ -23,8 +23,6 @@ class InsertSongService
         $this->CI =& get_instance();
         $this->CI->load->model('PlaylistSongModel');
         $this->CI->load->model('SongModel');
-        $this->CI->load->model('SecurityModel');
-        $this->CI->load->model('LogModel');
         $this->CI->load->model('PlaylistModel');
     }
 

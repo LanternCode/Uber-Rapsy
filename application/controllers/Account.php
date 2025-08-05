@@ -25,9 +25,7 @@ class Account extends CI_Controller
         parent::__construct();
         $this->load->model('AccountModel');
         $this->load->model('PlaylistModel');
-        $this->load->model('SecurityModel');
         $this->load->helper('cookie');
-        $this->load->library('htmlsanitiser');
     }
 
     /**

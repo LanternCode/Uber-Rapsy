@@ -29,9 +29,6 @@ class PlaylistItems extends CI_Controller
         $this->load->model('PlaylistModel');
         $this->load->model('SongModel');
         $this->load->model('PlaylistSongModel');
-        $this->load->model('UtilityModel');
-        $this->load->model('LogModel');
-        $this->load->model('SecurityModel');
         $this->load->library('RefreshPlaylistService');
         $this->load->library('InsertSongService');
         $this->RefreshPlaylistService = new RefreshPlaylistService();

@@ -31,13 +31,9 @@ class Song extends CI_Controller
     {
         parent::__construct();
         $this->load->model('SongModel');
-        $this->load->model('SecurityModel');
         $this->load->model('PlaylistModel');
         $this->load->model('PlaylistSongModel');
-        $this->load->model('UtilityModel');
-        $this->load->model('LogModel');
         $this->load->model('AccountModel');
-        $this->load->library('htmlsanitiser');
         $this->load->library('FetchSongsService');
         $this->FetchSongsService = new FetchSongsService();
     }
