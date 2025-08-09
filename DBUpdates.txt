@@ -96,3 +96,4 @@ ALTER TABLE `review` CHANGE `reviewRev` `reviewTextContent` TEXT CHARACTER SET u
 ALTER TABLE `review` ADD `reviewTitle` VARCHAR(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL AFTER `reviewId`;
 ALTER TABLE `user` ADD `userScore` INT NOT NULL DEFAULT '0' AFTER `accountLocked`;
 ALTER TABLE `playlist_song` CHANGE `SongPlaylistItemsId` `SongPlaylistItemsId` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci NULL;
+ALTER TABLE `user` ADD `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `userScore`;

@@ -52,6 +52,7 @@ $route['logout'] = 'Account/logout';
 $route['forgottenPassword'] = 'Account/forgottenPassword';
 $route['forgottenPassword/reset'] = 'Account/resetPassword';
 $route['contributorsRanking'] = 'Account/contributorsRanking';
+$route['user/details'] = 'Account/userProfile';
 
 $route['usersDashboard'] = 'Account/usersDashboard';
 

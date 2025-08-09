@@ -320,12 +320,13 @@ class AccountModel extends CI_Model
      * Get a user profile.
      *
      * @param $userId
-     * @return object
+     * @return object|false user profile or false if not found
      */
-    public function getUserProfile($userId): object
+    public function getUserProfile($userId): object|false
     {
-        $sql = "SELECT username, email, role, userScore FROM user WHERE id = $userId";
-        return $this->db->query($sql)->row();
+        $sql = "SELECT username, email, role, accountLocked, userScore, createdAt FROM user WHERE id = $userId";
+        $row = $this->db->query($sql)->row();
+        return isset($row->username) ? $row : false;
     }
 
     /**
@@ -363,6 +364,7 @@ class AccountModel extends CI_Model
 
     /**
      * Return top RAPPAR contributors based on the user score.
+     * Sort the leaderboard using the standard competition ranking method.
      * If there are less than 100 active contributors, show top3.
      * If there are over 100 active contributors, show top10.
      * If there are over 1000 active contributors, show top100.

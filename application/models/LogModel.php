@@ -80,6 +80,18 @@ class LogModel extends CI_Model
     }
 
     /**
+     * Fetch user logs.
+     *
+     * @param int $userId
+     * @return array
+     */
+    public function getUserLogs(int $userId): array
+    {
+        $sql = "SELECT * FROM log WHERE EntityType = 'user' AND EntityId = $userId";
+        return $this->db->query($sql)->result();
+    }
+
+    /**
      * Fetch a report.
      *
      * @param string $reportId

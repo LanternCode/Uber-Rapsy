@@ -14,6 +14,7 @@ if (!isset($_SESSION))
  * @property PlaylistModel $PlaylistModel
  * @property AccountModel $AccountModel
  * @property SecurityModel $SecurityModel
+ * @property LogModel $LogModel
  * @property CI_DB_mysqli_driver $db
  * @property CI_Input $input
  * @property HTMLSanitiser $htmlsanitiser
@@ -29,7 +30,7 @@ class Account extends CI_Controller
     }
 
     /**
-     * Opens and processes the login form
+     * Open and processes the login form.
      *
      * @return void
      */
@@ -79,7 +80,7 @@ class Account extends CI_Controller
     }
 
     /**
-     * Handles new account registrations
+     * Handle new account registrations.
      *
      * @return void
      */
@@ -177,7 +178,7 @@ class Account extends CI_Controller
     }
 
     /**
-     * Handles logouts.
+     * Handle logouts.
      *
      * @return void
      */
@@ -200,7 +201,7 @@ class Account extends CI_Controller
     }
 
     /**
-     * Handles the forgotten password form.
+     * Handle the forgotten password form.
      *
      * @return void
      */
@@ -239,7 +240,7 @@ class Account extends CI_Controller
     }
 
     /**
-     * Handles the password reset form.
+     * Handle the password reset form.
      * This form is accessed through the link emailed to the user.
      *
      * @return void
@@ -292,7 +293,7 @@ class Account extends CI_Controller
     }
 
     /**
-     * Opens the users dashboard (with only safe data presented).
+     * Open the users dashboard (with only safe data presented).
      *
      * @return void
      */
@@ -310,12 +311,45 @@ class Account extends CI_Controller
         else redirect('errors/403-404');
     }
 
-    public function contributorsRanking()
+    /**
+     * Open the contributors' leaderboard.
+     *
+     * @return void
+     */
+    public function contributorsRanking(): void
     {
         $data = array(
             'title' => 'Ranking najbardziej aktywnych użytkowników RAPPAR | dołącz do nich oceniając, recenzując i dodając utwory!',
             'body' => 'account/topContributors',
             'ranking' => $this->AccountModel->getTopRapparContributors()
+        );
+
+        $this->load->view('templates/main', $data);
+    }
+
+    /**
+     * Show a user's profile.
+     *
+     * @return void
+     */
+    public function userProfile(): void
+    {
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+        if (!$userAuthenticated)
+            redirect('errors/403-404');
+
+        $userId = $this->input->get('uid');
+        $user = is_null($userId) ? false : $this->AccountModel->getUserProfile($userId);
+        if (empty($user))
+            redirect('errors/403-404');
+
+        $data = array(
+            'body' => 'Account/userProfile',
+            'title' => 'Profil użytkownika '.$user->username,
+            'playlists' => $this->PlaylistModel->fetchUserPlaylists($userId),
+            'profile' => $user,
+            'scores' => $this->AccountModel->getUserPositionInRanking($userId),
+            'logs' => $this->LogModel->getUserLogs($userId)
         );
 
         $this->load->view('templates/main', $data);

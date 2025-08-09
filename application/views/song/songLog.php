@@ -11,7 +11,7 @@
 <?php if (count($songLog) > 0): ?>
     <h3>Historia Utworu</h3>
         <?php foreach($songLog as $log): ?>
-            <?=$log->Description?> <?=$log->Timestamp?> <br>
+            <?=$log->Description?> <?=$log->Timestamp?><br>
         <?php endforeach; ?>
 <?php else: ?>
     <h3>Ta nuta nie posiada żadnej historii.</h3>
