@@ -15,7 +15,7 @@
             <td><?=$user->username?></td>
             <td><?=$user->role == 'user' ? "Użytkownik" : "Recenzent"?></td>
             <td><?=$user->accountLocked ? "Zablokowane" : "Aktywne"?></td>
-            <td><a href="<?=base_url('user/details?uid='.$user->id)?>" onclick="return false;">Szczegóły</a></td>
+            <td><a href="<?=base_url('user/details?uid='.$user->id)?>">Szczegóły</a></td>
         </tr>
     <?php endforeach; ?>
 </table>

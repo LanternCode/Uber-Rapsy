@@ -165,6 +165,20 @@ class AccountModel extends CI_Model
     }
 
     /**
+     * Update user account status.
+     *
+     * @param int $accountStatus the new user account status
+     * @param int $userId
+     * @return void
+     */
+    public function updateUserAccountStatus(int $accountStatus, int $userId): void
+    {
+        $this->db->set('accountLocked', $accountStatus);
+        $this->db->where('id', $userId);
+        $this->db->update('user');
+    }
+
+    /**
      * Fetch user credentials and compare the input password with the actual password.
      * Set a user session upon a successful sign in.
      *

@@ -349,8 +349,45 @@ class Account extends CI_Controller
             'playlists' => $this->PlaylistModel->fetchUserPlaylists($userId),
             'profile' => $user,
             'scores' => $this->AccountModel->getUserPositionInRanking($userId),
-            'logs' => $this->LogModel->getUserLogs($userId)
+            'logs' => $this->LogModel->getUserLogs($userId),
+            'userId' => $userId
         );
+
+        $this->load->view('templates/main', $data);
+    }
+
+    public function changeStatus(): void
+    {
+        $userAuthenticated = $this->SecurityModel->authenticateReviewer();
+        if (!$userAuthenticated)
+            redirect('errors/403-404');
+
+        $userId = $this->input->get('uid');
+        $user = is_null($userId) ? false : $this->AccountModel->getUserProfile($userId);
+        if (empty($user))
+            redirect('errors/403-404');
+
+        $data = array(
+            'body' => 'Account/switchAccountStatus',
+            'title' => 'Profil użytkownika '.$user->username.' | Zmień status konta',
+            'profile' => $user,
+            'logs' => $this->LogModel->getUserLogs($userId),
+            'userId' => $userId
+        );
+
+        if ($this->input->post()) {
+            $confirmation = $this->input->post('conf');
+            if (!empty($confirmation)) {
+                $changeReason = $this->input->post('statusReason');
+                if (!empty($changeReason)) {
+                    $newAccountStatus = (int) !$data['profile']->accountLocked;
+                    $this->AccountModel->updateUserAccountStatus($newAccountStatus, $userId);
+                    $this->LogModel->createLog('user', $userId,
+                        'Konto użytkownika zostało '.($newAccountStatus ? 'zablokowane' : 'odblokowane').' z powodu: '.$changeReason);
+                    redirect('user/changeAccountStatus?uid='.$userId);
+                }
+            }
+        }
 
         $this->load->view('templates/main', $data);
     }

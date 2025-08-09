@@ -11,7 +11,7 @@ Miejsce w rankingu punktowym:
                 ? '(Użytkownik zajmuje pierwsze miejsce w rankingu. Różnica punktów między pierwszym a drugim miejscem to '.$scores->to_next.'.)'
                 : '(Różnica punktów między użytkownikiem a wyższym miejscem to '.((-$scores->to_next)+1).'.)')
 ?><br>
-Status konta: <?=$profile->accountLocked ? 'Zablokowane' : 'Aktywne'?><br>
+Status konta: <?=$profile->accountLocked ? 'Zablokowane' : 'Aktywne'?> (<a target="_blank" href="<?=base_url('user/changeAccountStatus?uid='.$userId)?>">Zmień status konta</a>)<br>
 Data założenia konta: <?=$profile->createdAt?><br><br>
 <h3>Logi użytkownika</h3>
 <?php if (count($logs) > 0): ?>
