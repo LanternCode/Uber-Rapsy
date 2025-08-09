@@ -309,4 +309,15 @@ class Account extends CI_Controller
         }
         else redirect('errors/403-404');
     }
+
+    public function contributorsRanking()
+    {
+        $data = array(
+            'title' => 'Ranking najbardziej aktywnych użytkowników RAPPAR | dołącz do nich oceniając, recenzując i dodając utwory!',
+            'body' => 'account/topContributors',
+            'ranking' => $this->AccountModel->getTopRapparContributors()
+        );
+
+        $this->load->view('templates/main', $data);
+    }
 }

@@ -360,4 +360,45 @@ class AccountModel extends CI_Model
         $result = $query->row() ?? false;
         return $result;
     }
+
+    /**
+     * Return top RAPPAR contributors based on the user score.
+     * If there are less than 100 active contributors, show top3.
+     * If there are over 100 active contributors, show top10.
+     * If there are over 1000 active contributors, show top100.
+     *
+     * @return array
+     */
+    public function getTopRapparContributors(): array
+    {
+        //Build the base query once
+        $this->db->from('user');
+        $this->db->where('userScore <>', 0);
+
+        //Count matching rows
+        $count = $this->db->count_all_results();
+
+        //Choose the limit based on the count
+        $limit = ($count > 1000) ? 100 : (($count > 100) ? 10 : 3);
+
+        //Toplist with standard-competition ranking (1224)
+        $sql = "SELECT id, username, userScore, position
+          FROM (
+            SELECT
+              `user`.id,
+              `user`.username,
+              `user`.userScore,
+              RANK() OVER (ORDER BY `user`.userScore DESC) AS position
+            FROM `user`
+            WHERE `user`.userScore <> 0
+          ) ranked
+          WHERE position <= ?
+          ORDER BY position, id
+        ";
+
+        //Run the query with the chosen limit
+        $toplist = $this->db->query($sql, [$limit])->result();
+
+        return $toplist;
+    }
 }

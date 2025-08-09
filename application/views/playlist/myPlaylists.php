@@ -11,7 +11,8 @@ Miejsce w rankingu punktowym:
             ($scores->user_rank == 1
                 ? '(Zajmujesz pierwsze miejsce w rankingu!!! Różnica punktów między pierwszym a drugim miejscem to '.$scores->to_next.'.)'
                 : '(Różnica punktów między tobą a wyższym miejscem to '.-$scores->to_next.'!)')
-?>
+?><br><br>
+Ranking najbardziej aktywnych użytkowników RAPPAR: <a href="<?=base_url('contributorsRanking')?>">Kliknij Tutaj</a>!
 <br><br>
 <h2>Moje Playlisty</h2><br>
 <a class="big-button" href="<?=base_url('playlist/addLocal?src=mp')?>">Dodaj nową, lokalną playlistę</a>
