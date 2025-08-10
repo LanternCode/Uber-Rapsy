@@ -46,20 +46,8 @@
             <input class="gradeInputReview" type="text" name="reviewMusic" value="<?=$input['reviewMusic'] ?? ''?>" required>/20<br>
         </article>
         <article class="reviewBox">
-            <label>Popularność:</label>
-            <input class="gradeInputReview" type="text" name="reviewImpact" value="<?=$input['reviewImpact'] ?? ''?>" required>/5<br>
-        </article>
-        <article class="reviewBox">
-            <label>Słuchalność:</label>
-            <input class="gradeInputReview" type="text" name="reviewRh" value="<?=$input['reviewRh'] ?? ''?>" required>/5<br>
-        </article>
-        <article class="reviewBox">
-            <label>Kompozycja:</label>
+            <label>Kompozycja (mix/master) i ułożenie:</label>
             <input class="gradeInputReview" type="text" name="reviewComp" value="<?=$input['reviewComp'] ?? ''?>" required>/10<br>
-        </article>
-        <article class="reviewBox">
-            <label>Refleksyjność:</label>
-            <input class="gradeInputReview" type="text" name="reviewReflection" value="<?=$input['reviewReflection'] ?? ''?>" required>/10<br>
         </article>
         <article class="reviewBox">
             <label>Ocena Uber:</label>
@@ -68,6 +56,22 @@
         <article class="reviewBox">
             <label>Ocena Partnera:</label>
             <input class="gradeInputReview" type="text" name="reviewPartner" value="<?=$input['reviewPartner'] ?? ''?>" required>/10<br>
+        </article>
+        <article class="reviewBox">
+            <label>Unikalność:</label>
+            <input class="gradeInputReview" type="text" name="reviewUnique" value="<?=$input['reviewUnique'] ?? ''?>" required>/5<br>
+        </article>
+        <article class="reviewBox">
+            <label>Styl:</label>
+            <input class="gradeInputReview" type="text" name="reviewStyle" value="<?=$input['reviewStyle'] ?? ''?>" required>/5<br>
+        </article>
+        <article class="reviewBox">
+            <label>Refleksyjność:</label>
+            <input class="gradeInputReview" type="text" name="reviewReflective" value="<?=$input['reviewReflective'] ?? ''?>" required>/5<br>
+        </article>
+        <article class="reviewBox">
+            <label>Motyw:</label>
+            <input class="gradeInputReview" type="text" name="reviewMotive" value="<?=$input['reviewMotive'] ?? ''?>" required>/5<br>
         </article>
         <article class="reviewBox">
             <label>Razem:</label>

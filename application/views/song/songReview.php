@@ -59,20 +59,8 @@
             <input class="gradeInputReview" type="text" name="reviewMusic" value="<?=$input['reviewMusic'] ?? $review->reviewMusic?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/20<br>
         </article>
         <article class="reviewBox">
-            <label>Popularność:</label>
-            <input class="gradeInputReview" type="text" name="reviewImpact" value="<?=$input['reviewImpact'] ?? $review->reviewImpact?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/5<br>
-        </article>
-        <article class="reviewBox">
-            <label>Słuchalność:</label>
-            <input class="gradeInputReview" type="text" name="reviewRh" value="<?=$input['reviewRh'] ?? $review->reviewRh?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/5<br>
-        </article>
-        <article class="reviewBox">
-            <label>Kompozycja:</label>
+            <label>Kompozycja (mix/master) i ułożenie:</label>
             <input class="gradeInputReview" type="text" name="reviewComp" value="<?=$input['reviewComp'] ?? $review->reviewComp?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/10<br>
-        </article>
-        <article class="reviewBox">
-            <label>Refleksyjność:</label>
-            <input class="gradeInputReview" type="text" name="reviewReflection" value="<?=$input['reviewReflection'] ?? $review->reviewReflection?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/10<br>
         </article>
         <article class="reviewBox">
             <label>Ocena Uber:</label>
@@ -83,6 +71,22 @@
             <input class="gradeInputReview" type="text" name="reviewPartner" value="<?=$input['reviewPartner'] ?? $review->reviewPartner?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/10<br>
         </article>
         <article class="reviewBox">
+            <label>Unikalność:</label>
+            <input class="gradeInputReview" type="text" name="reviewUnique" value="<?=$input['reviewUnique'] ?? $review->reviewUnique?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/5<br>
+        </article>
+        <article class="reviewBox">
+            <label>Styl:</label>
+            <input class="gradeInputReview" type="text" name="reviewStyle" value="<?=$input['reviewStyle'] ?? $review->reviewStyle?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/5<br>
+        </article>
+        <article class="reviewBox">
+            <label>Refleksyjność:</label>
+            <input class="gradeInputReview" type="text" name="reviewReflective" value="<?=$input['reviewReflective'] ?? $review->reviewReflective?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/5<br>
+        </article>
+        <article class="reviewBox">
+            <label>Motyw:</label>
+            <input class="gradeInputReview" type="text" name="reviewMotive" value="<?=$input['reviewMotive'] ?? $review->reviewMotive?>" <?=!$isReviewOwner ? 'readonly' : ''?>>/5<br>
+        </article>
+        <article class="reviewBox">
             <label>Razem:</label>
             <input class="gradeInputReview" type="text" name="reviewTotal" id="reviewTotal" disabled>/90 (<span id="reviewPercent">0</span>%)<br>
         </article>
@@ -90,7 +94,7 @@
             <label>Recenzja:</label><br>
             <textarea name="reviewTextContent" id="txt"><?=$input['reviewTextContent'] ?? $review->reviewTextContent?></textarea>
         </article>
-        <?php if ($isReviewOwner): ?>
+        <?php if ($isReviewOwner || (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer')): ?>
             <input type="submit" class="btnSaveReview big-button" value="Zapisz Recenzję!">><br>
         <?php endif; ?>
     </form>

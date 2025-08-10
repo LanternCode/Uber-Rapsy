@@ -901,19 +901,20 @@ class Song extends CI_Controller
     private function validateSongReview(array &$formData, bool $newReview): string
     {
         //Get the numeric data
-        $formFields = ['reviewText', 'reviewMusic', 'reviewImpact', 'reviewRh', 'reviewComp', 'reviewReflection', 'reviewUber', 'reviewPartner'];
-        foreach ($formFields as $field => $default) {
-            $value = $this->input->post($field);
-            $formData[$field] = $newReview ? ($value ?? $default) : $value;
+        $formFields = ['reviewText', 'reviewMusic', 'reviewComp', 'reviewUber', 'reviewPartner', 'reviewUnique', 'reviewStyle', 'reviewReflective', 'reviewMotive'];
+        foreach ($formFields as $field) {
+            $formData[$field] = $this->input->post($field);
         }
 
         //Validate the numeric data - each piece must be rated at least 1 and has a maximum grade. Halves are allowed.
         $errorMessage = "";
         foreach ($formData as $key => $reviewSection) {
-            $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 : (($key == "reviewUber" || $key == "reviewPartner") ? 15 : (($key == "reviewImpact" || $key == "reviewRh") ? 5 : 10));
+            $maxAllowed = ($key == "reviewText" || $key == "reviewMusic") ? 20 :
+                (($key == "reviewComp" || $key == "reviewUber" || $key == "reviewPartner") ? 10 :
+                (($key == "reviewUnique" || $key == "reviewStyle" || $key == "reviewReflective" || $key == "reviewMotive") ? 5 : 10));
             $optName = ($key == "reviewText" ? "Tekst" : ($key == "reviewMusic" ? "Muzyka" : (($key == "reviewUber" ? "Ocena Uber"
-                : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewImpact" ? "Popularność" : (($key == "reviewRh" ? "Słuchalność"
-                    : (($key == "reviewComp" ? "Kompozycja" : "Refleksyjność"))))))))))));
+                : (($key == "reviewPartner" ? "Ocena Partnera" : (($key == "reviewUnique" ? "Unikalność" : (($key == "reviewStyle" ? "Styl"
+                    : (($key == "reviewReflective" ? "Refleksyjność" : "Motyw"))))))))))));
 
             if (!is_numeric($reviewSection))
                 $errorMessage .= "Podano niepoprawną wartość dla ".$optName."!<br>";
