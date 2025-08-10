@@ -163,12 +163,28 @@ class SongModel extends CI_Model
      */
     public function fetchSongAverage(string $songId): float
     {
-        $this->db->select('AVG(songGrade) as avg_rating');
-        $this->db->from('song_rating');
-        $this->db->where('songId', $songId);
-        $query = $this->db->get();
-        $result = $query->row();
-        return $result->avg_rating ?? 0;
+        $sql = "
+            SELECT AVG(grade) AS avg_rating
+            FROM (
+                SELECT songGrade AS grade
+                FROM song_rating
+                WHERE songId = ?
+        
+                UNION ALL
+                SELECT SongGradeAdam
+                FROM song
+                WHERE SongId = ? AND SongGradeAdam <> 0
+        
+                UNION ALL
+                SELECT SongGradeChurchie
+                FROM song
+                WHERE SongId = ? AND SongGradeChurchie <> 0
+            ) AS all_grades
+        ";
+
+        $query = $this->db->query($sql, [$songId, $songId, $songId]);
+        $row = $query->row();
+        return $row->avg_rating ? number_format($row->avg_rating, 2) : 0;
     }
 
     /**
@@ -233,15 +249,35 @@ class SongModel extends CI_Model
      */
     public function fetchTopRapparHits(): array
     {
-        $this->db->select('song.SongId, song.SongTitle, AVG(song_rating.songGrade) as avg_rating');
-        $this->db->from('song_rating');
-        $this->db->join('song', 'song.SongId = song_rating.songId');
-        $this->db->where('song.SongVisible', 1);
-        $this->db->where('song.SongDeleted', 0);
-        $this->db->group_by('song_rating.songId');
-        $this->db->order_by('avg_rating', 'DESC');
-        $this->db->limit(100);
-        $query = $this->db->get();
+        $sql = "
+            SELECT  s.SongId,
+                    s.SongTitle,
+                    AVG(g.grade) AS avg_rating
+            FROM song AS s
+            LEFT JOIN (
+                SELECT sr.songId, sr.songGrade AS grade
+                FROM song_rating AS sr
+            
+                UNION ALL
+                SELECT s2.SongId, s2.SongGradeAdam AS grade
+                FROM song AS s2
+                WHERE s2.SongGradeAdam IS NOT NULL AND s2.SongGradeAdam <> 0
+            
+                UNION ALL
+                SELECT s3.SongId, s3.SongGradeChurchie AS grade
+                FROM song AS s3
+                WHERE s3.SongGradeChurchie IS NOT NULL AND s3.SongGradeChurchie <> 0
+            ) AS g
+              ON g.songId = s.SongId
+            WHERE s.SongVisible = 1
+              AND s.SongDeleted = 0
+            GROUP BY s.SongId, s.SongTitle
+            HAVING COUNT(g.grade) > 0
+            ORDER BY avg_rating DESC
+            LIMIT 100
+        ";
+
+        $query = $this->db->query($sql);
         return $query->result();
     }
 
@@ -412,5 +448,11 @@ class SongModel extends CI_Model
         $sql = "SELECT SongDeleted FROM song WHERE SongId = $songId";
         $songDeleted = $this->db->query($sql)->row()->SongDeleted ?? true;
         return !$songDeleted;
+    }
+
+    public function updateReviewerRatings(int $songId, float $songGradeAdam, float $songGradeChurchie): void
+    {
+        $sql = "UPDATE song SET SongGradeAdam = $songGradeAdam, SongGradeChurchie = $songGradeChurchie WHERE SongId = $songId";
+        $this->db->simple_query($sql);
     }
 }

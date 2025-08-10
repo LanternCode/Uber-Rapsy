@@ -99,3 +99,18 @@ ALTER TABLE `playlist_song` CHANGE `SongPlaylistItemsId` `SongPlaylistItemsId` V
 ALTER TABLE `user` ADD `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `userScore`;
 ALTER TABLE `review` CHANGE `reviewId` `reviewId` INT NOT NULL AUTO_INCREMENT, CHANGE `reviewImpact` `reviewComp` INT NOT NULL, CHANGE `reviewRh` `reviewUber` INT NOT NULL, CHANGE `reviewComp` `reviewPartner` INT NOT NULL, CHANGE `reviewReflection` `reviewUnique` INT NOT NULL, CHANGE `reviewUber` `reviewStyle` INT NOT NULL, CHANGE `reviewPartner` `reviewReflective` INT NOT NULL, CHANGE `reviewInsertDate` `reviewInsertDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE `review` ADD `reviewMotive` INT NOT NULL AFTER `reviewReflective`;
+ALTER TABLE `song` ADD `SongGradeAdam` DECIMAL(10, 2) NOT NULL AFTER `SongReleaseYear`, ADD `SongGradeChurchie` DECIMAL(10, 2) NOT NULL AFTER `SongGradeAdam`;
+
+UPDATE song AS s
+JOIN playlist_song AS ps ON ps.songId = s.SongId
+SET
+    s.SongGradeAdam = CASE
+        WHEN ps.SongGradeAdam <> 0 AND ps.SongGradeAdam IS NOT NULL
+        THEN ps.SongGradeAdam
+        ELSE s.SongGradeAdam
+    END,
+    s.SongGradeChurchie = CASE
+        WHEN ps.SongGradeChurchie <> 0 AND ps.SongGradeChurchie IS NOT NULL
+        THEN ps.SongGradeChurchie
+        ELSE s.SongGradeChurchie
+    END;

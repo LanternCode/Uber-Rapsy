@@ -324,7 +324,7 @@ class PlaylistItems extends CI_Controller
                 $formInput['playlistSongId'] = $this->input->post('playlistSongId-'.$i);
                 $currentPlaylistSong = $this->PlaylistSongModel->getPlaylistSong($formInput['playlistSongId']);
                 $currentSong = $currentPlaylistSong !== false ? $this->SongModel->getSong($currentPlaylistSong->songId) : false;
-                if ($currentPlaylistSong !== false && $currentSong !== false) {
+                if ($currentPlaylistSong !== false) {
                     //Update song grades, buttons and the song comment
                     $localResultMessage = $this->updateBasicPlaylistSongDetails($formInput, $currentPlaylistSong, $i);
 
@@ -334,8 +334,15 @@ class PlaylistItems extends CI_Controller
                         $this->LogModel->createLog('playlist_song', $currentPlaylistSong->id, "Zapisano oceny nuty z playlisty");
                     }
 
-                    //Copy and move songs between playlists
-                    $resultMessage .= $this->copyAndMovePlaylistSong($formInput, $userId, $currentPlaylistSong, $localResultMessage, $currentSong->SongTitle, "playlisty", $data);
+                    //Proceed if a matching song exists
+                    if ($currentSong !== false) {
+                        //Copy and move songs between playlists
+                        $resultMessage .= $this->copyAndMovePlaylistSong($formInput, $userId, $currentPlaylistSong, $localResultMessage, $currentSong->SongTitle, "playlisty", $data);
+
+                        //Update reviewers' grades
+                        if ($playlistOwnerId == 1 && ($formInput['SongGradeAdam'] != $currentSong->SongGradeAdam || $formInput['SongGradeChurchie'] != $currentSong->SongGradeChurchie))
+                            $this->SongModel->updateReviewerRatings($currentSong->SongId, $formInput['SongGradeAdam'], $formInput['SongGradeChurchie']);
+                    }
                 }
                 else
                     $resultMessage .= "<br><br>\tNie znaleziono utworu o ID ".$formInput['playlistSongId']."<br><br>";
