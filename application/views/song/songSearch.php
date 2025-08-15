@@ -1,12 +1,12 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
-    <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+    <?php if ($userLoggedIn ?? false): ?>
         <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
     <?php endif; ?>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
-    <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-        <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+    <?php if ($userLoggedIn ?? false): ?>
+        <?php if ($isReviewer ?? false): ?>
             <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <?php endif; ?>
         <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
@@ -66,7 +66,7 @@
                     </td>
                     <td><?=$song->myGrade != 0 ? $song->myGrade : '❌' ?></td>
                     <td><?=$song->communityAverage != 0 ? $song->communityAverage : '❌'?></td>
-                    <?php foreach($song->awards as $award): ?>
+                    <?php foreach ($song->awards as $award): ?>
                         <td><p class="song-awards centered"><?=$award->award?></p></td>
                     <?php endforeach; ?>
                 </tr>
@@ -79,7 +79,7 @@
         <h3>Znaleziono ponad 300 piosenek! Musisz zawęzić kryteria wyszukiwania!</h3>
     <?php else: ?>
         <h3>Nie znaleziono żadnych utworów o podanej nazwie!</h3>
-        <?php if (!empty($_SESSION['userLoggedIn'])): ?>
+        <?php if ($userLoggedIn ?? false): ?>
             <h4>Upewnij się, że wpisana nazwa utworu jest poprawna. Jeśli tak, możesz <a href="<?=base_url('importSongs')?>">kliknąć tutaj</a> i dodać utwór do RAPPAR!</h4>
         <?php else: ?>
             <h4>Upewnij się, że wpisana nazwa utworu jest poprawna. Jeśli tak, <a href="<?=base_url('login?src=songSearch')?>">zaloguj się</a> i dodaj utwór do RAPPAR!</h4>

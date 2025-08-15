@@ -14,6 +14,7 @@ if (!isset($_SESSION))
  *
  * @property PlaylistModel $PlaylistModel
  * @property AccountModel $AccountModel
+ * @property SecurityModel $SecurityModel
  * @property CI_Output $output
  */
 class Welcome extends CI_Controller
@@ -36,14 +37,14 @@ class Welcome extends CI_Controller
 		$data = array(
             'lists' => $this->PlaylistModel->fetchHomepagePlaylists(),
             'body' => 'home',
-            'title' => "Uber Rapsy | Portal do oceniania utworów rapowanych"
+            'title' => "Uber Rapsy | Portal do oceniania utworów rapowanych",
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
         //Automatic sign-in
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
-        if (isset($_COOKIE["login"]) && !$userLoggedIn) {
+        if (isset($_COOKIE["login"]) && !$data['userLoggedIn'])
             $this->AccountModel->automaticSignIn();
-        }
 
 		$this->load->view('templates/main', $data);
 	}
@@ -57,7 +58,9 @@ class Welcome extends CI_Controller
     {
         $data = array(
             'body' => 'termsOfService',
-            'title' => "Uber Rapsy | Zasady Użytkowania serwisu Uber Rapsy"
+            'title' => "Uber Rapsy | Zasady Użytkowania serwisu Uber Rapsy",
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
         $this->load->view('templates/main', $data);
@@ -72,7 +75,9 @@ class Welcome extends CI_Controller
     {
         $data = array(
             'body' => 'errors/403-404',
-            'title' => "Uber Rapsy | Test!"
+            'title' => "Uber Rapsy | Test!",
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
         //$newReportId = $this->LogModel->submitReport("Hello");

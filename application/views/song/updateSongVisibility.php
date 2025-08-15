@@ -3,10 +3,8 @@
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("songPage?songId=".$song->SongId)?>">Przejdź do utworu</a>
-    <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
-        <a class="optionsURL" href="<?=base_url("song/edit?songId=".$song->SongId)?>">Wróć do edytowania utworu</a>
-        <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
-    <?php endif; ?>
+    <a class="optionsURL" href="<?=base_url("song/edit?songId=".$song->SongId)?>">Wróć do edytowania utworu</a>
+    <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
     <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
 </header>
 <br><br><br><br>

@@ -3,8 +3,8 @@
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("songPage?songId=".$song->SongId)?>">Wróc do utworu</a>
-    <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
-        <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+    <?php if ($userLoggedIn): ?>
+        <?php if ($isReviewer): ?>
             <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <?php endif; ?>
         <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
@@ -21,7 +21,7 @@
         <label class="reviewBox">Posłuchaj utworu w YouTube: <a href="<?=base_url('youtu.be/'.$song->SongURL)?>" target="_blank"><?=$song->SongTitle?></a></label><br>
     <?php endif; ?>
     <form method="POST" action="<?=base_url('song/showReview?reviewId='.$review->reviewId)?>">
-        <?php if ($isReviewOwner || (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer')): ?>
+        <?php if ($isReviewOwner || $isReviewer): ?>
             <article class="reviewBox">
                 <h2>Status recenzji</h2>
                 <label>
@@ -94,7 +94,7 @@
             <label>Recenzja:</label><br>
             <textarea name="reviewTextContent" id="txt"><?=$input['reviewTextContent'] ?? $review->reviewTextContent?></textarea>
         </article>
-        <?php if ($isReviewOwner || (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer')): ?>
+        <?php if ($isReviewOwner || $isReviewer): ?>
             <input type="submit" class="btnSaveReview big-button" value="Zapisz Recenzję!">><br>
         <?php endif; ?>
     </form>

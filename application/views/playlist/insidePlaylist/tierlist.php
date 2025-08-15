@@ -24,7 +24,7 @@
     </div>
 </div>
 <form id="songsForm" method="post" action="<?=base_url('updateSongRatings?src=tierlist&filter='.$filter)?>">
-    <?php if(count($songs) < 1): ?>
+    <?php if (count($songs) < 1): ?>
         <h3>Nie znaleziono żadnych ocen <?=$filter == "Adam" ? "Adama" : ($filter == "Churchie" ? "Kościelnego" : ($filter == "Owner" ? "właściciela playlisty" : "żeby liczyć średnią ocen"))?> :/</h3>
     <?php else:
         $lastGrade = 0;

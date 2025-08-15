@@ -247,7 +247,6 @@ class PlaylistItems extends CI_Controller
         $data['propName'] = $data['filter'] === "Adam" ? "SongGradeAdam" : ($data['filter'] === "Churchie" ? "SongGradeChurchie" : ($data['filter'] === "Owner" ? "SongGradeOwner" : "Average"));
         $data['songs'] = $this->PlaylistSongModel->getTopPlaylistSongs($data['listId'], $data['filter'], $data['rapparManagedPlaylist']);
         $data['title'] = $data['playlist']->ListName." | Playlista Uber Rapsy";
-
         $data['body'] = 'playlist/insidePlaylist/tierlist';
 
         //Pre-compute every song's average and trim trailing zeros
@@ -312,6 +311,8 @@ class PlaylistItems extends CI_Controller
         $data['body'] = 'playlistSong/updatePlaylistSongRatings';
         $data['saveSource'] = $this->input->get('src');
         $data['filter'] = $this->input->get('filter');
+        $data['userLoggedIn'] = true;
+        $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
         while (isset($_POST["songUpdated-".$i+21])) {
             //Count the number of songs flagged as requiring update
             $i += ($data['processedSongsCount'] == 0) ? 0 : 28;
@@ -380,7 +381,9 @@ class PlaylistItems extends CI_Controller
         $data = array(
             'body' => 'playlistSong/updatePlaylistSongRatings',
             'title' => 'Oceny Zapisane!',
-            'searchQuery' => $this->input->post('searchQuery')
+            'searchQuery' => $this->input->post('searchQuery'),
+            'userLoggedIn' => true,
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
         $resultMessage = "<pre>";
 
@@ -440,13 +443,15 @@ class PlaylistItems extends CI_Controller
     public function downloadSongs(): void
     {
         //Fetch the submitted playlist id
-        $listId = isset($_GET['playlistId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['playlistId'])) : 0;
+        $listId = $this->input->get('playlistId') ?? 0;
         $listId = is_numeric($listId) ? $listId : 0;
         $data = array(
             'body' => 'playlistSong/downloadPlaylistSongs',
             'title' => 'Aktualizacja playlisty!',
             'listId' => $listId,
-            'src' => $this->input->get('src')
+            'src' => $this->input->get('src'),
+            'userLoggedIn' => true,
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
         //Check if the user is logged in and has the required permissions
@@ -514,7 +519,8 @@ class PlaylistItems extends CI_Controller
         if ($playlistSong !== false) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $_SESSION['userId'];
+            $userId = $this->SecurityModel->getCurrentUserId();
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $userId;
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'song/delSong',
@@ -522,7 +528,9 @@ class PlaylistItems extends CI_Controller
                     'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistSong->listId),
                     'redirectSource' => $this->input->get('src'),
                     'song' => $this->SongModel->getSong($playlistSong->songId),
-                    'playlistSong' => $playlistSong
+                    'playlistSong' => $playlistSong,
+                    'userLoggedIn' => true,
+                    'isReviewer' => $this->SecurityModel->authenticateReviewer()
                 );
 
                 //Delete the song if the form was submitted

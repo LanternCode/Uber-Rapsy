@@ -1,10 +1,10 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
-    <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+    <?php if ($userLoggedIn ?? false): ?>
         <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
         <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
-        <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+        <?php if ($isReviewer ?? false): ?>
             <a class="optionsURL" href="<?=base_url("")?>">Dodaj Toplistę</a>
             <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <?php endif; ?>
@@ -38,7 +38,7 @@
                     <td><a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a></td>
                     <td><?=$song->communityAverage != 0 ? $song->communityAverage : '❌'?></td>
                     <td><?=$song->myRating != 0 ? $song->myRating : '❌' ?></td>
-                    <?php foreach($song->awards as $award): ?>
+                    <?php foreach ($song->awards as $award): ?>
                         <td><p class="song-awards centered"><?=$award->award?></p></td>
                     <?php endforeach; ?>
                 </tr>

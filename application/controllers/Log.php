@@ -40,7 +40,8 @@ class Log extends CI_Controller
         if ($reportId) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->LogModel->getReportOwnerById($reportId) == $_SESSION['userId'];
+            $userId = $this->SecurityModel->getCurrentUserId();
+            $userAuthorised = $userAuthenticated && $this->LogModel->getReportOwnerById($reportId) == $userId;
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'showReport',
@@ -65,14 +66,17 @@ class Log extends CI_Controller
         if ($playlistId) {
             //Check if the user is logged in and has the required permissions
             $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $_SESSION['userId'];
+            $userId = $this->SecurityModel->getCurrentUserId();
+            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistId) == $userId;
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'playlist/showLog',
                     'title' => 'Uber Rapsy | Historia playlisty',
                     'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
                     'playlistLog' => $this->LogModel->getPlaylistLog($playlistId),
-                    'redirectSource' => $this->input->get('src')
+                    'redirectSource' => $this->input->get('src'),
+                    'userLoggedIn' => true,
+                    'isReviewer' => $this->SecurityModel->authenticateReviewer()
                 );
 
                 $this->load->view('templates/main', $data);
@@ -103,6 +107,8 @@ class Log extends CI_Controller
                 $data['song'] = $this->SongModel->getSong($data['playlistSong']->songId);
                 $data['songLog'] = $this->LogModel->getPlaylistSongLogs($playlistSongId);
                 $data['redirectSource'] = $this->input->get('src');
+                $data['userLoggedIn'] = $userAuthenticated;
+                $data['isReviewer'] = $reviewerAuthenticated;
 
                 $this->load->view('templates/main', $data);
             }
@@ -128,6 +134,8 @@ class Log extends CI_Controller
                 $data['body']  = 'song/songLog';
                 $data['title'] = "Uber Rapsy | Historia nuty";
                 $data['songLog'] = $this->LogModel->getSongLogs($songId);
+                $data['userLoggedIn'] = true;
+                $data['isReviewer'] = true;
 
                 $this->load->view('templates/main', $data);
             }

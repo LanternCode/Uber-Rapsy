@@ -48,11 +48,14 @@ class Song extends CI_Controller
         $data = array(
             'body' => 'song/frontpage',
             'title' => 'Listy popularnych piosenek | Uber Rapsy',
-            'songs' => $this->SongModel->fetchTopRapparHits()
+            'songs' => $this->SongModel->fetchTopRapparHits(),
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer(),
+            'userId' => $this->SecurityModel->getCurrentUserId()
         );
 
         foreach ($data['songs'] as $song) {
-            $song->myRating = isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($song->SongId, $_SESSION['userId'])) : 0;
+            $song->myRating = $data['userLoggedIn'] ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($song->SongId, $data['userId'])) : 0;
             $song->communityAverage = $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($song->SongId));
             $song->awards = $this->SongModel->fetchSongAwards($song->SongId);
         }
@@ -77,18 +80,19 @@ class Song extends CI_Controller
             'body' => 'song/songPage',
             'title' => 'Uber Rapsy | Strona utworu',
             'song' => $this->SongModel->getSong($songId),
-            'myRating' => isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $_SESSION['userId'])) : 0,
             'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
             'songAwards' => $this->SongModel->fetchSongAwards($songId),
-            'userAuthenticated' => $this->SecurityModel->authenticateUser(),
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
             'userId' => $this->SecurityModel->getCurrentUserId(),
-            'searchQuery' => $this->input->get('query')
+            'searchQuery' => $this->input->get('query'),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
+        $data['myRating'] = $data['userLoggedIn'] ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $data['userId'])) : 0;
         $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
         $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
 
         //Fetch my song review if one exists
-        if ($data['userAuthenticated']) {
+        if ($data['userLoggedIn']) {
             $myReviewId = $this->SongModel->checkIfUserReviewedSong($songId, $data['userId']);
             $data['myReview'] = $myReviewId !== false ? $this->SongModel->getSongReview($myReviewId, true) : null;
         }
@@ -169,7 +173,9 @@ class Song extends CI_Controller
             'title' => 'Wyniki Wyszukiwania Nut | Uber Rapsy',
             'songs' => array(),
             'searchQuery' => trim($this->input->get('searchQuery') ?? ''),
-            'isReviewer' => $this->SecurityModel->authenticateReviewer()
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer(),
+            'userId' => $this->SecurityModel->getCurrentUserId()
         );
 
         //Fetch songs filtered by a valid search query
@@ -178,7 +184,7 @@ class Song extends CI_Controller
             $data['songs'] = $this->SongModel->searchSongs($data['searchQuery'], $data['isReviewer']);
             if (count($data['songs']) <= 300) {
                 foreach ($data['songs'] as $song) {
-                    $song->myGrade = isset($_SESSION['userId']) ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($song->SongId, $_SESSION['userId'])) : 0;
+                    $song->myGrade = $data['userId'] !== false ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($song->SongId, $data['userId'])) : 0;
                     $song->communityAverage = $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($song->SongId));
                     $song->awards = $this->SongModel->fetchSongAwards($song->SongId);
                 }
@@ -206,7 +212,8 @@ class Song extends CI_Controller
             'body' => 'song/importSongs',
             'title' => 'Dodaj nowe utwory | Uber Rapsy',
             'playlistLink' => $this->input->post('playlistLink'),
-            'songLink' => $this->input->post('songLink')
+            'songLink' => $this->input->post('songLink'),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
         $userAuthenticated = $this->SecurityModel->authenticateUser();
@@ -337,6 +344,7 @@ class Song extends CI_Controller
 
             $data['body'] = 'song/importSongsResult';
             $data['title'] = 'RAPPAR | Importuj utwór';
+            $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
             $this->load->view('templates/song', $data);
         }
         else redirect('errors/403-404');
@@ -349,6 +357,7 @@ class Song extends CI_Controller
         $userId = $this->SecurityModel->getCurrentUserId();
         $userAuthorised = $userAuthenticated && $userId !== false;
         if ($userAuthorised) {
+            $data['isReviewer'] = true;
             $data['body'] = 'song/manualImport';
             $data['title'] = 'RAPPAR | Importuj utwór';
 
@@ -409,6 +418,7 @@ class Song extends CI_Controller
             if ($userAuthorised) {
                 $data['body'] = 'song/editSong';
                 $data['title'] = 'RAPPAR | Edytuj utwór';
+                $data['isReviewer'] = true;
 
                 //Update the song if the form was submitted
                 if ($this->input->post()) {
@@ -661,6 +671,7 @@ class Song extends CI_Controller
 
         $data['song'] = $this->SongModel->getSong($songId);
         $data['body'] = "song/newReview";
+        $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
         $this->load->view('templates/song', $data);
     }
 
@@ -716,6 +727,9 @@ class Song extends CI_Controller
 
         $data['song'] = $this->SongModel->getSong($data['review']->reviewSongId);
         $data['body'] = "song/songReview";
+        $data['userLoggedIn'] = $this->SecurityModel->authenticateUser();
+        $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
+
         $this->load->view('templates/song', $data);
     }
 
@@ -766,6 +780,7 @@ class Song extends CI_Controller
         }
 
         $data['body'] = "song/addToPlaylist";
+        $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
         $this->load->view('templates/song', $data);
     }
 

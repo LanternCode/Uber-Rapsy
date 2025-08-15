@@ -4,7 +4,7 @@
     <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
-    <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+    <?php if ($isReviewer ?? false): ?>
         <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
     <?php endif; ?>
     <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>

@@ -10,7 +10,7 @@
 
 <?php if (count($songLog) > 0): ?>
     <h3>Historia Utworu</h3>
-        <?php foreach($songLog as $log): ?>
+        <?php foreach ($songLog as $log): ?>
             <?=$log->Description?> <?=$log->Timestamp?><br>
         <?php endforeach; ?>
 <?php else: ?>

@@ -2,7 +2,7 @@
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
-    <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+    <?php if ($isReviewer ?? false): ?>
         <a class="optionsURL" href="<?=base_url("manualImport")?>">Importuj Manualnie</a>
         <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
     <?php endif; ?>

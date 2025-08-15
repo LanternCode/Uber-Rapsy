@@ -10,6 +10,8 @@ if (!isset($_SESSION))
  * @copyright LanternCode (c) 2019
  * @version Pre-release
  * @link https://lanterncode.com/Uber-Rapsy/
+ *
+ * @property SecurityModel $SecurityModel
  */
 class LogModel extends CI_Model
 {
@@ -32,7 +34,8 @@ class LogModel extends CI_Model
         //Ensure the entity type is correct
         $allowedTypes = ["playlist", "song", "user", "playlist_song"];
         $validType = in_array($entityType, $allowedTypes);
-        $actionedBy = $_SESSION['userId'] ?? 0;
+        $userId = $this->SecurityModel->getCurrentUserId();
+        $actionedBy = $userId !== false ? $userId : 0;
 
         if ($validType) {
             $sql = "INSERT INTO log (`UserId`,`EntityType`, `EntityId`, `Description`, `reportId`) VALUES ($actionedBy, '$entityType', $entityId, '$description', $reportId)";

@@ -32,7 +32,9 @@ class YoutubeIntegration extends CI_Controller
         if ($userAuthenticated) {
             $data = array(
                 'body' => 'adminDashboard',
-                'title' => "Uber Rapsy | Centrum Zarządzania"
+                'title' => "Uber Rapsy | Centrum Zarządzania",
+                'userLoggedIn' => true,
+                'isReviewer' => true
             );
 
             $this->load->view('templates/main', $data);
@@ -51,7 +53,9 @@ class YoutubeIntegration extends CI_Controller
         if ($userAuthenticated) {
             $data = array(
                 'body' => 'invalidAction',
-                'title' => "Wystąpił Błąd!"
+                'title' => "Wystąpił Błąd!",
+                'userLoggedIn' => true,
+                'isReviewer' => true
             );
 
             //Proceed only if the library was successfully initialised
@@ -86,7 +90,9 @@ class YoutubeIntegration extends CI_Controller
 	{
 		$data = array(
             'body' => 'refreshToken',
-            'title' => "Uzyskano nowy token!"
+            'title' => "Uzyskano nowy token!",
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
         //Fetch the code returned by the API authenticator

@@ -5,21 +5,21 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title><?=!empty($title) ? ($title.' - RAPPAR') : 'Portal do oceniania utworów rapowanych - RAPPAR'?></title>
-		<link rel="stylesheet" href="<?=base_url( 'styles/grid.css' )?>">
-		<link rel="shortcut icon" href="<?=base_url( 'styles/icons/favicon.ico' )?>" type="image/x-icon">
-		<link rel="icon" href="<?=base_url( 'styles/icons/favicon.ico' )?>" type="image/x-icon">
+		<link rel="stylesheet" href="<?=base_url('styles/grid.css')?>">
+		<link rel="shortcut icon" href="<?=base_url('styles/icons/favicon.ico')?>" type="image/x-icon">
+		<link rel="icon" href="<?=base_url('styles/icons/favicon.ico')?>" type="image/x-icon">
 	</head>
 	<body>
         <header class="optionsHeader">
             <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
-            <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+            <?php if ($userLoggedIn ?? false): ?>
                 <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
             <?php endif; ?>
             <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
-            <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+            <?php if ($isReviewer ?? false): ?>
                 <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
             <?php endif; ?>
-            <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+            <?php if ($userLoggedIn ?? false): ?>
                 <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
             <?php else: ?>
                 <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>

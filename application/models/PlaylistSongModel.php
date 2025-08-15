@@ -7,6 +7,8 @@
  * @copyright LanternCode (c) 2019
  * @version Pre-release
  * @link https://lanterncode.com/Uber-Rapsy/
+ *
+ * @property SecurityModel $SecurityModel
  */
 class PlaylistSongModel extends CI_Model
 {
@@ -71,8 +73,9 @@ class PlaylistSongModel extends CI_Model
                     WHERE s.SongTitle LIKE '%$search%'";
 
         //If logged in, search both in RAPPAR playlists and in public playlists, otherwise search only in RAPPAR playlists
-        if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']) {
-            $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId IN (1, ".$_SESSION['userId']."))";
+        $userId = $this->SecurityModel->getCurrentUserId();
+        if ($userId !== false) {
+            $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId IN (1, ".$userId."))";
         }
         else $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId = 1)";
 

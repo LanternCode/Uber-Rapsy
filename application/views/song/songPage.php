@@ -5,14 +5,14 @@
     <?php if (!empty($searchQuery)): ?>
         <a class="optionsURL" href="<?=base_url("songSearch?searchQuery=".$searchQuery)?>">Wróć do wyszukiwarki</a>
     <?php endif; ?>
-    <?php if (isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'reviewer'): ?>
+    <?php if ($isReviewer ?? false): ?>
         <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <a class="optionsURL" href="<?=base_url("song/edit?songId=".$song->SongId)?>">Edytuj Utwór</a>
         <?php if (!$song->SongDeleted): ?>
             <a target="_blank" class="optionsURL" href="<?=base_url('song/awards?songId='.$song->SongId)?>">Zarządzaj nagrodami</a>
         <?php endif; ?>
     <?php endif; ?>
-    <?php if (isset($_SESSION['userLoggedIn']) && $_SESSION['userLoggedIn']): ?>
+    <?php if ($userLoggedIn ?? false): ?>
         <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
         <?php if (!$song->SongDeleted): ?>
             <p id="confirmation" class="optionsURL">Przesuń suwak by ocenić utwór!</p>
@@ -94,7 +94,7 @@
             <h3>Moja recenzja</h3>
             <?php if (!empty($myReview)): ?>
                 <a href="<?=base_url('song/showReview?reviewId='.$myReview->reviewId)?>"><?=$myReview->username?>: <?=$myReview->reviewTitle?></a>
-            <?php elseif ($userAuthenticated): ?>
+            <?php elseif ($userLoggedIn): ?>
                 <a href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>">+ Zrecenzuj utwór</a>
             <?php else: ?>
                 <p><a href="<?=base_url('login?src=songPage')?>">Zaloguj</a> lub <a href="<?=base_url('newAccount?src=songPage')?>">zarejestruj się</a> i zacznij recenzować z RAPPAR!</p>

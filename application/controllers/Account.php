@@ -37,8 +37,8 @@ class Account extends CI_Controller
     public function login(): void
     {
         //If the user is already logged in, restart their session
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
-        if ($userLoggedIn)
+        $data['userLoggedIn'] = $this->SecurityModel->authenticateUser();
+        if ($data['userLoggedIn'])
             redirect('logout');
 
         //Fetch the credentials from the form or the pre-set cookie
@@ -87,8 +87,8 @@ class Account extends CI_Controller
     public function newAccount(): void
     {
         //If the user is already logged in, reset the session
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
-        if ($userLoggedIn)
+        $data['userLoggedIn'] = $this->SecurityModel->authenticateUser();
+        if ($data['userLoggedIn'])
             redirect('logout');
 
         //Process the form if it was submitted, otherwise just show the form
@@ -189,9 +189,8 @@ class Account extends CI_Controller
         session_destroy();
 
         //Delete the 'do not sign me out' cookie
-        if (isset($_COOKIE['login'])) {
+        if (isset($_COOKIE['login']))
             unset($_COOKIE['login']);
-        }
 
         //Override the login cookie with an expired one
         setcookie("login", "", time() - 3600, "/");
@@ -208,7 +207,7 @@ class Account extends CI_Controller
     public function forgottenPassword(): void
     {
         //If the user is already logged in, reset the session
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
+        $userLoggedIn = $this->SecurityModel->authenticateUser();
         if ($userLoggedIn)
             redirect('logout');
 
@@ -248,7 +247,7 @@ class Account extends CI_Controller
     public function resetPassword(): void
     {
         //If the user is already logged in, reset the session
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
+        $userLoggedIn = $this->SecurityModel->authenticateUser();
         if ($userLoggedIn)
             redirect('logout');
 
@@ -304,7 +303,9 @@ class Account extends CI_Controller
             $data = array(
                 'body' => 'admin/usersDashboard',
                 'title' => 'Uber Rapsy | Centrum Zarządzania Użytkownikami',
-                'users' => $this->AccountModel->fetchAllSafeUserdata()
+                'users' => $this->AccountModel->fetchAllSafeUserdata(),
+                'userLoggedIn' => true,
+                'isReviewer' => true
             );
             $this->load->view('templates/main', $data);
         }
@@ -321,7 +322,9 @@ class Account extends CI_Controller
         $data = array(
             'title' => 'Ranking najbardziej aktywnych użytkowników RAPPAR | dołącz do nich oceniając, recenzując i dodając utwory!',
             'body' => 'account/topContributors',
-            'ranking' => $this->AccountModel->getTopRapparContributors()
+            'ranking' => $this->AccountModel->getTopRapparContributors(),
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
         $this->load->view('templates/main', $data);
@@ -350,12 +353,19 @@ class Account extends CI_Controller
             'profile' => $user,
             'scores' => $this->AccountModel->getUserPositionInRanking($userId),
             'logs' => $this->LogModel->getUserLogs($userId),
-            'userId' => $userId
+            'userId' => $userId,
+            'userLoggedIn' => true,
+            'isReviewer' => true
         );
 
         $this->load->view('templates/main', $data);
     }
 
+    /**
+     * Lock or unblock an account.
+     *
+     * @return void
+     */
     public function changeStatus(): void
     {
         $userAuthenticated = $this->SecurityModel->authenticateReviewer();
@@ -372,7 +382,9 @@ class Account extends CI_Controller
             'title' => 'Profil użytkownika '.$user->username.' | Zmień status konta',
             'profile' => $user,
             'logs' => $this->LogModel->getUserLogs($userId),
-            'userId' => $userId
+            'userId' => $userId,
+            'userLoggedIn' => true,
+            'isReviewer' => true
         );
 
         if ($this->input->post()) {

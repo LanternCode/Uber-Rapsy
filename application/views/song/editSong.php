@@ -3,12 +3,10 @@
     <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("songPage?songId=".$song->SongId)?>">Wróc do utworu</a>
-    <?php if ($_SESSION['userRole'] === 'reviewer'): ?>
-        <?php if (!$song->SongDeleted): ?>
-            <a class="optionsURL" href="<?=base_url('song/awards?songId='.$song->SongId)?>">Zarządzaj nagrodami</a>
-        <?php endif; ?>
-        <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
+    <?php if (!$song->SongDeleted): ?>
+        <a class="optionsURL" href="<?=base_url('song/awards?songId='.$song->SongId)?>">Zarządzaj nagrodami</a>
     <?php endif; ?>
+    <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
     <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
 </header>
 <main>

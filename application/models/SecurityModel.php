@@ -10,6 +10,8 @@ if (!isset($_SESSION))
  * @copyright LanternCode (c) 2019
  * @version Pre-release
  * @link https://lanterncode.com/Uber-Rapsy/
+ *
+ * @property AccountModel $AccountModel
  */
 class SecurityModel extends CI_Model
 {
@@ -28,12 +30,12 @@ class SecurityModel extends CI_Model
     public function authenticateUser(): bool
     {
         //Automatic sign-in
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
+        $userLoggedIn = $this->authenticateUser();
         if (isset($_COOKIE["login"]) && !$userLoggedIn)
             $this->AccountModel->automaticSignIn();
 
         //Fetch user credentials
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
+        $userLoggedIn = $this->authenticateUser();
         if ($userLoggedIn) {
             $userId = $this->getCurrentUserId();
             $accountLocked = $this->AccountModel->getUserAccountStatus($userId);
@@ -53,10 +55,10 @@ class SecurityModel extends CI_Model
      */
     public function authenticateReviewer(): bool
     {
-        $userLoggedIn = $_SESSION['userLoggedIn'] ?? 0;
-        $userRole = $_SESSION['userRole'] ?? 0;
+        $userLoggedIn = $this->authenticateUser();
+        $userRole = $this->getCurrentUserRole();
 
-        if ($userLoggedIn === 1 && $userRole === 'reviewer')
+        if ($userLoggedIn == 1 && $userRole == 'reviewer')
             return true;
         else return false;
     }
@@ -154,7 +156,7 @@ class SecurityModel extends CI_Model
     /**
      * Fetch the current user's id.
      *
-     * @return int|bool If no user is logged in, return false.
+     * @return int|bool false if no user is logged in.
      */
     public function getCurrentUserId(): int|bool
     {
@@ -164,10 +166,20 @@ class SecurityModel extends CI_Model
     /**
      * Fetch the current user's username.
      *
-     * @return int|bool Return false if no user is logged in.
+     * @return int|bool false if no user is logged in.
      */
     public function getCurrentUserName(): int|bool
     {
         return $_SESSION['username'] ?? false;
+    }
+
+    /**
+     * Fetch the current user's role.
+     *
+     * @return string|bool false if no user is logged in.
+     */
+    public function getCurrentUserRole(): string|bool
+    {
+        return $_SESSION['userRole'] ?? false;
     }
 }
