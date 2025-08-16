@@ -48,7 +48,7 @@ class Playlist extends CI_Controller
 
         $data = array(
             'body' => 'playlist/playlistDashboard',
-            'title' => 'Uber Rapsy | Zarządzaj playlistami!',
+            'title' => 'Panel zarządzania playlistami użytkowników',
             'playlists' => $this->PlaylistModel->getAllPlaylists(),
             'userLoggedIn' => true,
             'isReviewer' => true
@@ -71,7 +71,7 @@ class Playlist extends CI_Controller
 
         $data = array(
             'body' => 'playlist/myPlaylists',
-            'title' => 'Uber Rapsy | Moje playlisty',
+            'title' => 'Moje playlisty | Dodawaj i zarządzaj swoimi playlistami',
             'playlists' => $this->PlaylistModel->fetchUserPlaylists($userId),
             'profile' => $this->AccountModel->getUserProfile($userId),
             'scores' => $this->AccountModel->getUserPositionInRanking($userId),
@@ -104,7 +104,6 @@ class Playlist extends CI_Controller
         //Fetch playlist details
         $data = array(
             'body' => 'playlist/details',
-            'title' => 'Uber Rapsy | Zarządzaj playlistą!',
             'songs' => $this->PlaylistSongModel->getPlaylistSongs($listId, "", true),
             'playlist' => $this->PlaylistModel->fetchPlaylistById($listId),
             'isReviewer' => $this->SecurityModel->authenticateReviewer(),
@@ -112,6 +111,7 @@ class Playlist extends CI_Controller
             'isRapparManaged' => $playlistOwnerId == 1,
             'userLoggedIn' => true,
         );
+        $data['title'] = 'Moja playlista '.$data['playlist']->ListName.' | Zarządzaj ustawieniami i utworami w playliście';
         $data['playlistOwnerUsername'] = $this->AccountModel->fetchUsernameById($data['playlist']->ListOwnerId);
 
         //Display values without decimals at the end if the decimals are zeros
@@ -143,7 +143,7 @@ class Playlist extends CI_Controller
 
         $data = array(
             'body' => 'playlist/edit',
-            'title' => 'Uber Rapsy | Edytuj playlistę!',
+            'title' => 'Edytuj playlistę | Zmień ustawienia playlisty',
             'redirectSource' => $this->input->get('src'),
             'userLoggedIn' => true,
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
@@ -218,12 +218,12 @@ class Playlist extends CI_Controller
 
         $data = array(
             'body' => 'playlist/hidePlaylist',
-            'title' => 'Uber Rapsy | Ukryj playlistę',
             'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
             'redirectSource' => $this->input->get('src'),
             'userLoggedIn' => true,
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
+        $data['title'] = 'Zmień status widoczności playlisty '.$data['playlist']->ListName.' | Upublicznij lub ukryj playlistę';
 
         //If the user pressed yes, reverse the current ListPublic status (to hide or show the playlist)
         $hidePlaylist = $this->input->get('switch');
@@ -248,7 +248,8 @@ class Playlist extends CI_Controller
         if ($userAuthenticated) {
             $data = array(
                 'body' => 'playlist/addPlaylist',
-                'title' => 'Uber Rapsy | Dodaj nową playlistę!',
+                'title' => 'Dodaj nową zintegrowaną playlistę | Zintegrowane playlisty są połączone z YouTube. 
+                To znaczy, że wszystkie zmiany wprowadzone do playlisty na naszej platformie również zapiszą się w YouTube',
                 'redirectSource' => $this->input->get('src'),
                 'userLoggedIn' => true,
                 'isReviewer' => true
@@ -278,7 +279,7 @@ class Playlist extends CI_Controller
                 //Refresh token not found
                 $data = array(
                     'body' => 'invalidAction',
-                    'title' => 'Błąd autoryzacji tokenu!',
+                    'title' => 'Wystąpił błąd | Nie udało się odświeżyć tokenu autoryzującego',
                     'errorMessage' => "Odświeżenie tokenu autoryzującego nie powiodło się.</br> Nie stworzono playlisty."
                 );
             }
@@ -346,7 +347,7 @@ class Playlist extends CI_Controller
             //Could not load the library
             $data = array(
                 'body' => 'invalidAction',
-                'title' => 'Wystąpił Błąd!',
+                'title' => 'Wystąpił błąd | Nie udało się załadować klienta Google i biblioteki YouTube API',
                 'errorMessage' => "Nie znaleziono biblioteki google!"
             );
         }
@@ -372,7 +373,8 @@ class Playlist extends CI_Controller
 
         $data = array(
             'body' => 'playlist/addLocalPlaylist',
-            'title' => 'Uber Rapsy | Dodaj lokalną playlistę!',
+            'title' => 'Dodaj lokalną playlistę | Lokalne playlisty figurują tylko w naszej platformie i nie są powiązane z YouTube. 
+            Można później zintegrować je z YT',
             'redirectSource' => $this->input->get('src'),
             'userLoggedIn' => true,
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
@@ -440,12 +442,12 @@ class Playlist extends CI_Controller
         //Define view parameters
         $data = array(
             'body' => 'playlist/deleteLocal',
-            'title' => 'Uber Rapsy | Usuń playlistę',
             'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
             'redirectSource' => $this->input->get('src'),
             'userLoggedIn' => true,
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
+        $data['title'] = 'Usuń playlistę '.$data['playlist']->ListName.' | Tej decyzji nie można cofnąć!';
 
         //Delete playlist if approved by the user
         $deleteLocal = $this->input->get('del');
@@ -501,7 +503,6 @@ class Playlist extends CI_Controller
 
         $data = array(
             'body' => 'playlist/integrate',
-            'title' => 'Uber Rapsy | Zintegruj playlistę',
             'redirectSource' => $this->input->get('src'),
             'userLoggedIn' => true,
             'isReviewer' => true
@@ -512,6 +513,8 @@ class Playlist extends CI_Controller
             redirect('errors/403-404');
 
         //Integrate playlists if the form was submitted, otherwise open the form
+        $data['title'] = 'Zintegruj playlistę '.$data['playlist']->ListName.' z YouTube | Zmiany wprowadzone w zintegrowanych playlistach
+         odbywają się również na YouTube';
         $status = $this->input->get('status');
         if ($status == "confirm") {
             //Check if a valid link exists in the db or was entered when integrating the playlist with YT

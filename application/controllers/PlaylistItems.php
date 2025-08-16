@@ -75,7 +75,7 @@ class PlaylistItems extends CI_Controller
 
         $data['searchQuery'] = $this->input->get('searchQuery') ?? '';
         $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
-        $data['title'] = $data['playlist']->ListName." | Playlista Uber Rapsy";
+        $data['title'] = "Playlista ".$data['playlist']->ListName." | Oceniaj i komentuj utwory";
         $data['userOwnedPlaylists'] = $this->PlaylistModel->getUserPlayistsIdsAndNames($userId);
         $data['body'] = 'playlist/insidePlaylist/playlist';
         $data['songs'] = [];
@@ -184,7 +184,7 @@ class PlaylistItems extends CI_Controller
             'isReviewer' => $this->SecurityModel->authenticateReviewer(),
             'searchQuery' => $this->input->get('SearchQuery'),
             'body' => 'playlist/insidePlaylist/searchResults',
-            'title' => "Wyniki Wyszukiwania | Uber Rapsy",
+            'title' => "Wyniki wyszukiwania | Wyszukiwanie odbywa się w twoich i należących do RAPPAR playlistach",
             'songs' => array(),
             'playlist' => array(),
             'userId' => $this->SecurityModel->getCurrentUserId()
@@ -246,7 +246,7 @@ class PlaylistItems extends CI_Controller
         $data['userOwnedPlaylists'] = $this->PlaylistModel->getUserPlayistsIdsAndNames($userId);
         $data['propName'] = $data['filter'] === "Adam" ? "SongGradeAdam" : ($data['filter'] === "Churchie" ? "SongGradeChurchie" : ($data['filter'] === "Owner" ? "SongGradeOwner" : "Average"));
         $data['songs'] = $this->PlaylistSongModel->getTopPlaylistSongs($data['listId'], $data['filter'], $data['rapparManagedPlaylist']);
-        $data['title'] = $data['playlist']->ListName." | Playlista Uber Rapsy";
+        $data['title'] = "Playlista ".$data['playlist']->ListName." | Oceniaj i komentuj utwory";
         $data['body'] = 'playlist/insidePlaylist/tierlist';
 
         //Pre-compute every song's average and trim trailing zeros
@@ -307,7 +307,7 @@ class PlaylistItems extends CI_Controller
         $data['searchQuery'] = false;
         $data['processedSongsCount'] = 0;
         $data['processedAndUpdatedSongsCount'] = 0;
-        $data['title'] = 'RAPPAR | Oceny Zapisane!';
+        $data['title'] = 'Zapisano oceny w playliście '.$playlist->ListName.'!';
         $data['body'] = 'playlistSong/updatePlaylistSongRatings';
         $data['saveSource'] = $this->input->get('src');
         $data['filter'] = $this->input->get('filter');
@@ -380,7 +380,7 @@ class PlaylistItems extends CI_Controller
 
         $data = array(
             'body' => 'playlistSong/updatePlaylistSongRatings',
-            'title' => 'Oceny Zapisane!',
+            'title' => 'Wynik zapisu ocen z wyszukiwarki',
             'searchQuery' => $this->input->post('searchQuery'),
             'userLoggedIn' => true,
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
@@ -447,7 +447,7 @@ class PlaylistItems extends CI_Controller
         $listId = is_numeric($listId) ? $listId : 0;
         $data = array(
             'body' => 'playlistSong/downloadPlaylistSongs',
-            'title' => 'Aktualizacja playlisty!',
+            'title' => 'Wyniki aktualizacji playlisty',
             'listId' => $listId,
             'src' => $this->input->get('src'),
             'userLoggedIn' => true,
@@ -524,7 +524,6 @@ class PlaylistItems extends CI_Controller
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'song/delSong',
-                    'title' => 'Uber Rapsy | Usuń piosenkę z playlisty',
                     'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistSong->listId),
                     'redirectSource' => $this->input->get('src'),
                     'song' => $this->SongModel->getSong($playlistSong->songId),
@@ -532,12 +531,13 @@ class PlaylistItems extends CI_Controller
                     'userLoggedIn' => true,
                     'isReviewer' => $this->SecurityModel->authenticateReviewer()
                 );
+                $data['title'] = 'Usuń utwór '.$data['song']->SongTitle.' z playlisty '.$data['playlist']->ListName.' | Ta decyzja jest nieodwracalna';
 
                 //Delete the song if the form was submitted
                 $delSong = $this->input->get('delete');
                 if ($delSong) {
                     $this->LogModel->createLog('playlist_song', $playlistSongId, "Permanentnie usunięto nutę z playlisty.");
-                    $this->LogModel->createLog('playlist', $data['playlistSong']->listId, "Permanentnie usunięto nutę " . $data['song']->SongTitle . " z playlisty.");
+                    $this->LogModel->createLog('playlist', $data['playlistSong']->listId, "Permanentnie usunięto nutę " .$data['song']->SongTitle. " z playlisty.");
                     $this->PlaylistSongModel->deletePlaylistSong($playlistSongId);
                     if ($data['redirectSource'] == 'pd')
                         redirect('playlist/details?listId='.$data['playlistSong']->listId.'&src=pd');

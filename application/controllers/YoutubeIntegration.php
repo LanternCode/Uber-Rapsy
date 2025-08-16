@@ -32,7 +32,7 @@ class YoutubeIntegration extends CI_Controller
         if ($userAuthenticated) {
             $data = array(
                 'body' => 'adminDashboard',
-                'title' => "Uber Rapsy | Centrum Zarządzania",
+                'title' => "Centrum zarządzania administratora",
                 'userLoggedIn' => true,
                 'isReviewer' => true
             );
@@ -53,7 +53,7 @@ class YoutubeIntegration extends CI_Controller
         if ($userAuthenticated) {
             $data = array(
                 'body' => 'invalidAction',
-                'title' => "Wystąpił Błąd!",
+                'title' => "Wystąpił błąd | Nie udało się załadować klienta YouTube API i biblioteki Google",
                 'userLoggedIn' => true,
                 'isReviewer' => true
             );
@@ -90,7 +90,7 @@ class YoutubeIntegration extends CI_Controller
 	{
 		$data = array(
             'body' => 'refreshToken',
-            'title' => "Uzyskano nowy token!",
+            'title' => "Uzyskano nowy token odświeżający!",
             'userLoggedIn' => $this->SecurityModel->authenticateUser(),
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
@@ -108,7 +108,7 @@ class YoutubeIntegration extends CI_Controller
             else {
                 //Could not load the library
                 $data['body']  = 'invalidAction';
-                $data['title'] = "Wystąpił Błąd!";
+                $data['title'] = "Wystąpił błąd | Nie udało się odświeżyć tokenu ponieważ nie znaleziono biblioteki Google";
                 $data['errorMessage'] = "Nie znaleziono biblioteki YouTube API!";
             }
 		}

@@ -37,7 +37,8 @@ class Welcome extends CI_Controller
 		$data = array(
             'lists' => $this->PlaylistModel->fetchHomepagePlaylists(),
             'body' => 'home',
-            'title' => "Uber Rapsy | Portal do oceniania utworów rapowanych",
+            'title' => "Witaj w RAPPAR, portalu do oceniania utworów rapowanych! | Dołącz do naszej społeczności już dziś i oceniaj, recenzuj i dodawaj utwory!
+             W RAPPAR możesz tworzyć playlisty, oceniać dodane na nie utwory i dzielić się nimi z innymi!",
             'userLoggedIn' => $this->SecurityModel->authenticateUser(),
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
@@ -58,7 +59,7 @@ class Welcome extends CI_Controller
     {
         $data = array(
             'body' => 'termsOfService',
-            'title' => "Uber Rapsy | Zasady Użytkowania serwisu Uber Rapsy",
+            'title' => "Warunki korzystania z serwisu RAPPAR | Rejestrując się akceptujesz poniższy regulamin",
             'userLoggedIn' => $this->SecurityModel->authenticateUser(),
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
@@ -75,7 +76,7 @@ class Welcome extends CI_Controller
     {
         $data = array(
             'body' => 'errors/403-404',
-            'title' => "Uber Rapsy | Test!",
+            'title' => "Test!",
             'userLoggedIn' => $this->SecurityModel->authenticateUser(),
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );

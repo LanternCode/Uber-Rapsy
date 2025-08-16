@@ -212,7 +212,7 @@ class Account extends CI_Controller
             redirect('logout');
 
         $data = array(
-            'title' => 'Przypomnij Hasło | Uber Rapsy',
+            'title' => 'Przypomnij hasło | Wypełnij formularz a dalsze instrukcje zostaną wysłane na podany adres email',
             'body' => 'account/forgotPassword'
         );
 
@@ -252,7 +252,7 @@ class Account extends CI_Controller
             redirect('logout');
 
         $data = array(
-            'title' => 'Zresetuj Hasło | Uber Rapsy',
+            'title' => 'Reset hasła | Wprowadź nowe hasło aby dokończyć proces resetowania hasła',
             'body' => 'account/resetPassword',
             'errorMessage' => '',
             'key' => $this->input->get('qs')
@@ -302,7 +302,7 @@ class Account extends CI_Controller
         if ($userAuthenticated) {
             $data = array(
                 'body' => 'admin/usersDashboard',
-                'title' => 'Uber Rapsy | Centrum Zarządzania Użytkownikami',
+                'title' => 'Panel zarządzania użytkownikami',
                 'users' => $this->AccountModel->fetchAllSafeUserdata(),
                 'userLoggedIn' => true,
                 'isReviewer' => true
@@ -320,7 +320,7 @@ class Account extends CI_Controller
     public function contributorsRanking(): void
     {
         $data = array(
-            'title' => 'Ranking najbardziej aktywnych użytkowników RAPPAR | dołącz do nich oceniając, recenzując i dodając utwory!',
+            'title' => 'Ranking najbardziej aktywnych użytkowników | dołącz do nich oceniając, recenzując i dodając utwory!',
             'body' => 'account/topContributors',
             'ranking' => $this->AccountModel->getTopRapparContributors(),
             'userLoggedIn' => $this->SecurityModel->authenticateUser(),

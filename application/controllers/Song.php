@@ -47,7 +47,7 @@ class Song extends CI_Controller
     {
         $data = array(
             'body' => 'song/frontpage',
-            'title' => 'Listy popularnych piosenek | Uber Rapsy',
+            'title' => 'Toplisty RAPPAR | Oceniaj, przeglądaj i recenzuj z nami!',
             'songs' => $this->SongModel->fetchTopRapparHits(),
             'userLoggedIn' => $this->SecurityModel->authenticateUser(),
             'isReviewer' => $this->SecurityModel->authenticateReviewer(),
@@ -78,7 +78,6 @@ class Song extends CI_Controller
         //Fetch song data
         $data = array(
             'body' => 'song/songPage',
-            'title' => 'Uber Rapsy | Strona utworu',
             'song' => $this->SongModel->getSong($songId),
             'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
             'songAwards' => $this->SongModel->fetchSongAwards($songId),
@@ -87,6 +86,7 @@ class Song extends CI_Controller
             'searchQuery' => $this->input->get('query'),
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
+        $data['title'] = 'Strona utworu '.$data['song']->SongTitle.' | Dołącz do naszej społeczności - oceniaj i recenzuj utwory z innymi użytkownikami platformy!';
         $data['myRating'] = $data['userLoggedIn'] ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $data['userId'])) : 0;
         $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
         $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
@@ -170,7 +170,8 @@ class Song extends CI_Controller
     {
         $data = array(
             'body' => 'song/songSearch',
-            'title' => 'Wyniki Wyszukiwania Nut | Uber Rapsy',
+            'title' => 'Wyniki wyszukiwania utworów | Szukaj wsód tysięcy utworów w RAPAPR. Wyszukiwarka jest dosłowna.
+             Jeśli nie udało się czegoś znaleźć, spróbuj wyszukać to podając mniejszą część tytułu!',
             'songs' => array(),
             'searchQuery' => trim($this->input->get('searchQuery') ?? ''),
             'userLoggedIn' => $this->SecurityModel->authenticateUser(),
@@ -210,7 +211,8 @@ class Song extends CI_Controller
     {
         $data = array(
             'body' => 'song/importSongs',
-            'title' => 'Dodaj nowe utwory | Uber Rapsy',
+            'title' => 'Dodaj nowe utwory | Podaj link do playlisty lub utworu na YouTube aby dodać go do RAPPAR!
+             Za każdy dodany utwór otrzymujesz punkt! Zbieraj punktu i pnij się w rankingu społeczności!',
             'playlistLink' => $this->input->post('playlistLink'),
             'songLink' => $this->input->post('songLink'),
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
@@ -343,7 +345,7 @@ class Song extends CI_Controller
             }
 
             $data['body'] = 'song/importSongsResult';
-            $data['title'] = 'RAPPAR | Importuj utwór';
+            $data['title'] = 'Dodaj nowe utwory do oceny i recenzji';
             $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
             $this->load->view('templates/song', $data);
         }
@@ -359,7 +361,7 @@ class Song extends CI_Controller
         if ($userAuthorised) {
             $data['isReviewer'] = true;
             $data['body'] = 'song/manualImport';
-            $data['title'] = 'RAPPAR | Importuj utwór';
+            $data['title'] = 'Manualnie dodaj nowe utwory do oceny i recenzji';
 
             //Proceed to import the song if the form was submitted
             if ($this->input->post()) {
@@ -417,7 +419,7 @@ class Song extends CI_Controller
             $userAuthorised = $this->SecurityModel->authenticateReviewer();
             if ($userAuthorised) {
                 $data['body'] = 'song/editSong';
-                $data['title'] = 'RAPPAR | Edytuj utwór';
+                $data['title'] = 'Edytujesz utwór '.$data['song']->SongTitle;
                 $data['isReviewer'] = true;
 
                 //Update the song if the form was submitted
@@ -492,7 +494,7 @@ class Song extends CI_Controller
             $userAuthorised = $this->SecurityModel->authenticateReviewer();
             if ($userAuthorised) {
                 $data['body'] = 'song/manageRewards';
-                $data['title'] = 'RAPPAR | Zarządzaj nagrodami utworu';
+                $data['title'] = 'Zarządzaj nagrodami utworu '.$data['song']->SongTitle.' | Dodaj lub usuń nagrody utworu. Nagrody są widoczne na stronie utworu';
                 $data['songAwards'] = $this->SongModel->fetchSongAwards($songId);
 
                 //Add an award if the form was submitted
@@ -545,7 +547,6 @@ class Song extends CI_Controller
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'song/updateSongVisibility',
-                    'title' => 'Uber Rapsy | Zmień widoczność utworu',
                     'song' => $song,
                     'myRating' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $userId)),
                     'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
@@ -553,6 +554,7 @@ class Song extends CI_Controller
                     'src' => $this->input->get('src'),
                     'searchQuery' => $this->input->get('query')
                 );
+                $data['title'] = ' Zmień status widoczności utworu '.$data['song']->SongTitle.' | Ukryj lub upublicznij utwór. Ukryte utwory są widoczne tylko dla recenzentów';
                 $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
                 $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
 
@@ -596,7 +598,6 @@ class Song extends CI_Controller
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'song/deleteSong',
-                    'title' => 'Uber Rapsy | Permanentnie usuń utwór',
                     'song' => $song,
                     'myRating' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $userId)),
                     'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
@@ -604,6 +605,7 @@ class Song extends CI_Controller
                     'src' => $this->input->get('src'),
                     'searchQuery' => $this->input->get('query')
                 );
+                $data['title'] = 'Usuń utwór '.$data['song']->SongTitle.' z Rappar. | Ta decyzja jest nieodwracalna!';
                 $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
                 $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
 

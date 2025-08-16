@@ -45,7 +45,7 @@ class Log extends CI_Controller
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'showReport',
-                    'title' => 'Uber Rapsy | Widok Raportu',
+                    'title' => 'Widok raportu | Przeglądasz jeden z raportów dotyczących treści dodanej przez użytkowników',
                     'report' => $this->LogModel->fetchReport($reportId)
                 );
                 $this->load->view('templates/customNav', $data);
@@ -71,13 +71,13 @@ class Log extends CI_Controller
             if ($userAuthorised) {
                 $data = array(
                     'body' => 'playlist/showLog',
-                    'title' => 'Uber Rapsy | Historia playlisty',
                     'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistId),
                     'playlistLog' => $this->LogModel->getPlaylistLog($playlistId),
                     'redirectSource' => $this->input->get('src'),
                     'userLoggedIn' => true,
                     'isReviewer' => $this->SecurityModel->authenticateReviewer()
                 );
+                $data['title'] = 'Historia playlisty '.$data['playlist']->ListName;
 
                 $this->load->view('templates/main', $data);
             }
@@ -103,8 +103,8 @@ class Log extends CI_Controller
             $userAuthorised = $reviewerAuthenticated || ($userAuthenticated && $this->PlaylistModel->getListOwnerById($data['playlistSong']->listId) == $this->SecurityModel->getCurrentUserId());
             if ($userAuthorised) {
                 $data['body']  = 'playlistSong/showLog';
-                $data['title'] = "Uber Rapsy | Historia nuty";
                 $data['song'] = $this->SongModel->getSong($data['playlistSong']->songId);
+                $data['title'] = "Historia utworu ".$data['song']->SongTitle." | Moje Playlisty";
                 $data['songLog'] = $this->LogModel->getPlaylistSongLogs($playlistSongId);
                 $data['redirectSource'] = $this->input->get('src');
                 $data['userLoggedIn'] = $userAuthenticated;
@@ -132,7 +132,7 @@ class Log extends CI_Controller
             $userAuthenticated = $this->SecurityModel->authenticateReviewer();
             if ($userAuthenticated) {
                 $data['body']  = 'song/songLog';
-                $data['title'] = "Uber Rapsy | Historia nuty";
+                $data['title'] = "Historia utworu ".$data['song']->SongTitle;
                 $data['songLog'] = $this->LogModel->getSongLogs($songId);
                 $data['userLoggedIn'] = true;
                 $data['isReviewer'] = true;
