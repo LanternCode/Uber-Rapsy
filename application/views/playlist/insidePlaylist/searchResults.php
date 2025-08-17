@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <nav class="optionsHeader">
-    <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
+    <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#songsForm">Góra Listy</a>
     <?php if (count($songs) > 0 && count($userOwnedPlaylistIDs) > 0): ?>

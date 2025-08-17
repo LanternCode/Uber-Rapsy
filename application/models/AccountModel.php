@@ -6,7 +6,7 @@
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
  * @version Pre-release
- * @link https://lanterncode.com/Uber-Rapsy/
+ * @link https://lanterncode.com/RAPPAR/
  */
 class AccountModel extends CI_Model
 {
@@ -106,31 +106,6 @@ class AccountModel extends CI_Model
         $this->db->simple_query($sql);
 
         return $keyToInsert;
-    }
-
-    /**
-     * Mail the password reset link to the user.
-     *
-     * @param string $email
-     * @param string $resetKey
-     * @return void
-     */
-    public function sendPasswordChangeEmail(string $email, string $resetKey): void
-    {
-        $resetLink = base_url('forgottenPassword/reset?qs=' . $resetKey);
-        $subject = "Zresetuj hasło w RAPPAR";
-        $headers = array(
-            'From: "RAPPAR" <noreply@uberrapsy.pl>',
-            'Reply-To: noreply@uberrapsy.pl',
-            'MIME-Version: 1.0',
-            'Content-Type: text/html; charset=UTF-8'
-        );
-        $txt = "Otrzymaliśmy prośbę o zresetowanie hasła przypisanego do tego adresu email <br />
-                na platformie RAPPAR. Skorzystaj z poniższego linku by zresetować swoje
-                hasło lub zignoruj tę wiadomość.<br /><br />
-                Zresetuj hasło: <a href='$resetLink' target='_blank'>$resetLink</a><br /><br />.";
-
-        mail($email, $subject, $txt, implode("\r\n", $headers));
     }
 
     /**

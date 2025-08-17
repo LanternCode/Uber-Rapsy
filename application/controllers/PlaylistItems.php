@@ -9,7 +9,7 @@ if (!isset($_SESSION))
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
  * @version Pre-release
- * @link https://lanterncode.com/Uber-Rapsy/
+ * @link https://lanterncode.com/RAPPAR/
  *
  * @property PlaylistModel $PlaylistModel
  * @property SongModel $SongModel

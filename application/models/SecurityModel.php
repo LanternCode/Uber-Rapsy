@@ -9,7 +9,7 @@ if (!isset($_SESSION))
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
  * @version Pre-release
- * @link https://lanterncode.com/Uber-Rapsy/
+ * @link https://lanterncode.com/RAPPAR/
  *
  * @property AccountModel $AccountModel
  */
@@ -30,12 +30,12 @@ class SecurityModel extends CI_Model
     public function authenticateUser(): bool
     {
         //Automatic sign-in
-        $userLoggedIn = $this->authenticateUser();
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
         if (isset($_COOKIE["login"]) && !$userLoggedIn)
             $this->AccountModel->automaticSignIn();
 
-        //Fetch user credentials
-        $userLoggedIn = $this->authenticateUser();
+        //Fetch user credentials after an automatic sign-in attempt
+        $userLoggedIn = $_SESSION['userLoggedIn'] ?? false;
         if ($userLoggedIn) {
             $userId = $this->getCurrentUserId();
             $accountLocked = $this->AccountModel->getUserAccountStatus($userId);
@@ -87,7 +87,7 @@ class SecurityModel extends CI_Model
     {
         try {
             //Import the library
-            $myPath = $_SERVER['DOCUMENT_ROOT'].(ENVIRONMENT !== 'production' ? '/Dev' : '').'/Uber-Rapsy/';
+            $myPath = $_SERVER['DOCUMENT_ROOT'].(ENVIRONMENT !== 'production' ? '/Dev' : '').'/RAPPAR/';
             require_once $myPath . 'vendor/autoload.php';
 
             //Initialise the client
@@ -113,7 +113,7 @@ class SecurityModel extends CI_Model
     public function validateAuthToken(object $client): bool
     {
         //Get the token cookie
-        $accessToken = get_cookie("UberRapsyToken");
+        $accessToken = get_cookie("RapparToken");
 
         //Check if the cookie contains the token
         $token_expired = false;
@@ -141,11 +141,11 @@ class SecurityModel extends CI_Model
                 $client->refreshToken($refresh_token);
                 $accessToken = $client->getAccessToken();
                 //Delete the old cookie
-                delete_cookie("UberRapsyToken");
+                delete_cookie("RapparToken");
                 //Encode the user token to store it as a cookie
                 $accessToken = json_encode($accessToken);
                 //Set a cookie with the new user token valid for one day
-                set_cookie("UberRapsyToken", $accessToken, 86400);
+                set_cookie("RapparToken", $accessToken, 86400);
                 $token_expired = false;
             }
         }

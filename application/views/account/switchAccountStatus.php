@@ -13,7 +13,7 @@ Status konta: <?=$profile->accountLocked ? 'Zablokowane' : 'Aktywne'?><br><br>
 <?php endif; ?>
 <br><br>
 <h2>Zmień status konta</h2>
-<h4>Pamiętaj, że zgodnie z regulaminem RAPPAR, zablokowany użytkownik musi otrzymać informację o powodzie blokady do 48 godzin od jej nałożenia.</h4><br><br?
+<h4>W momencie nałożenia lub zdjęcia blokady użytkownik otrzyma email z wpisanym powodem.</h4><br><br>
 <form method="post" action="<?=base_url('user/changeAccountStatus?uid='.$userId)?>">
     <label>Powód zmiany statusu konta:</label>
     <input type="text" name="statusReason" required><br><br>

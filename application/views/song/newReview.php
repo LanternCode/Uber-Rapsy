@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
-    <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
+    <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("songPage?songId=".$song->SongId)?>">Wróc do utworu</a>
     <?php if ($isReviewer): ?>
@@ -48,7 +48,7 @@
             <input class="gradeInputReview" type="text" name="reviewComp" value="<?=$input['reviewComp'] ?? ''?>" required>/10<br>
         </article>
         <article class="reviewBox">
-            <label>Ocena Uber:</label>
+            <label>Ocena RAPPAR:</label>
             <input class="gradeInputReview" type="text" name="reviewUber" value="<?=$input['reviewUber'] ?? ''?>" required>/10<br>
         </article>
         <article class="reviewBox">

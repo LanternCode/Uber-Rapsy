@@ -8,10 +8,7 @@ application/logs/*
 
 !application/*/.htaccess
 
-application/api/api_key.txt
-application/api/client_secret.json
-application/api/refresh_token.txt
-application/api/database_credentials.txt
+application/api/*
 
 .editorconfig
 

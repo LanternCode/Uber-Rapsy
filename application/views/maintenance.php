@@ -10,7 +10,7 @@
     </style>
 </head>
 <body>
-<h1>Uber Rapsy wrócą wkrótce!</h1>
+<h1>RAPPAR wróci wkrótce!</h1>
 <p>Właśnie przeprowadzamy aktualizację. Prace powinny zakończyć się w przeciągu dwóch godzin 😁</p>
 </body>
 </html>

@@ -58,6 +58,7 @@ $route['user/changeAccountStatus'] = 'Account/changeStatus';
 $route['usersDashboard'] = 'Account/usersDashboard';
 
 $route['testfunc'] = 'Welcome/testfunc';
+$route['errors/403-404'] = 'Welcome/error';
 
 $route['default_controller'] = 'Welcome';
 $route['404_override'] = '';

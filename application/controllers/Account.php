@@ -9,7 +9,7 @@ if (!isset($_SESSION))
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
  * @version Pre-release
- * @link https://lanterncode.com/Uber-Rapsy/
+ * @link https://lanterncode.com/RAPPAR/
  *
  * @property PlaylistModel $PlaylistModel
  * @property AccountModel $AccountModel
@@ -18,6 +18,7 @@ if (!isset($_SESSION))
  * @property CI_DB_mysqli_driver $db
  * @property CI_Input $input
  * @property HTMLSanitiser $htmlsanitiser
+ * @property MailService $MailService
  */
 class Account extends CI_Controller
 {
@@ -26,6 +27,8 @@ class Account extends CI_Controller
         parent::__construct();
         $this->load->model('AccountModel');
         $this->load->model('PlaylistModel');
+        $this->load->library('MailService');
+        $this->MailService = new MailService();
         $this->load->helper('cookie');
     }
 
@@ -221,9 +224,11 @@ class Account extends CI_Controller
         $enteredEmail = filter_var($enteredEmail, FILTER_VALIDATE_EMAIL);
         if ($enteredEmail) {
             if (!$this->AccountModel->isEmailUnique($enteredEmail)) {
+                $username = $this->AccountModel->getUserData($enteredEmail)->username;
                 $resetKey = $this->AccountModel->insertPasswordUpdateLink($enteredEmail);
                 if ($resetKey) {
-                    $this->AccountModel->sendPasswordChangeEmail($enteredEmail, $resetKey);
+                    $resetLink = base_url('forgottenPassword/reset?qs='.$resetKey);
+                    $this->MailService->sendPasswordReset($username, $enteredEmail, $resetLink);
                     $data['actionNotification'] = "<span>Jeżeli istnieje konto założone na ten adres email, została na niego wysłana wiadomość z linkiem resetującym hasło.</span>";
                 }
                 else
@@ -396,6 +401,7 @@ class Account extends CI_Controller
                     $this->AccountModel->updateUserAccountStatus($newAccountStatus, $userId);
                     $this->LogModel->createLog('user', $userId,
                         'Konto użytkownika zostało '.($newAccountStatus ? 'zablokowane' : 'odblokowane').' z powodu: '.$changeReason);
+                    $this->MailService->sendAccountStatusChangeEmail($user->username, $user->email, $newAccountStatus, $changeReason);
                     redirect('user/changeAccountStatus?uid='.$userId);
                 }
             }

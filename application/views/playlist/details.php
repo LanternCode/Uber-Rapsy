@@ -18,7 +18,7 @@
 <p>Playlista publiczna: <?=$playlist->ListPublic === "1" ? "Tak" : "Nie"?></p><br>
 <p>Playlista archiwalna: <?=$playlist->ListActive === "1" ? "Nie" : "Tak"?></p><br>
 <p>Link do playlisty na YT: <?=!empty($playlist->ListUrl) ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>https://www.youtube.com/playlist?list=$playlist->ListUrl</a>" : "Brak"?></p></br>
-<p>Link na Uber: <a target='_blank' href='<?=base_url('playlist?playlistId='.$playlist->ListId)?>'><?=base_url('playlist?playlistId='.$playlist->ListId)?></a></p></br>
+<p>Link w RAPPAR: <a target='_blank' href='<?=base_url('playlist?playlistId='.$playlist->ListId)?>'><?=base_url('playlist?playlistId='.$playlist->ListId)?></a></p></br>
 <p>ID w lokalnej bazie danych: <?=$playlist->ListId?></p><br>
 <p>ID playlisty na YT: <?=$playlist->ListUrl?></p><br>
 <p>ID właściciela playlisty: <?=$playlist->ListOwnerId?></p><br>

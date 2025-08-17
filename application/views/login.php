@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <div class="homepage--logo">
-    <h2>Zaloguj się do UberRapsów!</h2>
+    <h2>Zaloguj się do RAPPAR!</h2>
 </div>
 
 <?php if (!empty($invalidCredentials)) {

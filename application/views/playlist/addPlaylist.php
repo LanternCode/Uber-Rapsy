@@ -22,7 +22,7 @@
         <option value="private">Prywatna</option>
     </select><br /><br />
 
-    <label>Widoczność Playlisty na Uber:</label><br />
+    <label>Widoczność Playlisty w RAPPAR:</label><br />
     <select name="playlistVisibility">
         <option value="1">Publiczna - widoczna dla ogółu</option>
         <option value="0">Prywatna - widoczna tylko dla właściciela</option>

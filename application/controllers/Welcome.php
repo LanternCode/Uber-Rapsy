@@ -10,7 +10,7 @@ if (!isset($_SESSION))
  * @author LanternCode <leanbox@lanterncode.com>
  * @copyright LanternCode (c) 2019
  * @version Pre-release
- * @link https://lanterncode.com/Uber-Rapsy/
+ * @link https://lanterncode.com/RAPPAR/
  *
  * @property PlaylistModel $PlaylistModel
  * @property AccountModel $AccountModel
@@ -97,5 +97,22 @@ class Welcome extends CI_Controller
     {
         $this->output->set_status_header('503');
         $this->load->view('maintenance');
+    }
+
+    /**
+     * Show an error if the user tries to access 403 or 404 content.
+     *
+     * @return void
+     */
+    public function error(): void
+    {
+        $data = array(
+            'body' => 'errors/403-404',
+            'title' => "Wystąpił błąd | Podana treść nie istnieje lub nie masz do niej dostępu",
+            'userLoggedIn' => $this->SecurityModel->authenticateUser(),
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
+        );
+
+        $this->load->view('templates/main', $data);
     }
 }

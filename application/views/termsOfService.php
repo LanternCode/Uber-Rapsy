@@ -1,24 +1,24 @@
-<h2>Uber Rapsy – Terms of Service & Privacy Policy</h2>
+<h2>RAPPAR – Terms of Service & Privacy Policy</h2>
 
 <p class="ToSParagraph"><strong>Effective Date:</strong> 25/01/2025</p>
 <p class="ToSParagraph"><strong>Last Updated:</strong> 19/02/2025 8:16 PM</p>
 
 <h3>1. Introduction</h3>
-<p class="ToSParagraph">1.1 This document serves as the sole and official Terms of Service and Privacy Policy for Uber Rapsy.</p>
+<p class="ToSParagraph">1.1 This document serves as the sole and official Terms of Service and Privacy Policy for RAPPAR.</p>
 <p class="ToSParagraph">1.2 We may update this policy at any time. Critical changes will be communicated in advance, allowing users to close their accounts if they disagree.</p>
 <p class="ToSParagraph">1.3 If you receive information that contradicts this policy, contact us at <strong>rappar (at) lanterncode (dot) com</strong>, and we will verify and update the policy if necessary.</p>
 
 <h3>2. Free & Paid Services</h3>
-<p class="ToSParagraph">2.1 <strong>Basic services on Uber Rapsy are free.</strong> No staff member will ever request payment for access to standard features. If you receive such a request, report it immediately.</p>
+<p class="ToSParagraph">2.1 <strong>Basic services on RAPPAR are free.</strong> No staff member will ever request payment for access to standard features. If you receive such a request, report it immediately.</p>
 <p class="ToSParagraph">2.2 If you subscribe to a paid plan, billing may contact you regarding payment issues. All official billing communications will include <strong>verification instructions</strong>—if they are missing, assume the message is fraudulent.</p>
 <p class="ToSParagraph">2.3 Paid services are subject to additional terms and may be modified, suspended, or discontinued with prior notice.</p>
 
 <h3>3. Communication & Support</h3>
-<p class="ToSParagraph">3.1 The primary means of communication with Uber Rapsy’s support team is the <strong>contact form</strong> in your user panel. This will be available upon public release.</p>
+<p class="ToSParagraph">3.1 The primary means of communication with RAPPAR’s support team is the <strong>contact form</strong> in your user panel. This will be available upon public release.</p>
 <p class="ToSParagraph">3.2 If you cannot access your account, you may contact us at <strong>rappar (at) lanterncode (dot) com</strong> for assistance.</p>
 
 <h3>4. Account Suspension & Termination</h3>
-<p class="ToSParagraph">4.1 Uber Rapsy reserves the right to <strong>suspend or terminate accounts</strong> if users:</p>
+<p class="ToSParagraph">4.1 RAPPAR reserves the right to <strong>suspend or terminate accounts</strong> if users:</p>
 <ul>
     <li>Violate these Terms of Service</li>
     <li>Engage in fraud, abuse, or security threats</li>

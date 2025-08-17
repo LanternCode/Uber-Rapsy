@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <form action="<?=base_url('newAccount?src='.$redirectSource)?>" class="register--form" method="post">
-    <h1>Witaj w Uber Rapsach! Cieszymy się że chcesz dołączyć do naszej społeczności!</h1>
+    <h1>Witaj w RAPPAR! Cieszymy się że chcesz dołączyć do naszej społeczności!</h1>
     <h2>Teraz wystarczy, że wypełnisz poniższy formularz i wciśniesz przycisk!</h2>
 
     <div class="register--section">
@@ -36,7 +36,7 @@
     <div class="register--section">
         <label><br>
             <input type="checkbox" name="register--TOS" <?=isset($setTOS) ? $setTOS : ''?> required>
-            Akceptuję <a href="<?=base_url( 'TermsOfService' )?>" target="_blank">Zasady Użytkowania</a> platformy Uber Rapsy.
+            Akceptuję <a href="<?=base_url( 'TermsOfService' )?>" target="_blank">Zasady Użytkowania</a> platformy RAPPAR.
             <?=isset($termsOfServiceDenied) ? $termsOfServiceDenied : ''?>
         </label><br>
     </div>

@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
-    <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
+    <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
     <?php if ($isReviewer ?? false): ?>
         <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>

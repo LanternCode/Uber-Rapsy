@@ -14,7 +14,7 @@
             <?php isset($body) ? $this->load->view($body) : redirect(base_url()); ?>
         </main>
         <footer>
-            <br><p class="footer">UberRapsy 2019-<?=date('Y')?> &copy; All rights reserved.</p>
+            <br><p class="footer">LanternCode 2019-<?=date('Y')?> &copy; All rights reserved.</p>
         </footer>
     </body>
 </html>

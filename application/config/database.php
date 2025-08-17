@@ -99,7 +99,7 @@ if (ENVIRONMENT !== 'production') {
 else {
     //load the db credentials from a file
     $i = 0;
-    $myPath = $_SERVER['DOCUMENT_ROOT'] . '/Uber-Rapsy/application/api/database_credentials.txt';
+    $myPath = $_SERVER['DOCUMENT_ROOT'] . '/RAPPAR/application/api/database_credentials.txt';
     $handle = fopen($myPath, "r");
     if ($handle) {
         while (($line = fgets($handle)) !== false) {

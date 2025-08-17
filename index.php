@@ -56,10 +56,10 @@
 
 if ($_SERVER["HTTP_HOST"] === "localhost") {
     define("ENVIRONMENT", "development");
-    define("BASEURL", "http://localhost/Dev/Uber-Rapsy/");
+    define("BASEURL", "http://localhost/Dev/RAPPAR/");
 } else {
     define("ENVIRONMENT", "production");
-    define("BASEURL", "https://lanterncode.com/Uber-Rapsy/");
+    define("BASEURL", "https://lanterncode.com/RAPPAR/");
 }
 
 /*

@@ -1,24 +1,27 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
-    <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
+    <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <?php if (!empty($searchQuery)): ?>
         <a class="optionsURL" href="<?=base_url("songSearch?searchQuery=".$searchQuery)?>">Wróć do wyszukiwarki</a>
     <?php endif; ?>
-    <?php if ($isReviewer ?? false): ?>
+    <?php if ($isReviewer): ?>
         <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <a class="optionsURL" href="<?=base_url("song/edit?songId=".$song->SongId)?>">Edytuj Utwór</a>
         <?php if (!$song->SongDeleted): ?>
-            <a target="_blank" class="optionsURL" href="<?=base_url('song/awards?songId='.$song->SongId)?>">Zarządzaj nagrodami</a>
+            <a class="optionsURL" href="<?=base_url('song/awards?songId='.$song->SongId)?>">Zarządzaj nagrodami</a>
         <?php endif; ?>
     <?php endif; ?>
-    <?php if ($userLoggedIn ?? false): ?>
+    <?php if ($userLoggedIn): ?>
         <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
         <?php if (!$song->SongDeleted): ?>
             <p id="confirmation" class="optionsURL">Przesuń suwak by ocenić utwór!</p>
         <?php endif; ?>
     <?php else: ?>
         <a class="optionsURL" href="<?=base_url("login")?>">Zaloguj się</a>
+        <?php if (!$song->SongDeleted): ?>
+            <p id="confirmation" class="optionsURL">Musisz się zalogować by ocenić utwór!</p>
+        <?php endif; ?>
     <?php endif; ?>
     <form class="optionsURL optionsRight" method="get" action="<?=base_url("songSearch")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
@@ -52,7 +55,7 @@
                 </div>
             </div>
             <div class="song-slider">
-                <input id="gradeSlider" type="range" min="1" max="10" step="0.5" value="<?=$myRating ?? 0?>" name="songGrade">
+                <input id="gradeSlider" type="range" min="1" max="10" step="0.5" value="<?=$myRating ?? 0?>" name="songGrade" <?=$userLoggedIn ? '' : 'disabled'?>>
                 <div class="slider-labels">
                     <!-- n from 0..9, so label=1 => n=0, label=10 => n=9 -->
                     <span style="left: calc((0/9) * (100% - var(--thumb-size)) + var(--thumb-center) - var(--offset-adjust));">
@@ -114,4 +117,6 @@
         </div>
     </div>
 </main>
-<script type="text/javascript" src="<?=base_url('scripts/autoSaveGrade.js')?>"></script>
+<?php if ($userLoggedIn): ?>
+    <script type="text/javascript" src="<?=base_url('scripts/autoSaveGrade.js')?>"></script>
+<?php endif; ?>

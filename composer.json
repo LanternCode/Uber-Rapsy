@@ -2,7 +2,8 @@
     "require": {
         "ext-mysqli": "*",
         "google/apiclient": "2.15.0",
-        "ext-bcmath": "*"
+        "ext-bcmath": "*",
+        "phpmailer/phpmailer": "^6.10"
     },
     "scripts": {
         "pre-autoload-dump": "Google\\Task\\Composer::cleanup"

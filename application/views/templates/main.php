@@ -6,12 +6,15 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title><?=!empty($title) ? ($title.' - RAPPAR') : 'Portal do oceniania utworów rapowanych - RAPPAR'?></title>
 		<link rel="stylesheet" href="<?=base_url('styles/grid.css')?>">
-		<link rel="shortcut icon" href="<?=base_url('styles/icons/favicon.ico')?>" type="image/x-icon">
-		<link rel="icon" href="<?=base_url('styles/icons/favicon.ico')?>" type="image/x-icon">
+        <link rel="icon" type="image/png" href="<?=base_url('styles/icons/favicon-96x96.png')?>" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="<?=base_url('styles/icons/favicon.svg')?>" />
+        <link rel="shortcut icon" href="<?=base_url('styles/icons/favicon.ico')?>" />
+        <link rel="apple-touch-icon" sizes="180x180" href="<?=base_url('styles/icons/apple-touch-icon.png')?>" />
+        <link rel="manifest" href="<?=base_url('site.webmanifest')?>" />
 	</head>
 	<body>
         <header class="optionsHeader">
-            <a class="optionsURL" href="<?=base_url()?>">UberRapsy</a>
+            <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
             <?php if ($userLoggedIn ?? false): ?>
                 <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
             <?php endif; ?>
@@ -36,7 +39,7 @@
 	        <?php isset($body) ? $this->load->view($body) : redirect(base_url()); ?>
 	    </main>
 		<footer>
-			<br><p class="footer">UberRapsy 2019-<?=date('Y')?> &copy; All rights reserved.</p>
+			<br><p class="footer">LanternCode 2019-<?=date('Y')?> &copy; All rights reserved.</p>
 		</footer>
 	</body>
 </html>
