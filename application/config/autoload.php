@@ -12,7 +12,7 @@
 $autoload['packages'] = array();
 $autoload['libraries'] = array('database', 'form_validation', 'session', 'htmlsanitiser');
 $autoload['drivers'] = array();
-$autoload['helper'] = array('html', 'url', 'text', 'form','string');
+$autoload['helper'] = array('html', 'url', 'text', 'form','string', 'inflection');
 $autoload['config'] = array();
 $autoload['language'] = array();
 $autoload['model'] = array('SecurityModel', 'LogModel', 'UtilityModel');

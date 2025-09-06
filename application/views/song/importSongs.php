@@ -1,8 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
+    <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
-    <?php if ($isReviewer ?? false): ?>
+    <?php if ($isReviewer): ?>
         <a class="optionsURL" href="<?=base_url("manualImport")?>">Importuj Manualnie</a>
         <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
     <?php endif; ?>

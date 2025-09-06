@@ -1,12 +1,14 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <?php if ($redirectSource == 'pd'): ?>
     <a href="<?=base_url('playlistDashboard?src='.$redirectSource)?>"><-- Wróć do panelu zarządzania playlistami</a><br><br>
-<?php elseif ($redirectSource == 'pd'): ?>
+<?php elseif ($redirectSource == 'mp'): ?>
     <a href="<?=base_url('myPlaylists?src='.$redirectSource)?>"><-- Wróć do moich playlist</a><br><br>
 <?php elseif ($redirectSource == 'plist'): ?>
     <a href="<?=base_url('playlist/details?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Statystyki i Ustawienia</a>
+<?php else: ?>
+    <a href="<?=base_url('myPlaylists?src='.$redirectSource)?>"><-- Wróć do moich playlist</a><br><br>
 <?php endif; ?>
-<?=$resultMessage ?? ''?>
+<?=isset($resultMessage) ? $resultMessage . '<br><br>' : ''?>
 
 <h4>Edytuj Playlistę:</h4>
 

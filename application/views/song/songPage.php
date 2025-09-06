@@ -1,6 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
+    <?php if ($userLoggedIn ?? false): ?>
+        <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
+    <?php endif; ?>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <?php if (!empty($searchQuery)): ?>
         <a class="optionsURL" href="<?=base_url("songSearch?searchQuery=".$searchQuery)?>">Wróć do wyszukiwarki</a>
@@ -36,7 +39,7 @@
         <div class="song-container">
             <div class="song-header">
                 <div class="">
-                    <h2 class="song-title"><?=$song->SongURL != '' ? '<a href="https://youtu.be/'.$song->SongURL.'">' : ''?><?=$song->SongTitle?><?=$song->SongURL != '' ? '</a>' : ''?></h2>
+                    <h2 class="song-title"><?=$song->SongURL != '' ? '<a target="_blank" href="https://youtu.be/'.$song->SongURL.'">' : ''?><?=$song->SongTitle?><?=$song->SongURL != '' ? '</a>' : ''?></h2>
                     <p class="song-authors"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
                 </div>
                 <div class="song-awards">
@@ -96,19 +99,37 @@
         <div class="my-review-section">
             <h3>Moja recenzja</h3>
             <?php if (!empty($myReview)): ?>
-                <a href="<?=base_url('song/showReview?reviewId='.$myReview->reviewId)?>"><?=$myReview->username?>: <?=$myReview->reviewTitle?></a>
+                <br><a href="<?=base_url('song/showReview?reviewId='.$myReview->reviewId)?>"><?=$myReview->username?>: <?=$myReview->reviewTitle?></a> (<?=$myReview->reviewTotal?>/90 - <?=number_format(($myReview->reviewTotal/90)*100, 2)?>%)
+                <div class="review-excerpt-wrap">
+                    <div class="review-excerpt">
+                        <?=$myReview->reviewTextContent?>
+                    </div>
+                    <a class="read-more" href="<?=base_url('song/showReview?reviewId='.$myReview->reviewId)?>">… Czytaj dalej</a>
+                </div>
             <?php elseif ($userLoggedIn): ?>
                 <a href="<?=base_url('song/reviewSong?songId='.$song->SongId)?>">+ Zrecenzuj utwór</a>
             <?php else: ?>
-                <p><a href="<?=base_url('login?src=songPage')?>">Zaloguj</a> lub <a href="<?=base_url('newAccount?src=songPage')?>">zarejestruj się</a> i zacznij recenzować z RAPPAR!</p>
+                <p><a href="<?=base_url('login?src=songPage?songId='.$song->SongId)?>">Zaloguj</a> lub <a href="<?=base_url('newAccount?src=songPage?songId='.$song->SongId)?>">zarejestruj się</a> i zacznij recenzować z RAPPAR!</p>
             <?php endif; ?>
         </div><br>
         <div class="user-reviews-section">
-            <h3>Recenzje użytkowników RAPPAR</h3>
+            <br><h3>Recenzje użytkowników RAPPAR</h3>
             <?php if ($songReviewCount > 0): ?>
-                <?php foreach ($userReviews as $userReview): ?>
-                    <?=$userReview->username?>: <a href="<?=base_url('song/showReview?reviewId='.$userReview->reviewId)?>"><?=$userReview->reviewTitle?></a><br>
+                <?php foreach (array_slice($userReviews, 0, 3) as $userReview): ?>
+                    <br><?=$userReview->username?>: <a href="<?=base_url('song/showReview?reviewId='.$userReview->reviewId)?>"><?=$userReview->reviewTitle?></a>  (<?=$userReview->reviewTotal?>/90 - <?=number_format(($userReview->reviewTotal/90)*100, 2)?>%)<br>
+                    <div class="review-excerpt-wrap">
+                        <div class="review-excerpt">
+                            <?=$userReview->reviewTextContent?>
+                        </div>
+                        <a class="read-more" href="<?=base_url('song/showReview?reviewId='.$userReview->reviewId)?>">… Czytaj dalej</a>
+                    </div>
                 <?php endforeach; ?>
+                <?php if ($songReviewCount > 3): ?>
+                    <br><h4>
+                      …i <?=$songReviewCount - 3?> recenzji więcej.
+                      <a href="<?=base_url('song/allReviews?songId='.$song->SongId)?>">Kliknij tutaj, by wyświetlić wszystkie recenzje.</a>
+                    </h4>
+                <?php endif; ?>
             <?php elseif (!empty($myReview)): ?>
                 <p>Na ten moment jesteś jedyną osobą, która dodała recenzję. Zaproś znajomych i oceniajcie razem w RAPPAR!</p>
             <?php else: ?>

@@ -75,9 +75,10 @@ class PlaylistItems extends CI_Controller
 
         $data['searchQuery'] = $this->input->get('searchQuery') ?? '';
         $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
+        $data['userLoggedIn'] = $userAuthenticated;
         $data['title'] = "Playlista ".$data['playlist']->ListName." | Oceniaj i komentuj utwory";
         $data['userOwnedPlaylists'] = $this->PlaylistModel->getUserPlayistsIdsAndNames($userId);
-        $data['body'] = 'playlist/insidePlaylist/playlist';
+        $data['body'] = 'playlistSong/playlist';
         $data['songs'] = [];
 
         //Define various checkbox-related properties in one place - first the db name, then the button name, then the display name
@@ -182,27 +183,32 @@ class PlaylistItems extends CI_Controller
     {
         $data = array(
             'isReviewer' => $this->SecurityModel->authenticateReviewer(),
-            'searchQuery' => $this->input->get('SearchQuery'),
-            'body' => 'playlist/insidePlaylist/searchResults',
+            'searchQuery' => $this->input->get('searchQuery'),
+            'body' => 'playlistSong/searchResults',
             'title' => "Wyniki wyszukiwania | Wyszukiwanie odbywa się w twoich i należących do RAPPAR playlistach",
             'songs' => array(),
             'playlist' => array(),
-            'userId' => $this->SecurityModel->getCurrentUserId()
+            'userId' => $this->SecurityModel->getCurrentUserId(),
+            'enableSave' => false,
+            'userLoggedIn' => $this->SecurityModel->authenticateUser()
         );
 
         //Only fetch songs if the query is valid
         if (strlen($data['searchQuery']) > 0) {
             $data['songs'] = $this->PlaylistSongModel->getPlaylistSongsFromSearch($data['searchQuery']);
-            if (count($data['songs']) > 0 && count($data['songs']) < 301) {
+            if (count($data['songs']) > 0 && (count($data['songs']) < 301 || $data['isReviewer'])) {
                 $data['userOwnedPlaylists'] = $this->PlaylistModel->getUserPlayistsIdsAndNames($data['userId']);
                 $data['userOwnedPlaylistIDs'] = array_map(fn($item) => $item->ListId, $this->PlaylistModel->fetchUserPlaylistsIDs($data['userId']));
                 foreach ($data['songs'] as $song) {
-                    //Display values without ending decimals if they're only 0's (ex. 5.50 -> 5.5)
-                    $this->setSongGrades($song);
-
                     //Get song button information
                     $data['playlist'][] = $this->PlaylistModel->fetchPlaylistById($song->listId);
+
+                    //Display values without ending decimals if they're only 0's (ex. 5.50 -> 5.5)
+                    $this->setSongGrades($song, end($data['playlist'])->ListOwnerId == 1);
                 }
+
+                //Enable the save grades button only if there is at least one song the user can update
+                $data['enableSave'] = in_array($data['userId'], array_column($data['playlist'], 'ListOwnerId'));
             }
         }
 
@@ -241,17 +247,20 @@ class PlaylistItems extends CI_Controller
             redirect('errors/403-404');
 
         //Fetch other relevant data to complete the tierlist
+        $data['userLoggedIn'] = $userAuthenticated;
         $data['filter'] = $this->input->get('filter');
         $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
         $data['userOwnedPlaylists'] = $this->PlaylistModel->getUserPlayistsIdsAndNames($userId);
+        //print_r($data);
+        //die();
         $data['propName'] = $data['filter'] === "Adam" ? "SongGradeAdam" : ($data['filter'] === "Churchie" ? "SongGradeChurchie" : ($data['filter'] === "Owner" ? "SongGradeOwner" : "Average"));
         $data['songs'] = $this->PlaylistSongModel->getTopPlaylistSongs($data['listId'], $data['filter'], $data['rapparManagedPlaylist']);
         $data['title'] = "Playlista ".$data['playlist']->ListName." | Oceniaj i komentuj utwory";
-        $data['body'] = 'playlist/insidePlaylist/tierlist';
+        $data['body'] = 'playlistSong/tierlist';
 
         //Pre-compute every song's average and trim trailing zeros
         foreach ($data['songs'] as $song) {
-            $this->setSongGrades($song);
+            $this->setSongGrades($song, $data['rapparManagedPlaylist']);
         }
 
         //Filter out songs without the reviewer's grade
@@ -481,29 +490,29 @@ class PlaylistItems extends CI_Controller
     public function updatePlaylistSongVisibility(): void
     {
         //Validate the submitted song id
-        $playlistSongId = isset($_GET['songId']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['songId'])) : 0;
+        $playlistSongId = $this->input->get('songId');
         $playlistSong = is_numeric($playlistSongId) ? $this->PlaylistSongModel->getPlaylistSong($playlistSongId) : false;
-        if ($playlistSong !== false) {
-            //Check if the user is logged in and has the required permissions
-            $userAuthenticated = $this->SecurityModel->authenticateUser();
-            $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $this->SecurityModel->getCurrentUserId();
-            if ($userAuthorised) {
-                //Update song visibility
-                $currentVisibility = $playlistSong->SongVisible;
-                $newVisibility = $currentVisibility == 1 ? 0 : 1;
+        if (empty($playlistSong))
+            redirect('errors/403-404');
 
-                $this->PlaylistSongModel->updatePlaylistSongVisibility($playlistSongId, $newVisibility);
-                $this->LogModel->createLog('playlist_song', $playlistSongId, ($newVisibility ? "Upubliczniono" : "Ukryto")." nutę na playliście");
+        //Check if the user is logged in and has the required permissions
+        $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $this->SecurityModel->getCurrentUserId();
+        if (!$userAuthorised)
+            redirect('errors/403-404');
 
-                //Return to the playlist details view
-                $redirectSource = isset($_GET['src']) ? trim(mysqli_real_escape_string($this->db->conn_id, $_GET['src'])) : 0;
-                if ($redirectSource == 'pd')
-                    redirect('playlist/details?playlistId='.$playlistSong->listId.'&src=pd');
-                else redirect('playlist/details?playlistId='.$playlistSong->listId.'&src=mp');
-            }
-            else redirect('errors/403-404');
-        }
-        else redirect('errors/403-404');
+        //Update song visibility
+        $currentVisibility = $playlistSong->SongVisible;
+        $newVisibility = $currentVisibility == 1 ? 0 : 1;
+
+        $this->PlaylistSongModel->updatePlaylistSongVisibility($playlistSongId, $newVisibility);
+        $this->LogModel->createLog('playlist_song', $playlistSongId, ($newVisibility ? "Upubliczniono" : "Ukryto")." nutę na playliście");
+
+        //Return to the playlist details view
+        $redirectSource = $this->input->get('src');
+        if ($redirectSource == 'pd')
+            redirect('playlist/details?playlistId='.$playlistSong->listId.'&src=pd');
+        else redirect('playlist/details?playlistId='.$playlistSong->listId.'&src=mp');
     }
 
     /**
@@ -523,7 +532,7 @@ class PlaylistItems extends CI_Controller
             $userAuthorised = $userAuthenticated && $this->PlaylistModel->getListOwnerById($playlistSong->listId) == $userId;
             if ($userAuthorised) {
                 $data = array(
-                    'body' => 'song/delSong',
+                    'body' => 'playlistSong/delSong',
                     'playlist' => $this->PlaylistModel->fetchPlaylistById($playlistSong->listId),
                     'redirectSource' => $this->input->get('src'),
                     'song' => $this->SongModel->getSong($playlistSong->songId),
@@ -540,8 +549,8 @@ class PlaylistItems extends CI_Controller
                     $this->LogModel->createLog('playlist', $data['playlistSong']->listId, "Permanentnie usunięto nutę " .$data['song']->SongTitle. " z playlisty.");
                     $this->PlaylistSongModel->deletePlaylistSong($playlistSongId);
                     if ($data['redirectSource'] == 'pd')
-                        redirect('playlist/details?listId='.$data['playlistSong']->listId.'&src=pd');
-                    else redirect('playlist/details?listId='.$data['playlistSong']->listId.'&src=mp');
+                        redirect('playlist/details?playlistId='.$data['playlistSong']->listId.'&src=pd');
+                    else redirect('playlist/details?playlistId='.$data['playlistSong']->listId.'&src=mp');
                 }
 
                 $this->load->view('templates/main', $data);
@@ -648,13 +657,12 @@ class PlaylistItems extends CI_Controller
             $song->SongGradeChurchie
         ];
 
-        //Filter out zero values
-        $nonZeroGrades = array_filter($grades, function ($grade) {
-            return $grade > 0;
-        });
+        //Filter out songs with no grades
+        if ($grades[0] == 0 && $grades[1] == 0)
+            return 0;
 
-        //Calculate the average if there are non-zero grades, otherwise return 0
-        return count($nonZeroGrades) > 0 ? round(array_sum($nonZeroGrades) / count($nonZeroGrades), 2) : 0;
+        //Calculate the average
+        return round(array_sum($grades) / count($grades), 2);
     }
 
     /**

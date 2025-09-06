@@ -24,9 +24,8 @@ class PlaylistModel extends CI_Model
     public function fetchPlaylistById(int $playlistId): object|bool
     {
         $sql = "SELECT * FROM list WHERE ListId = $playlistId";
-        if (isset($this->db->query($sql)->row()->ListName)) {
+        if (isset($this->db->query($sql)->row()->ListName))
             return $this->db->query($sql)->row();
-        }
         else return false;
     }
 

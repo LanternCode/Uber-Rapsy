@@ -29,8 +29,7 @@
             <?php endif; ?>
             <form class="optionsURL optionsRight" method="get" action="<?=base_url("search")?>" target="_blank">
                 <label class="optionsSearchLabel">Szukaj nuty</label>
-                <input type="text" placeholder="Rajaner" name="SearchQuery" />
-                <input type="hidden" value="true" name="GlobalSearch" />
+                <input type="text" placeholder="Rajaner" name="searchQuery" />
                 <input type="submit" value="Szukaj" />
             </form>
         </header>

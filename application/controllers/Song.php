@@ -95,11 +95,19 @@ class Song extends CI_Controller
         if ($data['userLoggedIn']) {
             $myReviewId = $this->SongModel->checkIfUserReviewedSong($songId, $data['userId']);
             $data['myReview'] = $myReviewId !== false ? $this->SongModel->getSongReview($myReviewId, true) : null;
+
+            //Purify the text contents of the review
+            if (!empty($data['myReview']))
+                $data['myReview']->reviewTextContent = $this->htmlsanitiser->purify($data['myReview']->reviewTextContent, 'rich');
         }
 
         //Fetch 10 most recent user reviews excluding my song review
         $data['songReviewCount'] = $this->SongModel->getSongReviewCount($songId, $data['userId'] !== false ? $data['userId'] : 0);
         $data['userReviews'] = $this->SongModel->fetchRecentSongReviews($songId, $data['userId'] !== false ? $data['userId'] : 0);
+
+        //Reviews have to be purified as part of them will be shown on the song page
+        foreach ($data['userReviews'] as $rev)
+            $rev->reviewTextContent = $this->htmlsanitiser->purify($rev->reviewTextContent, 'rich');
 
         $this->load->view('templates/song', $data);
     }
@@ -183,7 +191,7 @@ class Song extends CI_Controller
         if (strlen($data['searchQuery']) >= 1) {
             //Fetch per-song properties if 300 or less songs were returned
             $data['songs'] = $this->SongModel->searchSongs($data['searchQuery'], $data['isReviewer']);
-            if (count($data['songs']) <= 300) {
+            if (count($data['songs']) <= 300 || $data['isReviewer']) {
                 foreach ($data['songs'] as $song) {
                     $song->myGrade = $data['userId'] !== false ? $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($song->SongId, $data['userId'])) : 0;
                     $song->communityAverage = $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($song->SongId));
@@ -215,6 +223,7 @@ class Song extends CI_Controller
              Za każdy dodany utwór otrzymujesz punkt! Zbieraj punktu i pnij się w rankingu społeczności!',
             'playlistLink' => $this->input->post('playlistLink'),
             'songLink' => $this->input->post('songLink'),
+            'endAddition' => $this->input->get('abandon'),
             'isReviewer' => $this->SecurityModel->authenticateReviewer()
         );
 
@@ -222,8 +231,16 @@ class Song extends CI_Controller
         if (!$userAuthenticated)
             redirect('errors/403-404');
 
-        //The form is submitted when a link to a playlist or a song is supplied
-        if ($data['playlistLink'] || $data['songLink']) {
+        //Check if an existing import is being terminated. If so - delete it and move on.
+        if ($data['endAddition'] == 1)
+            $this->session->unset_tempdata('playlistItems');
+
+        //Check if an existing import is pending. If so - continue with it.
+        if ($this->session->tempdata('playlistItems') !== NULL) {
+            $data['songItems'] = $this->session->tempdata('playlistItems');
+            $data['body'] = 'song/confirmSongImport';
+        }
+        elseif ($data['playlistLink'] || $data['songLink']) { //The form is submitted when a link to a playlist or a song is supplied
             //First process the playlist link
             if ($data['playlistLink']) {
                 //Fetch YT playlist items
@@ -317,7 +334,7 @@ class Song extends CI_Controller
             if (count($songItems) > 0) {
                 foreach ($songItems as $song) {
                     //Import each song if it does not exist yet
-                    $songChannelName = $this->input->post("songChannelName-" . $i) != $song['songChannelName'] ? $this->htmlsanitiser->purify($this->input->post("songChannelName-" . $i)) : $song['songChannelName'];
+                    $songChannelName = $this->input->post("songChannelName-" . $i) != $song['songChannelName'] ? $this->htmlsanitiser->purify(($this->input->post("songChannelName-" . $i)) ?? '') : $song['songChannelName'];
                     $existingSongId = $this->SongModel->songExists($song['externalSongId'], $song['songTitle'], $songChannelName);
                     if ($existingSongId == 0) {
                         $songId = $this->SongModel->insertSong($song['externalSongId'], $userId, $song['songThumbnailLink'], $song['songTitle'], $songChannelName, $song['songPublishedAt']);
@@ -334,14 +351,13 @@ class Song extends CI_Controller
             }
 
             //Complete the report
-            $word = $added === 1 ? 'utwór' : ($added === 2 || $added === 3 || $added === 4 ? 'utwory' : 'utworów');
-            $data['report'] .= "<h2>Łącznie dodano " . $added . " " . $word . " do bazy danych RAPPAR!</h2>";
+            $data['report'] .= "<h2>Łącznie dodano ".$added." ".songInflection($added)." do bazy danych RAPPAR!</h2>";
             $this->session->unset_tempdata('playlistItems');
 
             //Submit the report and add a log
             if ($added > 0) {
                 $repId = $this->LogModel->submitReport($data['report']);
-                $this->LogModel->createLog("user", $userId, "Importowano " . $added . " " . $word . " do bazy danych RAPPAR!", $repId);
+                $this->LogModel->createLog("user", $userId, "Importowano ".$added." ".songInflection($added)." do bazy danych RAPPAR!", $repId);
             }
 
             $data['body'] = 'song/importSongsResult';
@@ -376,13 +392,15 @@ class Song extends CI_Controller
                     if (!$existingSongId) {
                         //Upload a thumbnail file, use the provided link or use the default thumbnail
                         if ($uploadRequired) {
-                            $this->processThumbnailFileUpload($data, 'songThumbnailLink');
+                            $data['thumbnailError'] = "";
+                            $data['songThumbnailLink'] = "";
+                            $this->processThumbnailFileUpload($data['thumbnailError'], $data['songThumbnailLink']);
                         }
                         elseif (!$linkProvided)
                             $data['songThumbnailLink'] = base_url('thumbnails/default.png');
 
                         //Insert the song if no thumbnail errors were detected
-                        if (!isset($data['thumbnailError'])) {
+                        if (empty($data['thumbnailError'])) {
                             $data['body'] = 'song/manualImportResult';
                             $data['insertedSongId'] = $this->SongModel->insertSong('', $userId, $data['songThumbnailLink'] , $data['songTitle'], $data['songAuthor'], $data['songReleaseYear']);
                             $this->LogModel->createLog("song", $data['insertedSongId'], "Nuta została manualnie importowana do bazy danych RAPPAR.");
@@ -437,7 +455,9 @@ class Song extends CI_Controller
 
                         //Upload a thumbnail file, use the provided link or use the default thumbnail
                         if ($uploadRequired) {
-                            $this->processThumbnailFileUpload($data, 'SongThumbnailURL');
+                            $data['thumbnailError'] = "";
+                            $songData['SongThumbnailURL'] = "";
+                            $this->processThumbnailFileUpload($data['thumbnailError'], $songData['SongThumbnailURL']);
                         }
                         elseif ($linkProvided)
                             $songData['SongThumbnailURL'] = $data['songThumbnailLink'];
@@ -445,7 +465,7 @@ class Song extends CI_Controller
                             $songData['SongThumbnailURL'] = base_url('thumbnails/default.png');
 
                         //Update the song if the thumbnail is valid
-                        if (!isset($data['thumbnailError'])) {
+                        if (empty($data['thumbnailError'])) {
                             //Process the update
                             $songData['SongId'] = $data['song']->SongId;
                             $this->SongModel->updateSong($songData);
@@ -515,7 +535,7 @@ class Song extends CI_Controller
                 if ($awardId = $this->input->get('delAward')) {
                     //Check whether the award belongs to said song and fetch its description
                     $indexedAwards = array_column($data['songAwards'], null, 'id');
-                    $awardValue = $indexedAwards[$awardId]['award'] ?? null;
+                    $awardValue = $indexedAwards[$awardId]->award ?? null;
                     if ($awardValue !== null) {
                         $this->SongModel->cancelSongAward($awardId);
                         $this->LogModel->createLog("song", $songId, "Usunięto następującą nagrodę utworu: ".$awardValue.".");
@@ -736,6 +756,34 @@ class Song extends CI_Controller
     }
 
     /**
+     * Show all song reviews.
+     *
+     * @return void
+     */
+    public function allReviews(): void
+    {
+        //Validate the provided song id
+        $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        $songActive = $songId !== false && $this->SongModel->isSongActive($songId);
+        if (!$songActive)
+            redirect('errors/403-404');
+
+        $data['song'] = $this->SongModel->getSong($songId);
+        $data['body'] = 'song/allSongReviews';
+        $data['userLoggedIn'] = $this->SecurityModel->authenticateUser();
+        $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
+
+        //Fetch all song reviews
+        $data['songReviews'] = $this->SongModel->getSongReviews($songId);
+
+        //Review previews have to be purified
+        foreach ($data['songReviews'] as $rev)
+            $rev->reviewTextContent = $this->htmlsanitiser->purify($rev->reviewTextContent, 'rich');
+
+        $this->load->view('templates/song', $data);
+    }
+
+    /**
      * Create a song instance to add to a playlist, inserting a new playlist_song.
      *
      * @return void
@@ -748,41 +796,42 @@ class Song extends CI_Controller
             redirect('errors/403-404');
 
         //Validate the provided song id
-        $data['songId'] = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
-        $songActive = $data['songId'] !== false && $this->SongModel->isSongActive($data['songId']);
+        $songId = filter_var($this->input->get('songId'), FILTER_VALIDATE_INT);
+        $songActive = $songId !== false && $this->SongModel->isSongActive($songId);
         if (!$songActive)
             redirect('errors/403-404');
 
-        //Proceed if the form was submitted
-        $data['song'] = $this->SongModel->getSong($data['songId']);
-        $data['userOwnedPlaylists'] = $this->PlaylistModel->getUserPlayistsIdsAndNames($userId);
-        $data['searchQuery'] = $this->input->get('query');
-        if ($this->input->post()) {
-            //Fetch the selected list id
-            $listId = $this->input->post('listId');
+        //Fetch song details
+        $data = array(
+            'song' => $this->SongModel->getSong($songId),
+            'userOwnedPlaylists' => $this->PlaylistModel->getUserPlayistsIdsAndNames($userId),
+            'searchQuery' => $this->input->get('query'),
+            'communityAverage' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongAverage($songId)),
+            'songAwards' => $this->SongModel->fetchSongAwards($songId),
+            'myRating' => $this->UtilityModel->trimTrailingZeroes($this->SongModel->fetchSongRating($songId, $userId)),
+            'body' => 'song/addToPlaylist',
+            'isReviewer' => $this->SecurityModel->authenticateReviewer()
+        );
+        $data['song']->SongGradeAdam = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeAdam ?? 0);
+        $data['song']->SongGradeChurchie = $this->UtilityModel->trimTrailingZeroes($data['song']->SongGradeChurchie ?? 0);
 
-            //Make sure the user owns the selected playlist
+        //Add the song to playlist if the button was pressed
+        if ($this->input->post()) {
+            //Assert the user owns the selected playlist
+            $listId = $this->input->post('listId');
             $additionAuthorised = in_array($listId, array_column($data['userOwnedPlaylists'], 'ListId'), true);
             if (!$additionAuthorised)
                 redirect('errors/403-404');
 
-            //Check if the playlist is local. Integrated playlists cannot be changed at the time.
-            $playlistIntegrated = $this->PlaylistModel->getPlaylistIntegratedById($listId);
-            if ($playlistIntegrated) {
-                $data['playlistIntegratedError'] = true;
-            }
-            elseif ($this->PlaylistSongModel->playlistSongExists($listId, $data['songId'])) {
-                //The song already exists in this playlist
+            //Check if the song already exists in the playlist to avoid inserting duplicates
+            if ($this->PlaylistSongModel->playlistSongExists($listId, $data['songId']))
                 $data['songNotUniqueError'] = true;
-            }
             else {
                 $this->PlaylistSongModel->insertPlaylistSong($listId, $data['songId']);
                 $data['success'] = true;
             }
         }
 
-        $data['body'] = "song/addToPlaylist";
-        $data['isReviewer'] = $this->SecurityModel->authenticateReviewer();
         $this->load->view('templates/song', $data);
     }
 
@@ -838,14 +887,14 @@ class Song extends CI_Controller
 
     /**
      * Validate the thumbnail file provided by the user.
-     * If it is correct, upload it and return the link.
+     * If it is correct, upload it and save the link.
      * If it is faulty, provide an error message.
      *
-     * @param array $data the data object passed by reference to store the error messages
-     * @param string $arrayKeyName importing and editing use a different key
+     * @param string $errorMessage the error message container passed by reference
+     * @param string $thumbnailLink the thumbnail link container passed by reference
      * @return void
      */
-    private function processThumbnailFileUpload(array &$data, string $arrayKeyName): void
+    private function processThumbnailFileUpload(string &$errorMessage, string &$thumbnailLink): void
     {
         //Specify the upload parameters and initialise the library
         $config['upload_path'] = './thumbnails/';
@@ -859,19 +908,19 @@ class Song extends CI_Controller
 
         //Upload the file
         if (!$this->upload->do_upload('songThumbnailFile')) {
-            $data['thumbnailError'] = "<p class='errorMessage'>Nie udało się przesłać miniatury z następujących powodów: <br>";
-            $data['thumbnailError'] .= $this->upload->display_errors();
-            $data['thumbnailError'] .= "</p>";
+            $errorMessage = "<p class='errorMessage'>Nie udało się przesłać miniatury z następujących powodów: <br>";
+            $errorMessage .= $this->upload->display_errors();
+            $errorMessage .= "</p>";
         }
         else {
             //Validate the minimum file dimensions
             $file_data = $this->upload->data();
             if ($file_data['image_width'] < 320 || $file_data['image_height'] < 180) {
                 unlink($file_data['full_path']);
-                $data['thumbnailError'] = "<p class='errorMessage'>Rozdzielczość miniatury nie spełnia minimalnych wymagań.</p>";
+                $errorMessage = "<p class='errorMessage'>Rozdzielczość miniatury nie spełnia minimalnych wymagań.</p>";
             }
             else {
-                $data[$arrayKeyName] = base_url('thumbnails/' . $file_data['file_name']);
+                $thumbnailLink = base_url('thumbnails/' . $file_data['file_name']);
             }
         }
     }

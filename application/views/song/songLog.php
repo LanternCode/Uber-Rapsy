@@ -5,8 +5,10 @@
 <p>ID piosenki na YT: <?=$song->SongURL != '' ? $song->SongURL : 'Brak - utwór został dodany manualnie.'?></p><br>
 
 <p>Nazwa nuty: <?=$song->SongTitle?></p><br>
-<p>Nuta publiczna: <?=$song->SongVisible == 1 ? 'Publiczna' : 'Ukryta'?></p><br>
-<p>Status nuty: <?=$song->SongDeleted == 0 ? 'Aktywna' : 'Na stałe usunięta z RAPPAR'?></p><br>
+<?php if ($song->SongDeleted == 0): ?>
+    <p>Widoczność nuty: <?=$song->SongVisible == 1 ? 'Publiczna dla wszystkich użytkowników' : 'Ukryta dla użytkowników'?></p><br>
+<?php endif; ?>
+<p>Status nuty: <?=$song->SongDeleted == 0 ? 'Aktywna w RAPPAR' : 'Na stałe usunięta z RAPPAR'?></p><br>
 
 <?php if (count($songLog) > 0): ?>
     <h3>Historia Utworu</h3>

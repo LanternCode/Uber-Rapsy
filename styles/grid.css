@@ -26,6 +26,9 @@ html {
     .songThumbnailLeft {
         grid-column-start: 1;
         grid-column-end: 2;
+        width: 320px;
+        height: 180px;
+        object-fit: cover;
     }
 
     .dataContainerBox {
@@ -471,6 +474,46 @@ html {
     margin-left: auto;
     margin-right: auto;
     margin-top: 7vh;
+}
+
+.my-review-section {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.review-excerpt-wrap{
+  position: relative;
+  background: #eee;
+}
+
+/* soft fade so text doesn't clash with the link */
+.review-excerpt-wrap::before{
+  content: "";
+  position: absolute;
+  right: 5.5em;               /* leaves room for the link width */
+  bottom: 0;
+  width: 6em;
+  height: 1.2em;
+  background: linear-gradient(to right, rgba(238,238,238,0), #eee 70%);
+  pointer-events: none;
+}
+
+.review-excerpt {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+}
+
+/* the inline-looking link */
+.read-more{
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding-left: .4em;
+  background: #eee; /* cover any clipped text behind it */
+  text-decoration: underline;
 }
 
 /* ==========================

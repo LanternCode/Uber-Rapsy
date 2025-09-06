@@ -1,10 +1,10 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
-    <?php if ($userLoggedIn ?? false): ?>
+    <?php if ($userLoggedIn): ?>
         <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
         <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
-        <?php if ($isReviewer ?? false): ?>
+        <?php if ($isReviewer): ?>
             <a class="optionsURL" href="<?=base_url("")?>">Dodaj Toplistę</a>
             <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
         <?php endif; ?>

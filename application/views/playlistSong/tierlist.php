@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
-    <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
+    <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#topoftherap">Góra Listy</a>
     <?php if (count($songs) > 0 && $isPlaylistOwner): ?>
@@ -15,6 +15,11 @@
         <?php endif; ?>
         <option value="<?=base_url("tierlist?playlistId=".$listId."&filter=Average")?>">Najlepsze: Średnia (malejąco)</option>
     </select>
+    <?php if ($userLoggedIn): ?>
+        <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+    <?php else: ?>
+        <a class="optionsURL" href="<?=base_url("login?src=playlist?playlistId=".$listId)?>">Zaloguj się</a>
+    <?php endif; ?>
 </header>
 <br id="topoftherap"><br><br>
 <div class="averagesBar">

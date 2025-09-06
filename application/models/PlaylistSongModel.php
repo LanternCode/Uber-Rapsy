@@ -43,7 +43,7 @@ class PlaylistSongModel extends CI_Model
      */
     public function getPlaylistSongs(int $listId, string $search = "", bool $includeHidden = false, bool $includeDeleted = false): array
     {
-        $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle, s.SongDeleted AS SongTemplateActive  
+        $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle, s.SongDeleted AS SongTemplateActive 
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
                 WHERE ps.listId = $listId";
         $sql .= $includeHidden ? "" : " AND ps.SongVisible = 1";
@@ -66,22 +66,30 @@ class PlaylistSongModel extends CI_Model
      */
     public function getPlaylistSongsFromSearch(string $search = ""): array
     {
+        $userRole = $this->SecurityModel->getCurrentUserRole();
+        switch ($userRole) {
+            //If not logged in, search in all public playlists
+            case false:
+                $ownerCondition = " AND l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0";
+                break;
+
+            //If logged in, search both in RAPPAR playlists and in your playlists
+            case "user":
+                $userId = $this->SecurityModel->getCurrentUserId();
+                $ownerCondition = " AND l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0 AND l.ListOwnerId IN (1, ".$userId.")";
+                break;
+
+            //Reviewers can search in all playlists to provide user support
+            case "reviewer":
+                $ownerCondition = "";
+                break;
+        }
+
         //Define the search query
         $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle 
                     FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
                     JOIN list AS l ON ps.listId = l.ListId 
-                    WHERE s.SongTitle LIKE '%$search%'";
-
-        //If logged in, search both in RAPPAR playlists and in public playlists, otherwise search only in RAPPAR playlists
-        $userId = $this->SecurityModel->getCurrentUserId();
-        if ($userId !== false) {
-            $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId IN (1, ".$userId."))";
-        }
-        else $ownerCondition = " AND ((l.ListPublic = 1 AND ps.SongVisible = 1 AND ps.SongDeleted = 0) OR l.ListOwnerId = 1)";
-
-        //Admin staff can scan through private playlists to provide customer support
-        if (!$this->SecurityModel->debuggingEnabled())
-            $sql .= $ownerCondition;
+                    WHERE s.SongTitle LIKE '%$search%'".$ownerCondition;
 
         return $this->db->query($sql)->result();
     }
@@ -271,6 +279,7 @@ class PlaylistSongModel extends CI_Model
     public function deletePlaylistSong(int $playlistSongId): void
     {
         $sql = "UPDATE playlist_song SET SongDeleted = 1, SongVisible = 0 WHERE id = $playlistSongId";
+
         $this->db->query($sql);
     }
 
@@ -295,7 +304,7 @@ class PlaylistSongModel extends CI_Model
      */
     public function filterUnrated(int $playlistId): array
     {
-        $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle 
+        $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle, s.SongDeleted AS SongTemplateActive 
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
                 WHERE ps.SongGradeAdam = 0 AND ps.SongGradeChurchie = 0 AND ps.SongGradeOwner = 0
                      AND ps.listId = $playlistId AND ps.SongVisible = 1 AND ps.SongDeleted = 0
@@ -318,7 +327,7 @@ class PlaylistSongModel extends CI_Model
      */
     public function filterSongsByCheckboxProperty(int $playlistId, string $propertyName): array
     {
-        $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle 
+        $sql = "SELECT ps.*, s.SongId, s.SongURL, s.SongThumbnailURL, s.SongTitle, s.SongDeleted AS SongTemplateActive 
                 FROM playlist_song AS ps JOIN song AS s ON s.SongId = ps.songId 
                 WHERE ps.$propertyName = 1 AND ps.listId = $playlistId AND ps.SongVisible = 1 AND ps.SongDeleted = 0";
 

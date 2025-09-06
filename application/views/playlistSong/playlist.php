@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
-    <a class="optionsURL" href="<?=base_url()?>">Powrót do playlist</a>
+    <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#topoftherap">Góra Listy</a>
     <?php if (count($songs) > 0 && $isPlaylistOwner): ?>
@@ -21,6 +21,11 @@
             <?php endif; ?>
         <?php endforeach; ?>
     </select>
+    <?php if ($userLoggedIn): ?>
+        <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+    <?php else: ?>
+        <a class="optionsURL" href="<?=base_url("login?src=playlist?playlistId=".$listId)?>">Zaloguj się</a>
+    <?php endif; ?>
     <form class="optionsURL optionsRight" method="get" action="<?=base_url("playlist")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
         <input type="hidden" name="playlistId" value="<?=$listId?>" />
@@ -46,14 +51,14 @@
     </div>
     <div class="averagesBar--right">
         <?php if ($isPlaylistOwner): ?>
-            <img src="./styles/icons/bigger_cog.png" class="hamburger optionsRight settings_cog menuIcon">
+            <img src="<?=base_url('styles/icons/bigger_cog.png')?>" class="hamburger optionsRight settings_cog menuIcon">
         <?php endif; ?>
     </div>
 </div>
 <form id="songsForm" method="post" action="<?=base_url('updateSongRatings')?>">
     <?php if ($isPlaylistOwner): ?>
         <ul class="menu">
-            <img src="./styles/icons/bigger_cog.png" class="hamburger closing_cog menuIcon"><br><br><br>
+            <img src="<?=base_url('styles/icons/bigger_cog.png')?>" class="hamburger closing_cog menuIcon"><br><br><br>
             <?php if (false): ?>
                 <li class="optionsURL">Zintegrowana: <?=$playlist->ListIntegrated ? "<a target='_blank' href='https://www.youtube.com/playlist?list=$playlist->ListUrl'>Tak</a>" : "Nie"?></li><br>
             <?php endif; ?>
@@ -65,7 +70,7 @@
         $i = 0; ?>
 		<?php foreach ($songs as $song): ?>
             <div class="videoContainerBox">
-				<img src="<?=$song->SongThumbnailURL?>" alt="thumbnail" class="songThumbnailLeft">
+				<img src="<?=$song->SongThumbnailURL?>" alt="song thumbnail" class="songThumbnailLeft">
 				<div class="dataContainerBox">
                     <input type="hidden" name="playlistSongId-<?=$i?>" value="<?=$song->id?>"/>
                     <h3 class="songTitle"><a href="https://youtu.be/<?=$song->SongURL?>" target="_blank"><?=htmlspecialchars($song->SongTitle, ENT_QUOTES, 'UTF-8')?></a>

@@ -169,12 +169,12 @@ class AccountModel extends CI_Model
     }
 
     /**
-     * Once a user signed in, establish them a session.
+     *  After a successful login establish a user session.
      *
-     * @param $userData
+     * @param object $userData
      * @return void
      */
-    public function establishUserSession($userData): void
+    public function establishUserSession(object $userData): void
     {
         $_SESSION['userLoggedIn'] = 1;
         $_SESSION['userRole'] = $userData->role;
@@ -198,7 +198,7 @@ class AccountModel extends CI_Model
         if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $accountData = $this->getUserData($email);
             if (password_verify($password, $accountData->password)) {
-                $this->establishUserSession();
+                $this->establishUserSession($accountData);
                 return true;
             }
             else return false;

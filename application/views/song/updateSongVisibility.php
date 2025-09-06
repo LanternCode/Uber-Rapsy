@@ -1,6 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
+    <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("songPage?songId=".$song->SongId)?>">Przejdź do utworu</a>
     <a class="optionsURL" href="<?=base_url("song/edit?songId=".$song->SongId)?>">Wróć do edytowania utworu</a>

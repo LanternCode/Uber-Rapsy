@@ -1,19 +1,15 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
-    <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
-    <a class="optionsURL" href="<?=base_url("importSongs")?>">Dodaj Nowe Nuty</a>
-    <?php if ($isReviewer ?? false): ?>
-        <a class="optionsURL" href="<?=base_url("adminDashboard")?>">Panel Sterowania</a>
-    <?php endif; ?>
-    <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+    <a class="optionsURL" href="#">Nawigacja jest wyłączona w trakcie zatwierdzania utworów. Możesz kontynuować lub zakończyć proces klikając obok. Sesja jest ważna 24 godziny.</a>
+    <a class="optionsURL" href="<?=base_url('importSongs?abandon=1')?>">Wyjdź bez dodawania utworów i zakończ sesję.</a>
 </header>
 <main>
     <br><br><br>
     <h2>Dodajesz następujące utwory do RAPPAR</h2><br>
-    <h3>Jeśli utwór istnieje już w bazie danych, nie zostanie dodany, nawet jeśli znajduje się na liście poniżej.<br>
-        Utwory importowane z YT nie zawierają informacji o autorze (poza nazwą kanału, który przesłał je na YT).
-        <br>Te informacje możesz dodać w tym momencie, zmieniając lub wpisując je w podane poniżej pola.
-        <br>Kiedy już dodasz wszystko i upewnisz się, że znalezione utwory są poprawne, wciśnij przycisk na samym dole listy, aby zatwierdzić zmiany.</h3>
+    <h3>Jeśli utwór znajduje się już w bazie danych, nie zostanie ponownie dodany, nawet jeśli widnieje na liście poniżej.<br>
+        Utwory importowane z YouTube nie zawierają informacji o autorze (poza nazwą kanału, który je przesłał).
+        <br>Możesz uzupełnić te informacje teraz, wpisując je w pola podane poniżej lub edytując istniejące dane.
+        <br>Gdy wszystko będzie gotowe i upewnisz się, że znalezione utwory są poprawne, kliknij przycisk na dole listy, aby zatwierdzić zmiany.</h3>
     <form method="post" action="<?=base_url('confirmImporting')?>">
         <?php $i = 0;
         foreach ($songItems as $song): ?>

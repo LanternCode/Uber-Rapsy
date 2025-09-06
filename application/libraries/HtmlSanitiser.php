@@ -40,11 +40,16 @@ class HtmlSanitiser
             case 'rich':
             default:
                 $config->set('HTML.SafeIframe', true);
-                $config->set('URI.SafeIframeRegexp', '#^https?://(www\.youtube\.com/embed/|player\.vimeo\.com/video/)#');
-                $config->set('HTML.Allowed', 'p,b,strong,i,em,u,a[href|target],ul,ol,li,br,span[style],div[style],img[src|alt|width|height],h1,h2,h3,h4,h5,h6,blockquote,pre,code');
-                $config->set('CSS.AllowedProperties', ['font', 'font-size', 'font-weight', 'text-decoration', 'color', 'background-color', 'text-align']);
+                $config->set('URI.SafeIframeRegexp', '#^(https?:)?//(www\.youtube\.com/embed/|www\.youtube-nocookie\.com/embed/|player\.vimeo\.com/video/)#');
+                $config->set('HTML.Allowed', 'p,b,strong,i,em,u,a[href|target|rel],ul,ol,li,br,span[style],div[style], img[src|alt|width|height],h1,h2,h3,h4,h5,h6,blockquote,pre,code, iframe[src|width|height|frameborder]');
+                $config->set('Attr.AllowedFrameTargets', ['_blank']);
                 $config->set('AutoFormat.AutoParagraph', false);
                 $config->set('AutoFormat.RemoveEmpty', true);
+                $config->set('HTML.ForbiddenElements', ['script','style','object','embed']);
+                $config->set('Attr.AllowedRel', ['noopener','noreferrer','ugc']);
+                $config->set('CSS.AllowedProperties', ['font','font-size','font-weight','text-decoration','color','background-color','text-align']);
+                $config->set('Core.EscapeInvalidTags', false);
+                $config->set('Core.EscapeInvalidChildren', false);
                 break;
         }
 

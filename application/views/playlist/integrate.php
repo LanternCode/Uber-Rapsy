@@ -16,4 +16,4 @@ Jeśli usuwasz integrację, możesz wstawić tutaj nowy link który zostanie zap
         <?=isset($playlistUpdatedStatus) && $playlistUpdatedStatus ? "disabled" : ""?>
     >
 </form><br><br>
-<a href="<?=base_url('playlist/details?listId='.$playlist->ListId.'&src='.$redirectSource)?>">Powrót</a>
+<a href="<?=base_url('playlist/details?playlistId='.$playlist->ListId.'&src='.$redirectSource)?>">Powrót</a>

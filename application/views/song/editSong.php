@@ -1,6 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 <header class="optionsHeader">
     <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
+    <a class="optionsURL" href="<?=base_url("myPlaylists")?>">Moje Konto i Playlisty</a>
     <a class="optionsURL" href="<?=base_url("frontpage")?>">Toplisty RAPPAR</a>
     <a class="optionsURL" href="<?=base_url("songPage?songId=".$song->SongId)?>">Wróc do utworu</a>
     <?php if (!$song->SongDeleted): ?>
@@ -21,6 +22,8 @@
         <h3>Widoczność:</h3><br>
         <p>Utwór jest <?=$song->SongVisible ? 'publiczny' : 'ukryty'?>.</p><br>
         <p>Kliknij <a href="<?=base_url('song/updateVisibility?songId='.$song->SongId.'&src=edit')?>">tutaj</a> żeby zmienić jego widoczność.</p><br><br>
+        <h3>Historia utworu:</h3><br>
+        <p><a target="_blank" href="<?=base_url('song/showLog?songId='.$song->SongId)?>">Kliknij tutaj</a> żeby wyświetlić historię utworu w nowej karcie.</p><br><br>
         <h3>Dane utworu:</h3><br>
         <form method="post" action="<?=base_url('song/edit?songId='.$song->SongId)?>" id="manualImport" enctype="multipart/form-data">
             <label>Tytuł utworu:

@@ -95,18 +95,19 @@ class Playlist extends CI_Controller
 
         //Validate user permissions
         $userAuthenticated = $this->SecurityModel->authenticateUser();
+        $reviewerAuthenticated = $this->SecurityModel->authenticateReviewer();
         $userId = $this->SecurityModel->getCurrentUserId();
         $playlistOwnerId = $this->PlaylistModel->getListOwnerById($listId);
-        $userAuthorised = $userAuthenticated && $playlistOwnerId == $userId;
+        $userAuthorised = ($userAuthenticated && $playlistOwnerId == $userId) || $reviewerAuthenticated;
         if (!$userAuthorised)
             redirect('errors/403-404');
 
         //Fetch playlist details
         $data = array(
             'body' => 'playlist/details',
-            'songs' => $this->PlaylistSongModel->getPlaylistSongs($listId, "", true),
+            'songs' => $this->PlaylistSongModel->getPlaylistSongs($listId, "", true, true),
             'playlist' => $this->PlaylistModel->fetchPlaylistById($listId),
-            'isReviewer' => $this->SecurityModel->authenticateReviewer(),
+            'isReviewer' => $reviewerAuthenticated,
             'redirectSource' => $this->input->get('src'),
             'isRapparManaged' => $playlistOwnerId == 1,
             'userLoggedIn' => true,

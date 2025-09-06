@@ -90,15 +90,15 @@ class Account extends CI_Controller
     public function newAccount(): void
     {
         //If the user is already logged in, reset the session
-        $data['userLoggedIn'] = $this->SecurityModel->authenticateUser();
-        if ($data['userLoggedIn'])
+        $userLoggedIn = $this->SecurityModel->authenticateUser();
+        if ($userLoggedIn)
             redirect('logout');
 
-        //Process the form if it was submitted, otherwise just show the form
-        $data['body'] = 'register';
-        $formSubmitted = $this->input->post('formSubmitted');
+        //Process the form if it was submitted
+        $template = 'templates/main';
+        $data['body'] = 'account/register';
         $data['redirectSource'] = $this->input->get('src') ?? '';
-        if ($formSubmitted) {
+        if ($this->input->post()) {
             //Fetch form data
             $username		= $this->input->post('register--username');
             $email			= $this->input->post('register--email');
@@ -124,7 +124,7 @@ class Account extends CI_Controller
             //ToS filter
             $data['termsOfServiceDenied'] = !$termsOfService ? "Aby kontynuować musisz zaakceptować zasady korzystania z serwisu." : 0;
 
-            //Validate the form inputs
+            //Validate form inputs
             if ($data['usernameTooShort'] || $data['usernameTooLong'] ||
                 $data['emailFormatInvalid'] || $data['emailTooLong'] || $data['emailRepeated'] ||
                 $data['passwordTooShort'] || $data['passwordTooLong'] ||
@@ -152,12 +152,12 @@ class Account extends CI_Controller
                 $data['setTOS']                = $data['termsOfServiceDenied'] ? "" : "checked";
             }
             else {
-                //Success view and message
-                $data['body'] = 'registrationSuccessful';
+                $template = 'templates/song';
+                $data['body'] = 'account/registrationSuccessful';
                 $data['userHasRegistered'] = 1;
 
                 //Collect the required account information
-                $queryData['username'] = $email;
+                $queryData['username'] = $username;
                 $queryData['email'] = $email;
                 $queryData['password'] = password_hash($password, PASSWORD_BCRYPT);;
                 $queryData['role'] = "user";
@@ -165,7 +165,7 @@ class Account extends CI_Controller
                 //Create account
                 $this->AccountModel->registerNewUser($queryData);
 
-                //Automatically sign the user in for 7 days after registration
+                //Automatically sign the user in for 14 days
                 session_unset();
                 session_destroy();
                 $authSuccess = $this->AccountModel->signIn($email, $password);
@@ -177,7 +177,7 @@ class Account extends CI_Controller
             }
         }
 
-        $this->load->view('templates/main', $data);
+        $this->load->view($template, $data);
     }
 
     /**

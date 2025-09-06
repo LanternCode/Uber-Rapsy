@@ -43,7 +43,7 @@
             <?php else: ?>
                 <th>Ocena Właściciela</th>
             <?php endif; ?>
-            <th>Ukryj Utwór</th>
+            <th>Widoczność utworu</th>
             <th>Usuń z listy</th>
             <th>Sprawdź Historię</th>
         </tr>
@@ -62,7 +62,7 @@
                     <td>-</td>
                 <?php else: ?>
                     <td><a href="<?=base_url('songPage?songId='.$song->SongId)?>"><?=$song->SongTitle?></a></td>
-                    <td><?=$song->SongURL != '' ? '<a href="https://youtu.be/'.$song->SongURL.'">Link</a>' : '-'?></td>
+                    <td><?=$song->SongURL != '' ? '<a target="_blank" href="https://youtu.be/'.$song->SongURL.'">Link</a>' : '-'?></td>
                     <?php if ($isRapparManaged): ?>
                         <td><?=$song->SongGradeAdam ?: "Nieoceniona"?></td>
                         <td><?=$song->SongGradeChurchie ?: "Nieoceniona"?></td>

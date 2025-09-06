@@ -4,7 +4,7 @@
 <?php else: ?>
     <a href="<?=base_url('myPlaylists')?>"><-- Wróć do moich playlist</a><br><br>
 <?php endif; ?>
-<?=$resultMessage ?? ""?>
+<?=isset($resultMessage) ? $resultMessage.'<br><br>' : ''?>
 <?php if (!empty($displayErrorMessage)): ?>
     <h3>Wystąpił błąd w pobieraniu utworów z playlisty na YT :/</h3>
     <h4><?=$displayErrorMessage?></h4>

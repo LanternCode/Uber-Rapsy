@@ -336,12 +336,16 @@ class SongModel extends CI_Model
     {
         $this->db->join('user', 'review.reviewUserId = user.id');
         $this->db->select('review.*, user.username');
+        $this->db->select('
+        (reviewText + reviewMusic + reviewComp + reviewUber + reviewPartner + 
+         reviewUnique + reviewStyle + reviewReflective + reviewMotive) 
+         AS reviewTotal', false);
         $this->db->where('reviewSongId', $songId);
         $this->db->where('reviewActive', true);
         if ($userId > 0)
             $this->db->where('reviewUserId !=', $userId);
         $this->db->order_by('reviewInsertDate', 'DESC');
-        $this->db->limit(10);
+        $this->db->limit(3);
         $query = $this->db->get('review');
         return $query->result();
     }
@@ -359,11 +363,35 @@ class SongModel extends CI_Model
     {
         if ($includeUsername) {
             $this->db->join('user', 'review.reviewUserId = user.id');
-            $this->db->select('review.*, user.username');
+            $this->db->select('user.username');
         }
+        $this->db->select('review.*, 
+        (reviewText + reviewMusic + reviewComp + reviewUber + reviewPartner + 
+         reviewUnique + reviewStyle + reviewReflective + reviewMotive) 
+         AS reviewTotal', false);
         $this->db->where('reviewId', $reviewId);
         $query = $this->db->get('review');
         return $query->row() ?? false;
+    }
+
+    /**
+     * Fetch all song's public reviews.
+     * Also include the reviewer's username to show who wrote the review.
+     *
+     * @param int $songId
+     * @return object|array|false array of reviews, a single review object, or false
+     */
+    public function getSongReviews(int $songId): object|array|false
+    {
+        $this->db->join('user', 'review.reviewUserId = user.id');
+        $this->db->select('review.*, user.username, 
+        (reviewText + reviewMusic + reviewComp + reviewUber + reviewPartner + 
+         reviewUnique + reviewStyle + reviewReflective + reviewMotive) 
+         AS reviewTotal', false);
+        $this->db->where('reviewSongId', $songId);
+        $this->db->where('reviewActive', true);
+        $query = $this->db->get('review');
+        return $query->result() ?? false;
     }
 
     /**

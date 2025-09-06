@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<h4>Witaj w panelu zarządzania użytkownikami!</h4>
+<h2>Witaj w panelu zarządzania użytkownikami!</h2>
 <br/><br/>
-<h4>Aktywni Użytkownicy</h4>
+<h3>Aktywni Użytkownicy</h3>
 <br/><br/>
 <table>
     <tr>
@@ -15,7 +15,7 @@
             <td><?=$user->username?></td>
             <td><?=$user->role == 'user' ? "Użytkownik" : "Recenzent"?></td>
             <td><?=$user->accountLocked ? "Zablokowane" : "Aktywne"?></td>
-            <td><a href="<?=base_url('user/details?uid='.$user->id)?>">Szczegóły</a></td>
+            <td><a target="_blank" href="<?=base_url('user/details?uid='.$user->id)?>">Szczegóły</a></td>
         </tr>
     <?php endforeach; ?>
 </table>

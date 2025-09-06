@@ -114,3 +114,15 @@ SET
         THEN ps.SongGradeChurchie
         ELSE s.SongGradeChurchie
     END;
+
+ALTER DATABASE lanternc_uberrapsy
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_0900_ai_ci;
+
+SELECT CONCAT(
+  'ALTER TABLE `', TABLE_SCHEMA, '`.`', TABLE_NAME,
+  '` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;'
+) AS stmt
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'lanternc_uberrapsy'
+  AND TABLE_TYPE = 'BASE TABLE';

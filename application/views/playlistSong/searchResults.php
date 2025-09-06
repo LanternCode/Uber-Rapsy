@@ -3,19 +3,23 @@
     <a class="optionsURL" href="<?=base_url()?>">RAPPAR</a>
     <a class="optionsURL" href="#bottom">Dół Listy</a>
     <a class="optionsURL" href="#songsForm">Góra Listy</a>
-    <?php if (count($songs) > 0 && count($userOwnedPlaylistIDs) > 0): ?>
+    <?php if ($enableSave): ?>
         <input type="submit" class="optionsURL" value="Zapisz oceny" form="songsForm"/>
+    <?php endif; ?>
+    <?php if ($userLoggedIn): ?>
+        <a class="optionsURL" href="<?=base_url("logout")?>">Wyloguj się</a>
+    <?php else: ?>
+        <a class="optionsURL" href="<?=base_url("login?src=search?searchQuery=".$searchQuery)?>">Zaloguj się</a>
     <?php endif; ?>
     <form class="optionsURL optionsRight" method="get" action="<?=base_url("search")?>">
         <label class="optionsSearchLabel">Szukaj nuty</label>
-        <input type="text" placeholder="Rajaner" name="SearchQuery" />
-        <input type="hidden" value="true" name="GlobalSearch" />
+        <input type="text" placeholder="Rajaner" name="searchQuery" />
         <input type="submit" value="Szukaj" />
     </form>
 </nav>
 <br><br><br>
 <h2>Wyniki wyszukiwania!</h2>
-	<?php if (count($songs) > 0 && count($songs) < 301): ?>
+	<?php if (count($songs) > 0 && (count($songs) < 301 || $isReviewer)): ?>
         <h3>Liczba nut: <?=count($songs)?></h3>
         <form id="songsForm" method="post" action="<?=base_url('updateGradesFromSearch')?>">
             <?php

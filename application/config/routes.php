@@ -45,6 +45,7 @@ $route['song/autoSave'] = 'Song/rateSongAuto';
 $route['song/reviewSong'] = 'Song/newSongReview';
 $route['song/showReview'] = 'Song/songReview';
 $route['song/addToPlaylist'] = 'Song/addSongToPlaylist';
+$route['song/allReviews'] = 'Song/allReviews';
 
 $route['newAccount'] = 'Account/newAccount';
 $route['login'] = 'Account/login';
