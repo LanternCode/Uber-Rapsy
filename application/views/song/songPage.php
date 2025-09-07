@@ -40,7 +40,7 @@
             <div class="song-header">
                 <div class="">
                     <h2 class="song-title"><?=$song->SongURL != '' ? '<a target="_blank" href="https://youtu.be/'.$song->SongURL.'">' : ''?><?=$song->SongTitle?><?=$song->SongURL != '' ? '</a>' : ''?></h2>
-                    <p class="song-authors"><?=$song->SongChannelName?> (<?=$song->SongReleaseYear?>)</p>
+                    <p class="song-authors"><?=$song->SongChannelName?> <?=$song->SongReleaseYear > 0 ? '('.$song->SongReleaseYear.')' : ''?></p>
                 </div>
                 <div class="song-awards">
                     <?php foreach ($songAwards as $award): ?>

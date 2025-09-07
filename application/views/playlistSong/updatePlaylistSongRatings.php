@@ -2,7 +2,7 @@
 <h1>Zapisywanie ocen</h1>
 <br><br>
 <?php if ($searchQuery): ?>
-    <a href="<?=base_url('search?SearchQuery='.$searchQuery)?>">Powrót do wyników wyszukiwania</a>
+    <a href="<?=base_url('search?searchQuery='.$searchQuery)?>">Powrót do wyników wyszukiwania</a>
 <?php elseif ($saveSource == "tierlist"): ?>
     <a href="<?=base_url('tierlist?playlistId='.$playlistId.'&filter='.$filter)?>">Powrót do tierlisty</a>
 <?php else: ?>

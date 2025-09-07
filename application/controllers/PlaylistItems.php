@@ -699,26 +699,26 @@ class PlaylistItems extends CI_Controller
         $formInput['SongGradeOwner'] = $this->input->post("myNewGrade-".$i+27) ?? $currentPlaylistSong->SongGradeOwner;
 
         //Fetch playlist song buttons (checkboxes)
-        $formInput['SongRehearsal'] = $this->input->post("songRehearsal-".$i+4) ?? $currentPlaylistSong->SongRehearsal;
-        $formInput['SongDistinction'] = $this->input->post("songDistinction-".$i+5) ?? $currentPlaylistSong->SongDistinction;
-        $formInput['SongMemorial'] = $this->input->post("songMemorial-".$i+6) ?? $currentPlaylistSong->SongMemorial;
-        $formInput['SongXD'] = $this->input->post("songXD-".$i+7) ?? $currentPlaylistSong->SongXD;
-        $formInput['SongNotRap'] = $this->input->post("songNotRap-".$i+8) ?? $currentPlaylistSong->SongNotRap;
-        $formInput['SongDiscomfort'] = $this->input->post("songDiscomfort-".$i+9) ?? $currentPlaylistSong->SongDiscomfort;
-        $formInput['SongDepA'] = $this->input->post("songDepA-".$i+26) ?? $currentPlaylistSong->SongDepA;
-        $formInput['SongTop'] = $this->input->post("songTop-".$i+10) ?? $currentPlaylistSong->SongTop;
-        $formInput['SongNoGrade'] = $this->input->post("songNoGrade-".$i+11) ?? $currentPlaylistSong->SongNoGrade;
-        $formInput['SongUber'] = $this->input->post("songUber-".$i+12) ?? $currentPlaylistSong->SongUber;
-        $formInput['SongBelow'] = $this->input->post("songBelow-".$i+13) ?? $currentPlaylistSong->SongBelow;
-        $formInput['SongBelTen'] = $this->input->post("songBelTen-".$i+14) ?? $currentPlaylistSong->SongBelTen;
-        $formInput['SongBelNine'] = $this->input->post("songBelNine-".$i+15) ?? $currentPlaylistSong->SongBelNine;
-        $formInput['SongBelEight'] = $this->input->post("songBelEight-".$i+16) ?? $currentPlaylistSong->SongBelEight;
-        $formInput['SongBelFour'] = $this->input->post("songBelFour-".$i+17) ?? $currentPlaylistSong->SongBelFour;
-        $formInput['SongDuoTen'] = $this->input->post("songDuoTen-".$i+18) ?? $currentPlaylistSong->SongDuoTen;
-        $formInput['SongVeto'] = $this->input->post("songVeto-".$i+19) ?? $currentPlaylistSong->SongVeto;
-        $formInput['SongBelHalfSeven'] = $this->input->post("SongBelHalfSeven-".$i+23) ?? $currentPlaylistSong->SongBelHalfSeven;
-        $formInput['SongBelHalfEight'] = $this->input->post("SongBelHalfEight-".$i+24) ?? $currentPlaylistSong->SongBelHalfEight;
-        $formInput['SongBelHalfNine'] = $this->input->post("SongBelHalfNine-".$i+25) ?? $currentPlaylistSong->SongBelHalfNine;
+        $formInput['SongRehearsal'] = $this->input->post("songRehearsal-".$i+4) ?? 0;
+        $formInput['SongDistinction'] = $this->input->post("songDistinction-".$i+5) ?? 0;
+        $formInput['SongMemorial'] = $this->input->post("songMemorial-".$i+6) ?? 0;
+        $formInput['SongXD'] = $this->input->post("songXD-".$i+7) ?? 0;
+        $formInput['SongNotRap'] = $this->input->post("songNotRap-".$i+8) ?? 0;
+        $formInput['SongDiscomfort'] = $this->input->post("songDiscomfort-".$i+9) ?? 0;
+        $formInput['SongDepA'] = $this->input->post("songDepA-".$i+26) ?? 0;
+        $formInput['SongTop'] = $this->input->post("songTop-".$i+10) ?? 0;
+        $formInput['SongNoGrade'] = $this->input->post("songNoGrade-".$i+11) ?? 0;
+        $formInput['SongUber'] = $this->input->post("songUber-".$i+12) ?? 0;
+        $formInput['SongBelow'] = $this->input->post("songBelow-".$i+13) ?? 0;
+        $formInput['SongBelTen'] = $this->input->post("songBelTen-".$i+14) ?? 0;
+        $formInput['SongBelNine'] = $this->input->post("songBelNine-".$i+15) ?? 0;
+        $formInput['SongBelEight'] = $this->input->post("songBelEight-".$i+16) ?? 0;
+        $formInput['SongBelFour'] = $this->input->post("songBelFour-".$i+17) ?? 0;
+        $formInput['SongDuoTen'] = $this->input->post("songDuoTen-".$i+18) ?? 0;
+        $formInput['SongVeto'] = $this->input->post("songVeto-".$i+19) ?? 0;
+        $formInput['SongBelHalfSeven'] = $this->input->post("SongBelHalfSeven-".$i+23) ?? 0;
+        $formInput['SongBelHalfEight'] = $this->input->post("SongBelHalfEight-".$i+24) ?? 0;
+        $formInput['SongBelHalfNine'] = $this->input->post("SongBelHalfNine-".$i+25) ?? 0;
 
         //Move and copy song select boxes
         $formInput['newPlaylistId'] = $this->input->post("newPlaylistId-".$i+3);

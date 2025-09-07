@@ -1,7 +1,7 @@
 *{
     box-sizing: border-box;
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
 }
 
 html {
@@ -191,7 +191,6 @@ html {
 .omniNav {
     color: white;
     background-color: black;
-    position: block;
     width: 98vw;
     height: 50px;
 }

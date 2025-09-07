@@ -89,6 +89,14 @@ const commentBoxes = document.querySelectorAll(".commentBox");
 for (let i = 0; i < gradeBoxes.length; ++i) {
   gradeBoxes[i].addEventListener('input', () => { updateAverage(gradeBoxes[i]); });
   gradeBoxes[i].addEventListener('input', () => { toggleUpdate(gradeBoxes[i]); });
+
+  //Set the field to 0 if the user leaves it empty
+  gradeBoxes[i].addEventListener('blur', () => {
+    if (gradeBoxes[i].value.trim() === '') {
+      gradeBoxes[i].value = '0';
+      updateAverage(gradeBoxes[i]);
+    }
+  });
 }
 
 for (let i = 0; i < selectBoxes.length; ++i) {

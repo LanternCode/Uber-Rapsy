@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1:3306
--- Generation Time: Aug 17, 2025 at 10:24 AM
--- Server version: 9.1.0
--- PHP Version: 8.1.31
+-- Host: localhost
+-- Generation Time: Sep 07, 2025 at 12:05 PM
+-- Server version: 10.6.22-MariaDB-cll-lve
+-- PHP Version: 8.2.29
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,7 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `lanternc_uberrapsy`
 --
-CREATE DATABASE IF NOT EXISTS `lanternc_uberrapsy` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci;
+CREATE DATABASE IF NOT EXISTS `lanternc_uberrapsy` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `lanternc_uberrapsy`;
 
 -- --------------------------------------------------------
@@ -29,16 +29,15 @@ USE `lanternc_uberrapsy`;
 -- Table structure for table `list`
 --
 
-DROP TABLE IF EXISTS `list`;
 CREATE TABLE IF NOT EXISTS `list` (
-  `ListId` int NOT NULL AUTO_INCREMENT,
-  `ListUrl` varchar(255) COLLATE utf8mb3_polish_ci DEFAULT NULL,
-  `ListName` varchar(50) COLLATE utf8mb3_polish_ci NOT NULL,
-  `ListDesc` text COLLATE utf8mb3_polish_ci NOT NULL,
-  `ListCreatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ListId` int(11) NOT NULL AUTO_INCREMENT,
+  `ListUrl` varchar(255) DEFAULT NULL,
+  `ListName` varchar(50) NOT NULL,
+  `ListDesc` mediumtext NOT NULL,
+  `ListCreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
   `ListIntegrated` tinyint(1) NOT NULL,
   `ListPublic` bit(1) NOT NULL DEFAULT b'1',
-  `ListOwnerId` int NOT NULL COMMENT 'Id of the user who created/owns the playlist',
+  `ListOwnerId` int(11) NOT NULL COMMENT 'Id of the user who created/owns the playlist',
   `btnRehearsal` bit(1) NOT NULL DEFAULT b'1',
   `btnDistinction` bit(1) NOT NULL DEFAULT b'1',
   `btnMemorial` bit(1) NOT NULL DEFAULT b'1',
@@ -61,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `list` (
   `btnDepA` bit(1) NOT NULL DEFAULT b'1',
   `ListActive` bit(1) NOT NULL DEFAULT b'1' COMMENT 'An inactive list is archived',
   PRIMARY KEY (`ListId`)
-) ENGINE=MyISAM AUTO_INCREMENT=98 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_polish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -69,17 +68,16 @@ CREATE TABLE IF NOT EXISTS `list` (
 -- Table structure for table `log`
 --
 
-DROP TABLE IF EXISTS `log`;
 CREATE TABLE IF NOT EXISTS `log` (
-  `LogId` int NOT NULL AUTO_INCREMENT,
-  `UserId` int NOT NULL COMMENT 'User ID of who performed the action',
-  `EntityType` varchar(13) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'Must be a valid database entity (user/song/playlist)',
-  `EntityId` int NOT NULL COMMENT 'Id of the entity logged',
-  `Description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci NOT NULL,
-  `Timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `reportId` int NOT NULL DEFAULT '0' COMMENT 'If a report was generated, its id will be attached here',
+  `LogId` int(11) NOT NULL AUTO_INCREMENT,
+  `UserId` int(11) NOT NULL COMMENT 'User ID of who performed the action',
+  `EntityType` varchar(13) NOT NULL COMMENT 'Must be a valid database entity (user/song/playlist)',
+  `EntityId` int(11) NOT NULL COMMENT 'Id of the entity logged',
+  `Description` text NOT NULL,
+  `Timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `reportId` int(11) NOT NULL DEFAULT 0 COMMENT 'If a report was generated, its id will be attached here',
   PRIMARY KEY (`LogId`)
-) ENGINE=MyISAM AUTO_INCREMENT=522 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -87,15 +85,14 @@ CREATE TABLE IF NOT EXISTS `log` (
 -- Table structure for table `playlist_song`
 --
 
-DROP TABLE IF EXISTS `playlist_song`;
 CREATE TABLE IF NOT EXISTS `playlist_song` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `songId` int NOT NULL,
-  `listId` int NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `songId` int(11) NOT NULL,
+  `listId` int(11) NOT NULL,
   `SongGradeAdam` decimal(10,2) NOT NULL,
   `SongGradeChurchie` decimal(10,2) NOT NULL,
   `SongGradeOwner` decimal(10,2) NOT NULL,
-  `SongComment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `SongComment` text NOT NULL,
   `SongRehearsal` bit(1) NOT NULL DEFAULT b'0',
   `SongDistinction` bit(1) NOT NULL DEFAULT b'0',
   `SongMemorial` bit(1) NOT NULL DEFAULT b'0',
@@ -116,12 +113,12 @@ CREATE TABLE IF NOT EXISTS `playlist_song` (
   `SongBelHalfEight` bit(1) NOT NULL DEFAULT b'0',
   `SongBelHalfNine` bit(1) NOT NULL DEFAULT b'0',
   `SongDepA` bit(1) NOT NULL DEFAULT b'0',
-  `SongPlaylistItemsId` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci DEFAULT NULL,
+  `SongPlaylistItemsId` varchar(255) DEFAULT NULL,
   `SongVisible` bit(1) NOT NULL DEFAULT b'1',
   `SongDeleted` bit(1) NOT NULL DEFAULT b'0',
   PRIMARY KEY (`id`),
   KEY `songId` (`songId`)
-) ENGINE=MyISAM AUTO_INCREMENT=1939 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -129,12 +126,11 @@ CREATE TABLE IF NOT EXISTS `playlist_song` (
 -- Table structure for table `report`
 --
 
-DROP TABLE IF EXISTS `report`;
 CREATE TABLE IF NOT EXISTS `report` (
-  `reportId` int NOT NULL AUTO_INCREMENT,
-  `reportText` text CHARACTER SET utf8mb3 COLLATE utf8mb3_polish_ci NOT NULL,
+  `reportId` int(10) NOT NULL AUTO_INCREMENT,
+  `reportText` mediumtext NOT NULL,
   PRIMARY KEY (`reportId`)
-) ENGINE=MyISAM AUTO_INCREMENT=513 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -142,27 +138,26 @@ CREATE TABLE IF NOT EXISTS `report` (
 -- Table structure for table `review`
 --
 
-DROP TABLE IF EXISTS `review`;
 CREATE TABLE IF NOT EXISTS `review` (
-  `reviewId` int NOT NULL AUTO_INCREMENT,
-  `reviewTitle` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `reviewText` int NOT NULL,
-  `reviewMusic` int NOT NULL,
-  `reviewComp` int NOT NULL,
-  `reviewUber` int NOT NULL,
-  `reviewPartner` int NOT NULL,
-  `reviewUnique` int NOT NULL,
-  `reviewStyle` int NOT NULL,
-  `reviewReflective` int NOT NULL,
-  `reviewMotive` int NOT NULL,
+  `reviewId` int(11) NOT NULL AUTO_INCREMENT,
+  `reviewTitle` varchar(120) NOT NULL,
+  `reviewText` int(2) NOT NULL,
+  `reviewMusic` int(2) NOT NULL,
+  `reviewComp` int(11) NOT NULL,
+  `reviewUber` int(11) NOT NULL,
+  `reviewPartner` int(11) NOT NULL,
+  `reviewUnique` int(11) NOT NULL,
+  `reviewStyle` int(11) NOT NULL,
+  `reviewReflective` int(11) NOT NULL,
+  `reviewMotive` int(11) NOT NULL,
   `reviewDate` date NOT NULL,
-  `reviewInsertDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reviewInsertDate` timestamp NOT NULL DEFAULT current_timestamp(),
   `reviewActive` bit(1) NOT NULL DEFAULT b'1',
-  `reviewTextContent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `reviewSongId` int NOT NULL,
-  `reviewUserId` int NOT NULL,
+  `reviewTextContent` text NOT NULL,
+  `reviewSongId` int(11) NOT NULL,
+  `reviewUserId` int(11) NOT NULL,
   PRIMARY KEY (`reviewId`)
-) ENGINE=MyISAM AUTO_INCREMENT=35 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -170,21 +165,20 @@ CREATE TABLE IF NOT EXISTS `review` (
 -- Table structure for table `song`
 --
 
-DROP TABLE IF EXISTS `song`;
 CREATE TABLE IF NOT EXISTS `song` (
-  `SongId` int NOT NULL AUTO_INCREMENT,
-  `SongAddedBy` int NOT NULL COMMENT 'user id',
-  `SongURL` varchar(11) CHARACTER SET utf8mb3 COLLATE utf8mb3_polish_ci DEFAULT NULL COMMENT 'YouTube song ID',
-  `SongThumbnailURL` varchar(255) COLLATE utf8mb3_polish_ci NOT NULL,
-  `SongTitle` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `SongChannelName` varchar(50) COLLATE utf8mb3_polish_ci NOT NULL,
-  `SongReleaseYear` int NOT NULL,
+  `SongId` int(11) NOT NULL AUTO_INCREMENT,
+  `SongAddedBy` int(11) NOT NULL COMMENT 'user id',
+  `SongURL` varchar(11) DEFAULT NULL COMMENT 'YouTube song ID',
+  `SongThumbnailURL` varchar(255) NOT NULL,
+  `SongTitle` text NOT NULL,
+  `SongChannelName` varchar(50) NOT NULL,
+  `SongReleaseYear` int(11) NOT NULL,
   `SongGradeAdam` decimal(10,2) NOT NULL,
   `SongGradeChurchie` decimal(10,2) NOT NULL,
   `SongVisible` bit(1) NOT NULL DEFAULT b'1',
   `SongDeleted` bit(1) NOT NULL DEFAULT b'0',
   PRIMARY KEY (`SongId`)
-) ENGINE=MyISAM AUTO_INCREMENT=9332 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_polish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -192,13 +186,12 @@ CREATE TABLE IF NOT EXISTS `song` (
 -- Table structure for table `song_award`
 --
 
-DROP TABLE IF EXISTS `song_award`;
 CREATE TABLE IF NOT EXISTS `song_award` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `songId` int NOT NULL,
-  `award` varchar(22) COLLATE utf8mb4_polish_ci NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `songId` int(11) NOT NULL,
+  `award` varchar(22) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -206,15 +199,14 @@ CREATE TABLE IF NOT EXISTS `song_award` (
 -- Table structure for table `song_rating`
 --
 
-DROP TABLE IF EXISTS `song_rating`;
 CREATE TABLE IF NOT EXISTS `song_rating` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `songId` int NOT NULL,
-  `userId` int NOT NULL,
-  `songGrade` decimal(4,2) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `songId` int(11) NOT NULL,
+  `userId` int(11) NOT NULL,
+  `songGrade` decimal(2,2) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_rating` (`userId`,`songId`)
-) ENGINE=MyISAM AUTO_INCREMENT=156 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_polish_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -222,28 +214,18 @@ CREATE TABLE IF NOT EXISTS `song_rating` (
 -- Table structure for table `user`
 --
 
-DROP TABLE IF EXISTS `user`;
 CREATE TABLE IF NOT EXISTS `user` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(22) CHARACTER SET utf8mb4 COLLATE utf8mb4_polish_ci NOT NULL,
-  `email` varchar(50) COLLATE utf8mb3_polish_ci NOT NULL,
-  `password` varchar(128) COLLATE utf8mb3_polish_ci NOT NULL,
-  `role` varchar(10) COLLATE utf8mb3_polish_ci NOT NULL,
-  `passwordResetKey` varchar(255) COLLATE utf8mb3_polish_ci DEFAULT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(22) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `password` varchar(128) NOT NULL,
+  `role` varchar(10) NOT NULL,
+  `passwordResetKey` varchar(255) DEFAULT NULL,
   `accountLocked` bit(1) NOT NULL DEFAULT b'0',
-  `userScore` int NOT NULL DEFAULT '0',
-  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `userScore` int(11) NOT NULL DEFAULT 0,
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_polish_ci;
-
---
--- Dumping data for table `user`
---
-
-INSERT INTO `user` (`id`, `username`, `email`, `password`, `role`, `passwordResetKey`, `accountLocked`, `userScore`, `createdAt`) VALUES
-(1, 'RAPPAR', 'admin@uberrapsy.pl', '$2y$10$vfZ6VKeFebqf3ObRtTswIudK1MJE95Fxn4S/LO1QQAwZirmZih7JK', 'reviewer', NULL, b'0', 458, '2025-08-09 13:56:09'),
-(22, 'tester', 'tester@gmail.com', '$2y$10$OyIkAwroCNRZWMJSA.6i2uEN.x2dYw.bNfap8GZ0WBNGzfoM1TsgC', 'user', NULL, b'0', 122, '2025-08-09 13:56:09'),
-(21, 'Adam Macc', 'adam.machowczyk@gmail.com', '$2y$10$.B0h4kWRDCVGXsJJKW7AVeRaEXFfSdJpiYuqGkOAixU3Kf/bfotl6', 'user', NULL, b'0', 75, '2025-08-09 13:56:09');
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -352,7 +352,7 @@ class Account extends CI_Controller
             redirect('errors/403-404');
 
         $data = array(
-            'body' => 'Account/userProfile',
+            'body' => 'account/userProfile',
             'title' => 'Profil użytkownika '.$user->username,
             'playlists' => $this->PlaylistModel->fetchUserPlaylists($userId),
             'profile' => $user,
@@ -383,7 +383,7 @@ class Account extends CI_Controller
             redirect('errors/403-404');
 
         $data = array(
-            'body' => 'Account/switchAccountStatus',
+            'body' => 'account/switchAccountStatus',
             'title' => 'Profil użytkownika '.$user->username.' | Zmień status konta',
             'profile' => $user,
             'logs' => $this->LogModel->getUserLogs($userId),

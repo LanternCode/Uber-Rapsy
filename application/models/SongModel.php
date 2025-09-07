@@ -184,6 +184,7 @@ class SongModel extends CI_Model
 
         $query = $this->db->query($sql, [$songId, $songId, $songId]);
         $row = $query->row();
+
         return $row->avg_rating ? number_format($row->avg_rating, 2) : 0;
     }
 

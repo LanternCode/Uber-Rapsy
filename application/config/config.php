@@ -5,7 +5,9 @@ ini_set("memory_limit","256M");
 
 //Maintenance mode
 $config['maintenance_mode'] = false;
-$config['maintenance_ips'] = array('0.0.0.0', '1.1.1.1', '2.2.2.2');
+
+$ip_file = APPPATH.'api/maintenance_ips.txt';
+$config['maintenance_ips'] = file_get_contents($ip_file);
 
 /*
 |--------------------------------------------------------------------------

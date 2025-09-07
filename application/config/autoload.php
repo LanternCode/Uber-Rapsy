@@ -10,7 +10,7 @@
 |
 */
 $autoload['packages'] = array();
-$autoload['libraries'] = array('database', 'form_validation', 'session', 'htmlsanitiser');
+$autoload['libraries'] = array('database', 'form_validation', 'session', 'HtmlSanitiser');
 $autoload['drivers'] = array();
 $autoload['helper'] = array('html', 'url', 'text', 'form','string', 'inflection');
 $autoload['config'] = array();

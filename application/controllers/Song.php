@@ -824,10 +824,10 @@ class Song extends CI_Controller
                 redirect('errors/403-404');
 
             //Check if the song already exists in the playlist to avoid inserting duplicates
-            if ($this->PlaylistSongModel->playlistSongExists($listId, $data['songId']))
+            if ($this->PlaylistSongModel->playlistSongExists($listId, $songId))
                 $data['songNotUniqueError'] = true;
             else {
-                $this->PlaylistSongModel->insertPlaylistSong($listId, $data['songId']);
+                $this->PlaylistSongModel->insertPlaylistSong($listId, $songId);
                 $data['success'] = true;
             }
         }
