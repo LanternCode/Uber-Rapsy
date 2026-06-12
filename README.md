@@ -1,5 +1,5 @@
 ﻿# RAPPAR
-Formerly known as Uber Rapsy, RAPPAR is an app dedicated to reviewing Polish Hip-Hop music.
+Formerly known as Uber Rapsy, RAPPAR is a fullstack web application dedicated to reviewing Polish Hip-Hop music.
 
 ## Project Configuration
 1. Include client_secret.json into the "application/api" directory.
